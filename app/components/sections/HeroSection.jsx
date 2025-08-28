@@ -9,22 +9,22 @@ const HeroSection = () => {
     {
       src: "https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3",
       alt: "African farm produce",
-      className: "rounded-lg shadow-lg object-cover h-48"
+      className: "rounded-lg shadow-lg object-cover flex-1"
     },
     {
       src: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3",
       alt: "Handcrafted pottery",
-      className: "rounded-lg shadow-lg object-cover h-48 mt-8"
+      className: "rounded-lg shadow-lg object-cover flex-1"
     },
     {
       src: "https://images.unsplash.com/photo-1594736797933-d0b22d7f2d04?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3",
       alt: "African textiles",
-      className: "rounded-lg shadow-lg object-cover h-48 -mt-8"
+      className: "rounded-lg shadow-lg object-cover flex-1"
     },
     {
       src: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3",
       alt: "Spices and herbs",
-      className: "rounded-lg shadow-lg object-cover h-48"
+      className: "rounded-lg shadow-lg object-cover flex-1"
     }
   ];
 
@@ -42,14 +42,14 @@ const HeroSection = () => {
   ];
 
   return (
-    <section className="relative bg-gradient-to-r from-orange-500 to-green-600 text-white overflow-hidden">
+    <section className="relative bg-gradient-to-r from-orange-500 to-green-600 text-white overflow-hidden min-h-screen">
       {/* Background Overlay */}
       <div className="absolute inset-0 bg-black/20"></div>
       
-      <div className="relative max-w-7xl mx-auto px-6 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <div className="relative max-w-7xl mx-auto px-6 py-16">
+        <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[60vh]">
           {/* Content */}
-          <div className="space-y-6">
+          <div className="space-y-6 flex flex-col justify-center">
             <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
               Africa&apos;s Finest Goods, Delivered Globally
             </h1>
@@ -85,19 +85,20 @@ const HeroSection = () => {
             </div>
           </div>
           
-          {/* Images Grid */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Images Row */}
+          <div className="flex h-[60vh] overflow-hidden">
             {heroImages.map((image, index) => (
-              <Image
-                key={index}
-                src={image.src}
-                alt={image.alt}
-                width={400}
-                height={192}
-                className={image.className}
-                placeholder="blur"
-                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-              />
+              <div key={index} className="flex-1 h-full">
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  width={400}
+                  height={600}
+                  className="w-full h-full object-cover"
+                  placeholder="blur"
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+                />
+              </div>
             ))}
           </div>
         </div>

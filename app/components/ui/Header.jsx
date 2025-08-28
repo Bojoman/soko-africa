@@ -11,6 +11,7 @@ const Header = () => {
     { name: 'All Categories', href: '/categories' },
     { name: 'About SokoAfrica', href: '/about' },
     { name: 'Nyamazone Meats', href: '/nyamazone' },
+    { name: 'Partner with Us', href: '/partner' },
     { name: 'Become a Seller', href: '/sell' },
     { name: 'Browse Categories', href: '/categories' },
   ];
@@ -75,6 +76,9 @@ const Header = () => {
               </Link>
               <Link href="/nyamazone" className="text-gray-700 hover:text-orange-600 transition-colors">
                 Nyamazone
+              </Link>
+              <Link href="/partner" className="text-gray-700 hover:text-orange-600 transition-colors">
+                Partner
               </Link>
               <Link href="/sell" className="text-gray-700 hover:text-orange-600 transition-colors">
                 Sell
