@@ -156,7 +156,7 @@ const PartnerPage = () => {
               return (
                 <div key={index} className="text-center p-6 rounded-lg border border-gray-200 hover:shadow-lg transition-shadow">
                   <IconComponent className="mx-auto mb-4 text-orange-500" size={48} />
-                  <h3 className="font-semibold text-lg mb-2">{benefit.title}</h3>
+                  <h3 className="font-semibold text-lg mb-2 text-amber-400">{benefit.title}</h3>
                   <p className="text-gray-600">{benefit.description}</p>
                 </div>
               );
@@ -182,7 +182,7 @@ const PartnerPage = () => {
                     </div>
                     <IconComponent className="text-orange-500" size={24} />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">{step.title}</h3>
+                  <h3 className="font-semibold text-lg mb-2 text-amber-400">{step.title}</h3>
                   <p className="text-gray-600">{step.description}</p>
                 </div>
               );
@@ -427,23 +427,23 @@ const PartnerPage = () => {
                              <h3 className="text-2xl font-semibold mb-6 text-orange-600">A. Product Upload Template</h3>
               <div className="space-y-4">
                 <div className="border-l-4 border-orange-500 pl-4">
-                  <h4 className="font-semibold">Product Title</h4>
+                  <h4 className="font-semibold text-amber-400">Product Title</h4>
                   <p className="text-gray-600">Clear, concise name (e.g., "Handmade Leather Wallet – Brown")</p>
                 </div>
                 <div className="border-l-4 border-orange-500 pl-4">
-                  <h4 className="font-semibold">Category</h4>
+                  <h4 className="font-semibold text-amber-400">Category</h4>
                   <p className="text-gray-600">Choose from dropdown (e.g, Handcrafted goods  Maasai Market)</p>
                 </div>
                 <div className="border-l-4 border-orange-500 pl-4">
-                  <h4 className="font-semibold">Price</h4>
+                  <h4 className="font-semibold text-amber-400">Price</h4>
                   <p className="text-gray-600">In local currency (e.g., KES 2,500 or USD 20)</p>
                 </div>
                 <div className="border-l-4 border-orange-500 pl-4">
-                  <h4 className="font-semibold">Stock Quantity</h4>
+                  <h4 className="font-semibold text-amber-400">Stock Quantity</h4>
                   <p className="text-gray-600">Total items available</p>
                 </div>
                 <div className="border-l-4 border-orange-500 pl-4">
-                  <h4 className="font-semibold">Product Description</h4>
+                  <h4 className="font-semibold text-amber-400">Product Description</h4>
                   <ul className="text-gray-600 text-sm ml-4 list-disc">
                     <li>Features</li>
                     <li>Benefits</li>
@@ -460,7 +460,7 @@ const PartnerPage = () => {
                              <h3 className="text-2xl font-semibold mb-6 text-orange-600">B. Upload Photos</h3>
               <p className="mb-4 text-gray-700">Upload up to 5 images per product.</p>
               <div className="space-y-3">
-                <h4 className="font-semibold text-lg">Photo Guidelines:</h4>
+                <h4 className="font-semibold text-lg text-amber-400">Photo Guidelines:</h4>
                 <div className="space-y-2">
                   {[
                     "White or neutral background",
@@ -576,17 +576,17 @@ const PartnerPage = () => {
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             <div className="text-center p-6 bg-gray-50 rounded-lg">
               <MessageCircle className="mx-auto mb-4 text-orange-500" size={48} />
-              <h3 className="font-semibold text-lg mb-2">Live Chat</h3>
+              <h3 className="font-semibold text-lg mb-2 text-amber-400">Live Chat</h3>
               <p className="text-gray-600">Get instant help during business hours</p>
             </div>
             <div className="text-center p-6 bg-gray-50 rounded-lg">
               <Mail className="mx-auto mb-4 text-orange-500" size={48} />
-              <h3 className="font-semibold text-lg mb-2">Email Support</h3>
+              <h3 className="font-semibold text-lg mb-2 text-amber-400">Email Support</h3>
               <p className="text-gray-600">support@sokoafrica.com</p>
             </div>
             <div className="text-center p-6 bg-gray-50 rounded-lg">
               <Calendar className="mx-auto mb-4 text-orange-500" size={48} />
-              <h3 className="font-semibold text-lg mb-2">Training Webinars</h3>
+              <h3 className="font-semibold text-lg mb-2 text-amber-400">Training Webinars</h3>
               <p className="text-gray-600">Scheduled seller training sessions</p>
             </div>
           </div>

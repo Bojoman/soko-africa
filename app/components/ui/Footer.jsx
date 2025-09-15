@@ -22,7 +22,7 @@ const Footer = () => {
       links: [
         { name: "Sell Products on SokoAfrica", href: "/sell" },
         { name: "Sell on Soko Africa Business (B2B)", href: "/business" },
-        { name: "Partner with Us", href: "/partners" },
+        { name: "Partner with Us", href: "/partner" },
         { name: "Nyamazone Suppliers", href: "/suppliers" },
         { name: "Affiliate Program", href: "/affiliates" },
       ]

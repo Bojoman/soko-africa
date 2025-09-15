@@ -141,7 +141,7 @@ export default function SellerDashboard() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Dashboard Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Seller Dashboard</h1>
+          <h1 className="text-3xl font-bold mb-2 text-orange-600">Seller Dashboard</h1>
           <p className="text-gray-600">Manage your products, orders, and analytics</p>
         </div>
 
@@ -228,7 +228,7 @@ export default function SellerDashboard() {
           <div className="space-y-8">
             {/* Quick Actions */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+              <h2 className="text-xl font-semibold mb-4 text-orange-600">Quick Actions</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button
                   onClick={() => setShowAddProduct(true)}
@@ -236,7 +236,7 @@ export default function SellerDashboard() {
                 >
                   <Plus className="text-orange-600" size={24} />
                   <div className="text-left">
-                    <p className="font-medium">Add New Product</p>
+                    <p className="font-medium text-amber-400">Add New Product</p>
                     <p className="text-sm text-gray-600">List a new product for sale</p>
                   </div>
                 </button>
@@ -245,7 +245,7 @@ export default function SellerDashboard() {
                   <div className="flex items-center space-x-3 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
                     <ShoppingCart className="text-blue-600" size={24} />
                     <div className="text-left">
-                      <p className="font-medium">Manage Orders</p>
+                      <p className="font-medium text-amber-400">Manage Orders</p>
                       <p className="text-sm text-gray-600">{stats.pendingOrders} pending orders</p>
                     </div>
                   </div>
@@ -255,7 +255,7 @@ export default function SellerDashboard() {
                   <div className="flex items-center space-x-3 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
                     <BarChart3 className="text-green-600" size={24} />
                     <div className="text-left">
-                      <p className="font-medium">View Analytics</p>
+                      <p className="font-medium text-amber-400">View Analytics</p>
                       <p className="text-sm text-gray-600">Track your performance</p>
                     </div>
                   </div>
@@ -266,7 +266,7 @@ export default function SellerDashboard() {
             {/* Recent Orders */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Recent Orders</h2>
+                <h2 className="text-xl font-semibold text-orange-600">Recent Orders</h2>
                 <Link href="/seller/orders" className="text-orange-600 hover:text-orange-700 text-sm font-medium">
                   View All
                 </Link>

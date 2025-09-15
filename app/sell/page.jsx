@@ -177,7 +177,7 @@ export default function SellPage() {
         <section id="learn-more" className="py-16 bg-gray-100">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Why Sell on Soko Africa?</h2>
+              <h2 className="text-3xl font-bold mb-4 text-orange-600">Why Sell on Soko Africa?</h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 Join Africa's largest marketplace for authentic products and grow your business with our powerful seller tools.
               </p>
@@ -191,7 +191,7 @@ export default function SellPage() {
                     <div className={`${benefit.color} p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center`}>
                       <IconComponent className="text-white" size={28} />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">{benefit.title}</h3>
+                    <h3 className="font-semibold text-lg mb-2 text-amber-400">{benefit.title}</h3>
                     <p className="text-gray-600">{benefit.description}</p>
                   </div>
                 );
@@ -204,7 +204,7 @@ export default function SellPage() {
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">How It Works</h2>
+              <h2 className="text-3xl font-bold mb-4 text-orange-600">How It Works</h2>
               <p className="text-xl text-gray-600">
                 Get started selling in just 4 simple steps
               </p>
@@ -219,7 +219,7 @@ export default function SellPage() {
                   <div className="bg-orange-600 text-white w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-4 text-sm font-bold">
                     {step.step}
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">{step.title}</h3>
+                  <h3 className="font-semibold text-lg mb-2 text-amber-400">{step.title}</h3>
                   <p className="text-gray-600">{step.description}</p>
                 </div>
               ))}
@@ -232,7 +232,7 @@ export default function SellPage() {
           <div className="max-w-4xl mx-auto px-6">
             <div className="bg-white rounded-lg shadow-lg p-8">
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold mb-4">Apply to Become a Seller</h2>
+                <h2 className="text-3xl font-bold mb-4 text-orange-600">Apply to Become a Seller</h2>
                 <p className="text-gray-600">
                   Fill out this form and we'll get back to you within 24 hours
                 </p>
@@ -371,7 +371,7 @@ export default function SellPage() {
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Seller Success Stories</h2>
+              <h2 className="text-3xl font-bold mb-4 text-orange-600">Seller Success Stories</h2>
               <p className="text-xl text-gray-600">
                 Real stories from real sellers who found success on Soko Africa
               </p>
@@ -408,7 +408,7 @@ export default function SellPage() {
                       className="w-15 h-15 rounded-full mr-4"
                     />
                     <div>
-                      <h4 className="font-semibold">{seller.name}</h4>
+                      <h4 className="font-semibold text-amber-400">{seller.name}</h4>
                       <p className="text-sm text-gray-600">{seller.business}</p>
                     </div>
                   </div>

@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import Header from '../../../components/ui/Header';
-import Footer from '../../../components/ui/Footer';
+import Header from '../../components/ui/Header';
+import Footer from '../../components/ui/Footer';
+
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 
 export default function LoginPage() {

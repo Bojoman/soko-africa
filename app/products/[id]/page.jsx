@@ -33,7 +33,7 @@ export default function ProductDetailPage({ params }) {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('description');
 
-  // Sample product data - in real app, this would come from API
+  // Sample product data - this will come from API
   const sampleProduct = {
     id: resolvedParams.id,
     name: 'Fresh Kenyan Avocadoes (6 pack)',

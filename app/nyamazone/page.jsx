@@ -219,7 +219,7 @@ export default function NyamazonePage() {
         <section className="py-16 bg-gray-100">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Why Choose Nyamazone?</h2>
+              <h2 className="text-3xl font-bold mb-4 text-orange-600">Why Choose Nyamazone?</h2>
               <p className="text-xl text-gray-600">
                 Quality, freshness, and reliability in every delivery
               </p>
@@ -233,7 +233,7 @@ export default function NyamazonePage() {
                     <div className={`${feature.color} p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center`}>
                       <IconComponent className="text-white" size={28} />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
+                    <h3 className="font-semibold text-lg mb-2 text-amber-400">{feature.title}</h3>
                     <p className="text-gray-600">{feature.description}</p>
                   </div>
                 );
@@ -247,7 +247,7 @@ export default function NyamazonePage() {
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12">
               <div>
-                <h2 className="text-3xl font-bold mb-4">Our Products</h2>
+                <h2 className="text-3xl font-bold mb-4 text-orange-600">Our Products</h2>
                 <p className="text-xl text-gray-600">
                   Premium cuts from trusted African suppliers
                 </p>
@@ -288,14 +288,14 @@ export default function NyamazonePage() {
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl font-bold mb-6">Delivery & Freshness</h2>
+                <h2 className="text-3xl font-bold mb-6 text-orange-600">Delivery & Freshness</h2>
                 <div className="space-y-6">
                   <div className="flex items-start space-x-4">
                     <div className="bg-red-100 p-3 rounded-full">
                       <Thermometer className="text-red-600" size={24} />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg mb-2">Cold Chain Logistics</h3>
+                      <h3 className="font-semibold text-lg mb-2 text-amber-400">Cold Chain Logistics</h3>
                       <p className="text-gray-600">
                         Our temperature-controlled delivery system maintains optimal freshness 
                         from processing to your doorstep.
@@ -308,7 +308,7 @@ export default function NyamazonePage() {
                       <Clock className="text-red-600" size={24} />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg mb-2">Same Day Delivery</h3>
+                      <h3 className="font-semibold text-lg mb-2 text-amber-400">Same Day Delivery</h3>
                       <p className="text-gray-600">
                         Order before 2 PM and receive your fresh meat products the same day 
                         in Nairobi, Lagos, Cape Town, and other major cities.
@@ -321,7 +321,7 @@ export default function NyamazonePage() {
                       <MapPin className="text-red-600" size={24} />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg mb-2">Coverage Areas</h3>
+                      <h3 className="font-semibold text-lg mb-2 text-amber-400">Coverage Areas</h3>
                       <p className="text-gray-600">
                         Currently serving 15 major African cities with plans to expand 
                         to rural areas and international markets.

@@ -171,7 +171,7 @@ export default function CategoriesPage() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">Shop by Category</h1>
+          <h1 className="text-3xl font-bold mb-4 text-orange-600">Shop by Category</h1>
           <p className="text-gray-600">
             Discover authentic African products from trusted artisans and producers
           </p>
@@ -179,7 +179,7 @@ export default function CategoriesPage() {
 
         {/* Categories Grid */}
         <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Browse Categories</h2>
+          <h2 className="text-2xl font-bold mb-6 text-orange-600">Browse Categories</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {PRODUCT_CATEGORIES.map((category, index) => (
               <CategoryCard
@@ -201,13 +201,13 @@ export default function CategoriesPage() {
             {/* Search */}
             <div className="flex-1 max-w-md">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black-400" size={20} />
                 <input
                   type="text"
                   placeholder="Search products..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 placeholder-text-black-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
             </div>
