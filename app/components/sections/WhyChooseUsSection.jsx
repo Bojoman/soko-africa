@@ -62,7 +62,7 @@ const WhyChooseUsSection = ({
                       <IconComponent className="text-white" size={24} />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
+                      <h3 className="font-semibold text-lg mb-2 text-amber-400">{feature.title}</h3>
                       <p className="text-gray-600">{feature.description}</p>
                     </div>
                   </div>
@@ -81,7 +81,7 @@ const WhyChooseUsSection = ({
           {/* Image */}
           <div className="relative">
             <Image
-              src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=600&auto=format&fit=crop&ixlib=rb-4.0.3"
+              src="/utility/why-choose-soko-africa.png"
               alt="African marketplace showcasing local artisans and their products"
               width={600}
               height={400}
