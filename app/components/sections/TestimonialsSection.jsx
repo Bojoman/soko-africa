@@ -25,7 +25,7 @@ const TestimonialsSection = ({
       author: {
         name: "Sarah Chen",
         location: "Toronto, Canada",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?q=80&w=100&auto=format&fit=crop&ixlib=rb-4.0.3"
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&auto=format"
       }
     },
     {
@@ -57,7 +57,7 @@ const TestimonialsSection = ({
   return (
     <section className={`py-16 bg-gradient-to-br from-orange-50 to-green-50 ${className}`}>
       <div className="max-w-7xl mx-auto px-6">
-        <h2 className="text-3xl font-bold text-center mb-12">{title}</h2>
+        <h2 className="text-3xl font-bold text-orange-600 text-center mb-12">{title}</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((testimonial) => (

@@ -14,7 +14,7 @@ const SeasonalPicksSection = ({
       name: 'Fresh Kenyan Avocadoes',
       price: '$12.99',
       originalPrice: '$15.99',
-      image: 'https://images.unsplash.com/photo-1583062142100-4e1f49c8bb82?w=300&h=300&fit=crop',
+      image: 'https://images.unsplash.com/photo-1547514701-42782101795e?w=300&h=300&fit=crop',
       category: 'Agri & Natural Products',
       badge: 'Seasonal',
       description: 'Premium Hass avocadoes from Kenya\'s highlands'
@@ -32,7 +32,7 @@ const SeasonalPicksSection = ({
       id: 'ankara-textiles',
       name: 'Authentic Ankara Textiles',
       price: '$45.00',
-      image: 'https://images.unsplash.com/photo-1594736797933-d0b22d7f2d04?w=300&h=300&fit=crop',
+      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop&auto=format',
       category: 'Textile & Fashion',
       badge: 'Handmade',
       description: 'Vibrant traditional African prints'
@@ -42,7 +42,7 @@ const SeasonalPicksSection = ({
       name: 'Traditional African Dress',
       price: '$85.00',
       originalPrice: '$95.00',
-      image: 'https://images.unsplash.com/photo-1594736797933-d0b22d7f2d04?w=300&h=300&fit=crop',
+      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop&auto=format',
       category: 'Textile & Fashion',
       badge: 'Featured',
       description: 'Elegant traditional wear for special occasions'
@@ -71,7 +71,7 @@ const SeasonalPicksSection = ({
     <section className={`py-16 bg-gradient-to-br from-orange-50 to-green-50 ${className}`}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">{title}</h2>
+          <h2 className="text-3xl font-bold text-orange-600 mb-4">{title}</h2>
           <p className="text-xl text-gray-600">
             Discover the best of Africa's seasonal harvest and trending products
           </p>

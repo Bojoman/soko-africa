@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../components/ui/Header';
@@ -14,15 +14,49 @@ import {
   CheckCircle,
   ArrowRight,
   MapPin,
-  TrendingUp
+  TrendingUp,
+  Sparkles,
+  Star
 } from 'lucide-react';
+
+// Counter animation component
+function AnimatedCounter({ end, duration = 2000, suffix = "" }) {
+  const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    if (!hasAnimated) {
+      let startTime;
+      const startValue = 0;
+      const endValue = typeof end === 'string' ? parseInt(end.replace(/[^\d]/g, '')) : end;
+      
+      const animate = (currentTime) => {
+        if (!startTime) startTime = currentTime;
+        const progress = Math.min((currentTime - startTime) / duration, 1);
+        
+        const currentCount = Math.floor(progress * endValue);
+        setCount(currentCount);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          setHasAnimated(true);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    }
+  }, [end, duration, hasAnimated]);
+
+  return <span>{count.toLocaleString()}{suffix}</span>;
+}
 
 export default function AboutPage() {
   const stats = [
-    { number: "50,000+", label: "Happy Customers", icon: Users },
-    { number: "5,000+", label: "African Artisans", icon: Heart },
-    { number: "150+", label: "Countries Served", icon: Globe },
-    { number: "98%", label: "Customer Satisfaction", icon: Award }
+    { number: 50000, label: "Happy Customers", icon: Users, suffix: "+" },
+    { number: 5000, label: "African Artisans", icon: Heart, suffix: "+" },
+    { number: 150, label: "Countries Served", icon: Globe, suffix: "+" },
+    { number: 98, label: "Customer Satisfaction", icon: Award, suffix: "%" }
   ];
 
   const values = [
@@ -52,45 +86,13 @@ export default function AboutPage() {
     }
   ];
 
-  const milestones = [
-    {
-      year: "2020",
-      title: "SokoAfrica Founded",
-      description: "Started with a vision to connect African artisans with global markets",
-      icon: Lightbulb
-    },
-    {
-      year: "2021",
-      title: "1,000 Artisans Onboarded",
-      description: "Reached our first major milestone of supporting 1,000 African artisans",
-      icon: Users
-    },
-    {
-      year: "2022",
-      title: "Global Expansion",
-      description: "Expanded shipping to over 50 countries worldwide",
-      icon: Globe
-    },
-    {
-      year: "2023",
-      title: "Nyamazone Launch",
-      description: "Launched premium meat delivery service across major African cities",
-      icon: Target
-    },
-    {
-      year: "2024",
-      title: "Sustainable Future",
-      description: "Committed to carbon-neutral shipping and sustainable packaging",
-      icon: TrendingUp
-    }
-  ];
 
   const team = [
     {
-      name: "Amara Okafor",
+      name: "Peter Karenge",
       role: "Founder & CEO",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?q=80&w=300&auto=format&fit=crop",
-      bio: "Former tech executive with a passion for African heritage and sustainable business."
+      image: "/avatars/ceo.png",
+      bio: "Visionary leader with extensive experience in African trade and sustainable business development."
     },
     {
       name: "Kwame Asante",
@@ -111,101 +113,233 @@ export default function AboutPage() {
       <Header />
       
       <main>
-        {/* Hero Section */}
-        <section className="bg-gradient-to-r from-orange-500 to-green-600 text-white py-20">
-          <div className="max-w-7xl mx-auto px-6 text-center">
+        {/* Hero Section with Bridge Illustration */}
+        <section className="bg-gradient-to-r from-orange-500 to-green-600 text-white py-20 relative overflow-hidden">
+          <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
             <h1 className="text-4xl lg:text-6xl font-bold mb-6">
-              About SokoAfrica
+              ABOUT SOKOAFRICA
             </h1>
             <p className="text-xl lg:text-2xl mb-8 max-w-4xl mx-auto opacity-90">
-              We&apos;re on a mission to showcase Africa&apos;s finest products to the world, 
-              supporting artisans and communities while delivering authentic quality to global customers.
+              Bridging Africa to the World, One Product at a Time
             </p>
-            <div className="flex justify-center">
-              <Link href="/sell">
-                <button className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 py-4 rounded-lg text-lg transition-colors">
-                  Join Our Community
-                </button>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* Stats Section */}
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-              {stats.map((stat, index) => {
-                const IconComponent = stat.icon;
-                return (
-                  <div key={index} className="text-center">
-                    <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <IconComponent className="text-orange-600" size={32} />
-                    </div>
-                    <div className="text-3xl font-bold text-gray-900 mb-2">{stat.number}</div>
-                    <div className="text-gray-600">{stat.label}</div>
+            
+            {/* Bridge Illustration */}
+            <div className="mt-12 relative">
+              <div className="flex justify-center items-center space-x-8">
+                {/* Africa Side */}
+                <div className="flex flex-col items-center">
+                  <div className="bg-yellow-400 w-20 h-20 rounded-full flex items-center justify-center mb-4 shadow-lg">
+                    <MapPin className="text-orange-800" size={32} />
                   </div>
-                );
-              })}
+                  <span className="text-lg font-semibold">AFRICA</span>
+                  <div className="flex space-x-1 mt-2">
+                    <Star className="text-yellow-400" size={16} />
+                    <Star className="text-yellow-400" size={16} />
+                    <Star className="text-yellow-400" size={16} />
+                  </div>
+                </div>
+                
+                {/* Bridge */}
+                <div className="flex-1 relative">
+                  <div className="h-2 bg-white/30 rounded-full relative">
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                      <div className="bg-white w-8 h-8 rounded-full flex items-center justify-center">
+                        <Sparkles className="text-orange-500" size={20} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center mt-2">
+                    <span className="text-sm opacity-80">SOKOAFRICA</span>
+                  </div>
+                </div>
+                
+                {/* World Side */}
+                <div className="flex flex-col items-center">
+                  <div className="bg-blue-400 w-20 h-20 rounded-full flex items-center justify-center mb-4 shadow-lg">
+                    <Globe className="text-blue-800" size={32} />
+                  </div>
+                  <span className="text-lg font-semibold">WORLD</span>
+                  <div className="flex space-x-1 mt-2">
+                    <Heart className="text-red-400" size={16} />
+                    <Heart className="text-red-400" size={16} />
+                    <Heart className="text-red-400" size={16} />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+          
+          {/* Background Decorative Elements */}
+          <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-400/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-24 h-24 bg-orange-300/10 rounded-full blur-2xl"></div>
         </section>
 
-        {/* Our Story */}
-        <section className="py-16 bg-gray-100">
-          <div className="max-w-7xl mx-auto px-6">
+        {/* Enhanced Introduction Section */}
+        <section className="py-20 bg-gradient-to-b from-white to-gray-50">
+          <div className="max-w-6xl mx-auto px-6">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2 className="text-3xl font-bold mb-6">Our Story</h2>
-                <div className="space-y-4 text-gray-700">
-                  <p>
-                    SokoAfrica was born from a simple yet powerful vision: to create a bridge between 
-                    Africa&apos;s incredible artisans and the global marketplace. Founded in 2020, we recognized 
-                    that while Africa produces some of the world&apos;s finest goods, many talented creators 
-                    lacked access to international customers.
+              <div className="space-y-8">
+                <div className="inline-flex items-center bg-orange-100 px-4 py-2 rounded-full">
+                  <Sparkles className="text-orange-600 mr-2" size={20} />
+                  <span className="text-orange-600 font-semibold">Curated Marketplace</span>
+                </div>
+                
+                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
+                  Connecting Global Buyers to Africa's Finest
+                </h2>
+                
+                <div className="space-y-6 text-lg text-gray-700">
+                  <p className="flex items-start">
+                    <CheckCircle className="text-green-500 mr-3 mt-1 flex-shrink-0" size={20} />
+                    <span><strong>Premium Products:</strong> From nutrient-rich produce and premium meats to handcrafted products, wellness items, and emerging light manufacturing.</span>
                   </p>
-                  <p>
-                    Our platform was designed to change this narrative. We work directly with artisans, 
-                    farmers, and small businesses across the continent, providing them with the tools, 
-                    training, and marketplace access they need to thrive in the global economy.
-                  </p>
-                  <p>
-                    Today, SokoAfrica serves as more than just a marketplace—we&apos;re a community that 
-                    celebrates African culture, supports sustainable practices, and creates meaningful 
-                    connections between creators and customers worldwide.
+                  <p className="flex items-start">
+                    <CheckCircle className="text-green-500 mr-3 mt-1 flex-shrink-0" size={20} />
+                    <span><strong>Export Potential:</strong> We unlock Africa's export potential by simplifying trade, building trust, and empowering producers.</span>
                   </p>
                 </div>
                 
-                <div className="mt-8">
-                  <Link href="/impact">
-                    <button className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-flex items-center">
-                      See Our Impact
-                      <ArrowRight className="ml-2" size={20} />
-                    </button>
-                  </Link>
+                <div className="flex items-center space-x-6 pt-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600">54</div>
+                    <div className="text-sm text-gray-600">African Countries</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">100+</div>
+                    <div className="text-sm text-gray-600">Product Categories</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">24/7</div>
+                    <div className="text-sm text-gray-600">Global Support</div>
+                  </div>
                 </div>
               </div>
               
               <div className="relative">
-                <Image
-                  src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=600&auto=format&fit=crop"
-                  alt="African artisans at work"
-                  width={600}
-                  height={400}
-                  className="rounded-lg shadow-lg"
-                />
-                <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-lg shadow-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-green-100 p-3 rounded-full">
-                      <MapPin className="text-green-600" size={24} />
+                <div className="bg-gradient-to-br from-orange-100 to-green-100 rounded-2xl p-8">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="bg-white p-4 rounded-xl shadow-sm">
+                      <div className="bg-orange-500 w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                        <Heart className="text-white" size={24} />
+                      </div>
+                      <h4 className="font-semibold text-gray-900">Handcrafted</h4>
+                      <p className="text-sm text-gray-600">Authentic African crafts</p>
                     </div>
-                    <div>
-                      <div className="text-xl font-bold">54 Countries</div>
-                      <div className="text-sm text-gray-600">Across Africa</div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm">
+                      <div className="bg-green-500 w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                        <Target className="text-white" size={24} />
+                      </div>
+                      <h4 className="font-semibold text-gray-900">Premium Meats</h4>
+                      <p className="text-sm text-gray-600">Quality Nyamazone</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm">
+                      <div className="bg-blue-500 w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                        <Globe className="text-white" size={24} />
+                      </div>
+                      <h4 className="font-semibold text-gray-900">Global Reach</h4>
+                      <p className="text-sm text-gray-600">Worldwide shipping</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm">
+                      <div className="bg-purple-500 w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                        <Award className="text-white" size={24} />
+                      </div>
+                      <h4 className="font-semibold text-gray-900">Wellness</h4>
+                      <p className="text-sm text-gray-600">Natural products</p>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Mission Section with President's Avatar */}
+        <section className="py-16 bg-gray-100">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-3xl font-bold mb-4 text-orange-600">Our Mission</h2>
+                <p className="text-xl text-gray-700 mb-6">
+                  To create a trusted gateway for African products, enabling producers to reach global markets — and buyers to source with confidence, purpose, and impact.
+                </p>
+                <div className="bg-orange-50 p-6 rounded-lg border-l-4 border-orange-500 mb-6">
+                  <p className="text-lg text-gray-700 italic mb-4">
+                    "Africa has everything the world needs — our job is to make it easier to access it, ethically and at scale."
+                  </p>
+                  <div className="flex items-center">
+                    <div className="w-16 h-16 rounded-full overflow-hidden mr-4 border-4 border-orange-200">
+                      <Image
+                        src="/avatars/ceo.png"
+                        alt="Peter Karenge - CEO & Founder"
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900">Peter Karenge</div>
+                      <div className="text-sm text-orange-600">CEO & Founder</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="text-gray-700 space-y-4 text-lg">
+                  <p>
+                    We source across key African trade corridors — East, West, Southern Africa — and serve buyers in the U.S., Europe, Asia, and other growth markets. Our growing logistics partnerships and cold-chain capabilities allow us to deliver reliably from farm to port to door.
+                  </p>
+                  <p>
+                    Whether you're a global buyer seeking reliable sourcing or an African producer ready to scale, SokoAfrica is your partner in meaningful, modern trade.
+                  </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Buttons Section */}
+        <section className="py-12 bg-white">
+            <div className="max-w-4xl mx-auto px-6 text-center">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link href="/categories">
+                        <button className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-8 py-4 rounded-lg text-lg transition-colors w-full sm:w-auto">
+                            Explore Our Products
+                        </button>
+                    </Link>
+                    <Link href="/nyamazone">
+                        <button className="border-2 border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white font-semibold px-8 py-4 rounded-lg text-lg transition-colors w-full sm:w-auto">
+                            Learn About Nyamazone
+                        </button>
+                    </Link>
+                    <Link href="/partner">
+                        <button className="border-2 border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white font-semibold px-8 py-4 rounded-lg text-lg transition-colors w-full sm:w-auto">
+                            Partner With Us
+                        </button>
+                    </Link>
+                </div>
+            </div>
+        </section>
+
+        {/* Stats Section with Animation */}
+        <section className="py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4 text-orange-600">Our Impact in Numbers</h2>
+              <p className="text-xl text-gray-600">Connecting communities and creating opportunities across Africa</p>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+              {stats.map((stat, index) => {
+                const IconComponent = stat.icon;
+                return (
+                  <div key={index} className="text-center bg-gray-50 p-6 rounded-xl hover:shadow-lg transition-shadow">
+                    <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
+                      <IconComponent className="text-orange-600" size={36} />
+                    </div>
+                    <div className="text-4xl font-bold text-gray-900 mb-2">
+                      <AnimatedCounter end={stat.number} suffix={stat.suffix} />
+                    </div>
+                    <div className="text-gray-600 font-medium">{stat.label}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -214,8 +348,8 @@ export default function AboutPage() {
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Our Values</h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              <h2 className="text-3xl font-bold mb-4 text-orange-600">Our Values</h2>
+              <p className="text-xl text-orange-600 max-w-3xl mx-auto">
                 These core values guide every decision we make and every relationship we build
               </p>
             </div>
@@ -228,7 +362,7 @@ export default function AboutPage() {
                     <div className={`${value.color} w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4`}>
                       <IconComponent className="text-white" size={28} />
                     </div>
-                    <h3 className="font-bold text-lg mb-3">{value.title}</h3>
+                    <h3 className="font-bold text-lg mb-3 text-orange-600">{value.title}</h3>
                     <p className="text-gray-600">{value.description}</p>
                   </div>
                 );
@@ -237,45 +371,12 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Timeline */}
-        <section className="py-16 bg-gray-100">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Our Journey</h2>
-              <p className="text-xl text-gray-600">
-                Key milestones in our mission to connect Africa with the world
-              </p>
-            </div>
-            
-            <div className="space-y-8">
-              {milestones.map((milestone, index) => {
-                const IconComponent = milestone.icon;
-                return (
-                  <div key={index} className="flex items-center space-x-6 bg-white p-6 rounded-lg shadow-md">
-                    <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0">
-                      <IconComponent className="text-orange-600" size={28} />
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex items-center space-x-4 mb-2">
-                        <span className="bg-orange-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                          {milestone.year}
-                        </span>
-                        <h3 className="font-bold text-lg">{milestone.title}</h3>
-                      </div>
-                      <p className="text-gray-600">{milestone.description}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
 
         {/* Team Section */}
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Meet Our Leadership</h2>
+              <h2 className="text-3xl font-bold mb-4 text-orange-600">Meet Our Leadership</h2>
               <p className="text-xl text-gray-600">
                 Passionate leaders driving our mission forward
               </p>
@@ -291,7 +392,7 @@ export default function AboutPage() {
                     height={150}
                     className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
                   />
-                  <h3 className="font-bold text-lg mb-1">{member.name}</h3>
+                  <h3 className="font-bold text-lg mb-1 text-orange-600">{member.name}</h3>
                   <p className="text-orange-600 font-medium mb-3">{member.role}</p>
                   <p className="text-gray-600 text-sm">{member.bio}</p>
                 </div>
@@ -300,28 +401,59 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Call to Action */}
-        <section className="py-16 bg-gradient-to-r from-orange-500 to-green-600 text-white">
+        {/* Final CTA Section */}
+        <section className="py-20 bg-gradient-to-r from-orange-500 to-green-600 text-white">
           <div className="max-w-4xl mx-auto px-6 text-center">
-            <h2 className="text-3xl font-bold mb-4">Join the SokoAfrica Community</h2>
-            <p className="text-xl mb-8 opacity-90">
-              Whether you&apos;re a customer looking for authentic African products or an artisan 
-              ready to share your craft with the world, we&apos;re here to support your journey.
-            </p>
+            <div className="mb-8">
+              <div className="inline-flex items-center bg-white/20 px-4 py-2 rounded-full mb-6">
+                <Sparkles className="text-yellow-300 mr-2" size={20} />
+                <span className="text-yellow-100 font-semibold">Ready to Connect?</span>
+              </div>
+              <h2 className="text-4xl font-bold mb-4">Join the SokoAfrica Community</h2>
+              <p className="text-xl mb-8 opacity-90 max-w-3xl mx-auto">
+                Whether you're a customer seeking authentic African products, a producer ready to reach global markets, 
+                or a partner looking to make an impact—we're here to support your journey.
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-6 mb-10">
+              <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+                <Users className="text-yellow-300 mb-4 mx-auto" size={40} />
+                <h3 className="font-semibold text-lg mb-2">For Customers</h3>
+                <p className="text-sm opacity-90">Discover authentic African products with global delivery</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+                <Heart className="text-yellow-300 mb-4 mx-auto" size={40} />
+                <h3 className="font-semibold text-lg mb-2">For Producers</h3>
+                <p className="text-sm opacity-90">Scale your business and reach international markets</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+                <Globe className="text-yellow-300 mb-4 mx-auto" size={40} />
+                <h3 className="font-semibold text-lg mb-2">For Partners</h3>
+                <p className="text-sm opacity-90">Collaborate with us to create meaningful impact</p>
+              </div>
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/categories">
-                <button className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 py-4 rounded-lg text-lg transition-colors">
+                <button className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 py-4 rounded-lg text-lg transition-colors w-full sm:w-auto">
                   Start Shopping
                 </button>
               </Link>
               <Link href="/sell">
-                <button className="border-2 border-white text-white hover:bg-white hover:text-gray-900 font-semibold px-8 py-4 rounded-lg text-lg transition-colors">
+                <button className="border-2 border-white text-white hover:bg-white hover:text-gray-900 font-semibold px-8 py-4 rounded-lg text-lg transition-colors w-full sm:w-auto">
                   Become a Seller
+                </button>
+              </Link>
+              <Link href="/partner">
+                <button className="border-2 border-yellow-300 text-yellow-300 hover:bg-yellow-300 hover:text-gray-900 font-semibold px-8 py-4 rounded-lg text-lg transition-colors w-full sm:w-auto">
+                  Partner With Us
                 </button>
               </Link>
             </div>
           </div>
         </section>
+
       </main>
       
       <Footer />

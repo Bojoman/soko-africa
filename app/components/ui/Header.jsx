@@ -92,7 +92,7 @@ const Header = () => {
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full pl-4 pr-12 py-2 sm:py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
+                className="w-full pl-4 pr-12 py-2 sm:py-3 text-sm text-black placeholder-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
               />
               <button 
                 type="submit"
@@ -136,7 +136,7 @@ const Header = () => {
                 <input
                   type="text"
                   placeholder="Search products..."
-                  className="w-full pl-4 pr-12 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                  className="w-full pl-4 pr-12 py-3 text-sm text-black placeholder-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                 />
                 <button 
                   type="submit"

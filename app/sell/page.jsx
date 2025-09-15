@@ -383,7 +383,7 @@ export default function SellPage() {
                   name: "Amina Hassan",
                   business: "Hassan Crafts",
                   story: "Increased my monthly income by 400% after joining Soko Africa. The global reach is incredible!",
-                  image: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?q=80&w=100&auto=format&fit=crop"
+                  image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&auto=format"
                 },
                 {
                   name: "Joseph Kikwete",

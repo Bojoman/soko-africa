@@ -31,7 +31,7 @@ const FeaturedProductsSection = ({
       id: 3,
       name: 'Kente Cloth Scarf',
       price: '$38.50',
-      image: 'https://images.unsplash.com/photo-1594736797933-d0b22d7f2d04?w=300&h=300&fit=crop',
+      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop&auto=format',
       rating: 4.7,
       reviews: 234,
       badge: 'Fair Trade'
@@ -40,7 +40,7 @@ const FeaturedProductsSection = ({
       id: 4,
       name: 'Shea Butter Skincare Set',
       price: '$32.00',
-      image: 'https://images.unsplash.com/photo-1556228578-dd6a8b1cc4e9?w=300&h=300&fit=crop',
+      image: 'https://images.unsplash.com/photo-1576426863848-c21f53c60b19?w=300&h=300&fit=crop&auto=format',
       rating: 4.6,
       reviews: 112,
       badge: 'Organic'
@@ -59,7 +59,7 @@ const FeaturedProductsSection = ({
       id: 6,
       name: 'Ankara Print Dress',
       price: '$65.00',
-      image: 'https://images.unsplash.com/photo-1594736797933-d0b22d7f2d04?w=300&h=300&fit=crop',
+      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop&auto=format',
       rating: 4.8,
       reviews: 142,
       badge: 'New Arrival'
@@ -78,7 +78,7 @@ const FeaturedProductsSection = ({
       name: 'Moroccan Argan Oil',
       price: '$35.99',
       originalPrice: '$42.99',
-      image: 'https://images.unsplash.com/photo-1556228578-dd6a8b1cc4e9?w=300&h=300&fit=crop',
+      image: 'https://images.unsplash.com/photo-1576426863848-c21f53c60b19?w=300&h=300&fit=crop&auto=format',
       rating: 4.9,
       reviews: 203,
       badge: 'Premium'
@@ -89,7 +89,7 @@ const FeaturedProductsSection = ({
     <section className={`bg-white py-16 ${className}`}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center mb-12">
-          <h2 className="text-3xl font-bold">{title}</h2>
+          <h2 className="text-3xl font-bold text-orange-600">{title}</h2>
           <Link 
             href="/products" 
             className="text-orange-600 hover:text-orange-700 font-semibold transition-colors"

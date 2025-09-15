@@ -52,7 +52,7 @@ const WhyChooseUsSection = ({
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div>
-            <h2 className="text-3xl font-bold mb-6">{title}</h2>
+            <h2 className="text-3xl font-bold text-orange-600 mb-6">{title}</h2>
             <div className="space-y-6">
               {features.map((feature, index) => {
                 const IconComponent = feature.icon;
