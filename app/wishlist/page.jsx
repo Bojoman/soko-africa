@@ -4,302 +4,415 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
-import ProductCard from '../components/ui/ProductCard';
-import { useWishlist } from '../hooks/useWishlist';
-import { useCart } from '../hooks/useCart';
 import { 
   Heart, 
   ShoppingCart, 
-  Trash2, 
+  Star, 
+  X, 
+  Eye,
+  Filter,
+  Grid,
+  List,
+  SortDesc,
   Share2,
-  Star,
-  ArrowRight
+  Download
 } from 'lucide-react';
 
 export default function WishlistPage() {
-  const { 
-    wishlist, 
-    removeFromWishlist, 
-    clearWishlist, 
-    moveToCart,
-    isEmpty 
-  } = useWishlist();
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [sortBy, setSortBy] = useState('newest'); // 'newest', 'price-low', 'price-high', 'name'
   
-  const { addToCart } = useCart();
-  const [isMovingToCart, setIsMovingToCart] = useState({});
-
-  const handleMoveToCart = async (product) => {
-    setIsMovingToCart(prev => ({ ...prev, [product.id]: true }));
-    
-    // Simulate API call
-    setTimeout(() => {
-      addToCart(product, 1);
-      removeFromWishlist(product.id);
-      setIsMovingToCart(prev => ({ ...prev, [product.id]: false }));
-    }, 1000);
-  };
-
-  const handleRemoveFromWishlist = (productId) => {
-    removeFromWishlist(productId);
-  };
-
-  const handleShareWishlist = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'My Soko Africa Wishlist',
-        text: 'Check out my wishlist on Soko Africa!',
-        url: window.location.href,
-      });
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      alert('Wishlist link copied to clipboard!');
+  // Demo wishlist items
+  const [wishlistItems, setWishlistItems] = useState([
+    {
+      id: 1,
+      name: "Authentic Maasai Beaded Jewelry Set",
+      price: 89.99,
+      originalPrice: 110.00,
+      image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=400&auto=format&fit=crop",
+      category: "Jewelry",
+      rating: 4.9,
+      reviews: 127,
+      inStock: true,
+      seller: "Maasai Craft Collective",
+      dateAdded: "2024-03-15",
+      discount: 18
+    },
+    {
+      id: 2,
+      name: "Premium Ghanaian Cocoa Powder - Organic",
+      price: 32.50,
+      originalPrice: 38.99,
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=400&auto=format&fit=crop",
+      category: "Food & Beverages",
+      rating: 4.8,
+      reviews: 89,
+      inStock: true,
+      seller: "Ghana Cocoa Farms",
+      dateAdded: "2024-03-12",
+      discount: 17
+    },
+    {
+      id: 3,
+      name: "Handwoven Basotho Blanket - Traditional",
+      price: 125.00,
+      originalPrice: 149.99,
+      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop",
+      category: "Home & Textiles",
+      rating: 5.0,
+      reviews: 203,
+      inStock: false,
+      seller: "Lesotho Weavers",
+      dateAdded: "2024-03-10",
+      discount: 17
+    },
+    {
+      id: 4,
+      name: "Ethiopian Berbere Spice Blend Set",
+      price: 24.99,
+      originalPrice: 29.99,
+      image: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=400&auto=format&fit=crop",
+      category: "Spices & Seasonings",
+      rating: 4.7,
+      reviews: 156,
+      inStock: true,
+      seller: "Addis Spice Co.",
+      dateAdded: "2024-03-08",
+      discount: 17
+    },
+    {
+      id: 5,
+      name: "Moroccan Argan Oil - Pure & Certified",
+      price: 45.00,
+      originalPrice: 55.00,
+      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=400&auto=format&fit=crop",
+      category: "Beauty & Wellness",
+      rating: 4.9,
+      reviews: 342,
+      inStock: true,
+      seller: "Atlas Beauty",
+      dateAdded: "2024-03-05",
+      discount: 18
+    },
+    {
+      id: 6,
+      name: "Senegalese Djembe Drum - Handcrafted",
+      price: 189.99,
+      originalPrice: 220.00,
+      image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=400&auto=format&fit=crop",
+      category: "Musical Instruments",
+      rating: 4.8,
+      reviews: 74,
+      inStock: true,
+      seller: "Dakar Drums",
+      dateAdded: "2024-03-03",
+      discount: 14
     }
+  ]);
+
+  const removeFromWishlist = (id) => {
+    setWishlistItems(items => items.filter(item => item.id !== id));
   };
 
-  const formatPrice = (price) => {
-    if (typeof price === 'string') return price;
-    return `$${price.toFixed(2)}`;
+  const addToCart = (item) => {
+    // Simulate adding to cart
+    console.log('Added to cart:', item);
+    // In a real app, this would add to cart state/context
   };
 
-  const renderStars = (rating) => {
-    return [...Array(5)].map((_, i) => (
-      <Star
-        key={i}
-        size={14}
-        className={`${
-          i < Math.floor(rating) 
-            ? "text-yellow-400 fill-current" 
-            : "text-gray-300"
-        }`}
-      />
-    ));
-  };
+  const sortedItems = [...wishlistItems].sort((a, b) => {
+    switch (sortBy) {
+      case 'price-low':
+        return a.price - b.price;
+      case 'price-high':
+        return b.price - a.price;
+      case 'name':
+        return a.name.localeCompare(b.name);
+      case 'newest':
+      default:
+        return new Date(b.dateAdded) - new Date(a.dateAdded);
+    }
+  });
 
-  if (isEmpty) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        
-        <main className="max-w-7xl mx-auto px-6 py-16">
-          <div className="text-center">
-            <div className="bg-gray-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-8">
-              <Heart size={64} className="text-gray-400" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Your wishlist is empty</h1>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Save items you love to your wishlist and they'll appear here. Start exploring to find products you'd like to add!
-            </p>
-            <Link href="/categories">
-              <button className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-8 py-4 rounded-lg text-lg transition-colors">
-                Start Shopping
-              </button>
-            </Link>
+  const totalSavings = wishlistItems.reduce((sum, item) => 
+    sum + (item.originalPrice - item.price), 0
+  );
+
+  const WishlistItemCard = ({ item, isListView = false }) => (
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow ${
+      isListView ? 'flex items-center p-4' : 'p-4'
+    }`}>
+      {/* Image */}
+      <div className={`relative ${isListView ? 'w-24 h-24 mr-4' : 'w-full h-48 mb-4'}`}>
+        <Image
+          src={item.image}
+          alt={item.name}
+          width={isListView ? 96 : 300}
+          height={isListView ? 96 : 192}
+          className={`rounded-lg object-cover ${isListView ? 'w-24 h-24' : 'w-full h-full'}`}
+        />
+        <button
+          onClick={() => removeFromWishlist(item.id)}
+          className="absolute top-2 right-2 bg-white/90 hover:bg-white text-red-500 p-1.5 rounded-full shadow-sm transition-colors"
+        >
+          <Heart className="fill-current" size={16} />
+        </button>
+        {!item.inStock && (
+          <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+            <span className="text-white text-sm font-semibold">Out of Stock</span>
           </div>
-        </main>
-        
-        <Footer />
+        )}
+        {item.discount > 0 && (
+          <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
+            {item.discount}% OFF
+          </div>
+        )}
       </div>
-    );
-  }
+
+      {/* Content */}
+      <div className={isListView ? 'flex-1' : ''}>
+        <div className={`${isListView ? 'flex justify-between items-start' : ''}`}>
+          <div className={isListView ? 'flex-1 mr-4' : ''}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full font-medium">
+                {item.category}
+              </span>
+              {!isListView && (
+                <button
+                  onClick={() => removeFromWishlist(item.id)}
+                  className="text-gray-400 hover:text-red-500 transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+            
+            <h3 className={`font-semibold text-gray-900 mb-2 ${
+              isListView ? 'text-lg' : 'text-base'
+            }`}>
+              {item.name}
+            </h3>
+            
+            <div className="flex items-center space-x-2 mb-2">
+              <div className="flex items-center">
+                <Star className="text-yellow-400 fill-current" size={14} />
+                <span className="text-sm text-gray-600 ml-1">{item.rating}</span>
+              </div>
+              <span className="text-gray-300">•</span>
+              <span className="text-sm text-gray-600">{item.reviews} reviews</span>
+            </div>
+            
+            <p className="text-sm text-gray-600 mb-3">by {item.seller}</p>
+            
+            <div className="flex items-center space-x-2 mb-4">
+              <span className="text-xl font-bold text-orange-600">${item.price}</span>
+              <span className="text-sm text-gray-500 line-through">${item.originalPrice}</span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className={`space-y-2 ${isListView ? 'flex flex-col w-32' : ''}`}>
+            <button
+              onClick={() => addToCart(item)}
+              disabled={!item.inStock}
+              className={`w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center space-x-2 ${
+                isListView ? 'text-sm' : ''
+              }`}
+            >
+              <ShoppingCart size={16} />
+              <span>{item.inStock ? 'Add to Cart' : 'Out of Stock'}</span>
+            </button>
+            
+            <div className="flex space-x-2">
+              <button className="flex-1 border border-gray-300 text-gray-700 hover:border-orange-600 hover:text-orange-600 py-2 px-3 rounded-lg transition-colors flex items-center justify-center">
+                <Eye size={16} />
+              </button>
+              <button className="flex-1 border border-gray-300 text-gray-700 hover:border-orange-600 hover:text-orange-600 py-2 px-3 rounded-lg transition-colors flex items-center justify-center">
+                <Share2 size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">My Wishlist</h1>
-              <p className="text-gray-600">
-                {wishlist.length} {wishlist.length === 1 ? 'item' : 'items'} saved
-              </p>
-            </div>
-            
-            <div className="flex space-x-3">
-              <button
-                onClick={handleShareWishlist}
-                className="flex items-center space-x-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 px-4 py-2 rounded-lg transition-colors"
-              >
-                <Share2 size={16} />
-                <span>Share</span>
-              </button>
-              <button
-                onClick={clearWishlist}
-                className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                <Trash2 size={16} />
-                <span>Clear All</span>
-              </button>
+      <main>
+        {/* Hero Section */}
+        <section className="bg-gradient-to-r from-orange-500 to-green-600 text-white py-12">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center space-x-4 mb-4">
+                  <Heart className="fill-current" size={32} />
+                  <h1 className="text-3xl lg:text-4xl font-bold">My Wishlist</h1>
+                </div>
+                <p className="text-lg opacity-90">
+                  {wishlistItems.length} items saved • ${totalSavings.toFixed(2)} total savings available
+                </p>
+              </div>
+              
+              {wishlistItems.length > 0 && (
+                <div className="flex space-x-2">
+                  <button className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-colors">
+                    <Download size={20} />
+                  </button>
+                  <button className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-colors">
+                    <Share2 size={20} />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Wishlist Items */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {wishlist.map((item) => (
-            <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 group">
-              <Link href={`/products/${item.id}`} className="block">
-                <div className="relative overflow-hidden">
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    width={300}
-                    height={200}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  
-                  {/* Product Badge */}
-                  {item.badge && (
-                    <span className="absolute top-2 left-2 bg-orange-600 text-white text-xs px-2 py-1 rounded font-medium">
-                      {item.badge}
-                    </span>
-                  )}
-                  
-                  {/* Remove from Wishlist Button */}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleRemoveFromWishlist(item.id);
-                    }}
-                    className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-red-50 hover:text-red-600 transition-colors"
-                    aria-label="Remove from wishlist"
-                  >
-                    <Heart size={16} className="text-red-500 fill-current" />
-                  </button>
-                </div>
-              </Link>
-              
-              <div className="p-4">
-                {/* Product Name */}
-                <Link href={`/products/${item.id}`}>
-                  <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-orange-600 transition-colors">
-                    {item.name}
-                  </h3>
-                </Link>
-                
-                {/* Rating and Reviews */}
-                {item.rating && (
-                  <div className="flex items-center mb-2">
-                    <div className="flex">
-                      {renderStars(item.rating)}
+        {/* Wishlist Content */}
+        <section className="py-12">
+          <div className="max-w-7xl mx-auto px-6">
+            {wishlistItems.length > 0 ? (
+              <>
+                {/* Controls */}
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-700 font-medium">View:</span>
+                      <button
+                        onClick={() => setViewMode('grid')}
+                        className={`p-2 rounded-lg ${viewMode === 'grid' ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                      >
+                        <Grid size={16} />
+                      </button>
+                      <button
+                        onClick={() => setViewMode('list')}
+                        className={`p-2 rounded-lg ${viewMode === 'list' ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                      >
+                        <List size={16} />
+                      </button>
                     </div>
-                    {item.reviews && (
-                      <span className="text-sm text-gray-600 ml-2">
-                        ({item.reviews})
-                      </span>
-                    )}
+                    
+                    <div className="flex items-center space-x-2">
+                      <SortDesc className="text-gray-600" size={16} />
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      >
+                        <option value="newest">Newest First</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="name">Name A-Z</option>
+                      </select>
+                    </div>
                   </div>
-                )}
-                
-                {/* Price */}
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-lg font-bold text-gray-900">
-                    {formatPrice(item.price)}
-                  </span>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="space-y-2">
-                  <button
-                    onClick={() => handleMoveToCart(item)}
-                    disabled={isMovingToCart[item.id]}
-                    className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center justify-center"
-                  >
-                    {isMovingToCart[item.id] ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <>
-                        <ShoppingCart size={16} className="mr-2" />
-                        Move to Cart
-                      </>
-                    )}
-                  </button>
                   
-                  <Link href={`/products/${item.id}`}>
-                    <button className="w-full border border-gray-300 hover:border-gray-400 text-gray-700 px-4 py-2 rounded text-sm font-medium transition-colors flex items-center justify-center">
-                      View Details
-                      <ArrowRight size={16} className="ml-2" />
+                  <div className="flex space-x-2">
+                    <button className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors">
+                      Add All to Cart
+                    </button>
+                    <Link href="/categories">
+                      <button className="border border-gray-300 text-gray-700 hover:border-orange-600 hover:text-orange-600 font-semibold px-6 py-2 rounded-lg transition-colors">
+                        Continue Shopping
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Items Grid/List */}
+                <div className={viewMode === 'grid' 
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  : "space-y-4"
+                }>
+                  {sortedItems.map((item) => (
+                    <WishlistItemCard 
+                      key={item.id} 
+                      item={item} 
+                      isListView={viewMode === 'list'} 
+                    />
+                  ))}
+                </div>
+
+                {/* Summary Card */}
+                <div className="mt-12 bg-white rounded-xl shadow-sm p-6 max-w-md mx-auto">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Wishlist Summary</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Items</span>
+                      <span className="font-semibold">{wishlistItems.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Value</span>
+                      <span className="font-semibold">
+                        ${wishlistItems.reduce((sum, item) => sum + item.price, 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-green-600">
+                      <span>Potential Savings</span>
+                      <span className="font-semibold">${totalSavings.toFixed(2)}</span>
+                    </div>
+                    <div className="border-t pt-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">In Stock Items</span>
+                        <span className="text-orange-600 font-semibold">
+                          {wishlistItems.filter(item => item.inStock).length}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              // Empty Wishlist
+              <div className="text-center py-16">
+                <div className="bg-white rounded-xl shadow-sm p-12 max-w-md mx-auto">
+                  <Heart className="text-gray-400 mx-auto mb-4" size={64} />
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-4">Your wishlist is empty</h2>
+                  <p className="text-gray-600 mb-6">
+                    Save your favorite products here to keep track of items you love
+                  </p>
+                  <Link href="/categories">
+                    <button className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors">
+                      Discover Products
                     </button>
                   </Link>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Move All to Cart */}
-        {wishlist.length > 0 && (
-          <div className="mt-12 text-center">
-            <button
-              onClick={() => {
-                wishlist.forEach(item => {
-                  if (!isMovingToCart[item.id]) {
-                    handleMoveToCart(item);
-                  }
-                });
-              }}
-              className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-8 py-4 rounded-lg text-lg transition-colors inline-flex items-center"
-            >
-              <ShoppingCart size={20} className="mr-2" />
-              Move All to Cart
-            </button>
+            )}
           </div>
-        )}
+        </section>
 
-        {/* Recommended Products */}
-        <section className="mt-16">
-          <h2 className="text-2xl font-bold mb-8">You might also like</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Sample recommended products */}
-            {[
-              {
-                id: 'recommended-1',
-                name: 'Ethiopian Coffee Beans',
-                price: '$24.99',
-                image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=300&h=300&fit=crop',
-                rating: 4.7,
-                reviews: 234,
-                badge: 'Bestseller'
-              },
-              {
-                id: 'recommended-2',
-                name: 'Handwoven Kente Scarf',
-                price: '$38.50',
-                image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop&auto=format',
-                rating: 4.8,
-                reviews: 124,
-                badge: 'Heritage'
-              },
-              {
-                id: 'recommended-3',
-                name: 'Raw Shea Butter',
-                price: '$32.00',
-                image: 'https://images.unsplash.com/photo-1576426863848-c21f53c60b19?w=300&h=300&fit=crop&auto=format',
-                rating: 4.6,
-                reviews: 201,
-                badge: 'Natural'
-              },
-              {
-                id: 'recommended-4',
-                name: 'Maasai Hand-woven Basket',
-                price: '$35.99',
-                image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop',
-                rating: 4.8,
-                reviews: 67,
-                badge: 'Handmade'
-              }
-            ].map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                showWishlist={true}
-                showAddToCart={true}
-              />
-            ))}
+        {/* Recently Viewed */}
+        <section className="py-12 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <h3 className="text-2xl font-bold text-gray-900 mb-8">Recently Viewed</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {[
+                { name: "Kenyan Tea", price: 14.99, image: "https://images.unsplash.com/photo-1556909114-47530a45e3e4?q=80&w=200&auto=format&fit=crop" },
+                { name: "Ankara Fabric", price: 28.50, image: "https://images.unsplash.com/photo-1594736797933-d0c6451faa9b?q=80&w=200&auto=format&fit=crop" },
+                { name: "Shea Butter", price: 19.99, image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=200&auto=format&fit=crop" },
+                { name: "Coffee Beans", price: 22.75, image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?q=80&w=200&auto=format&fit=crop" },
+                { name: "Wooden Masks", price: 45.00, image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=200&auto=format&fit=crop" },
+                { name: "Baobab Oil", price: 32.99, image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=200&auto=format&fit=crop" }
+              ].map((product, index) => (
+                <div key={index} className="bg-gray-50 rounded-lg p-3 hover:shadow-md transition-shadow">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    width={150}
+                    height={120}
+                    className="w-full h-24 object-cover rounded-md mb-2"
+                  />
+                  <h4 className="font-medium text-sm text-gray-900 mb-1">{product.name}</h4>
+                  <p className="text-orange-600 font-semibold text-sm">${product.price}</p>
+                  <button className="w-full mt-2 text-orange-600 border border-orange-600 hover:bg-orange-600 hover:text-white text-xs py-1.5 rounded transition-colors">
+                    ❤ Add to Wishlist
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </main>

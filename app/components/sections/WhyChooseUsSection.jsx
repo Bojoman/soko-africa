@@ -62,7 +62,7 @@ const WhyChooseUsSection = ({
                       <IconComponent className="text-white" size={24} />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
+                      <h3 className="font-semibold text-lg mb-2 text-amber-400">{feature.title}</h3>
                       <p className="text-gray-600">{feature.description}</p>
                     </div>
                   </div>

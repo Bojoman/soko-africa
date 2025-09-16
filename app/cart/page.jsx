@@ -1,327 +1,370 @@
 "use client";
-
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
-import { useCart } from '../hooks/useCart';
 import { 
-  Minus, 
+  ShoppingCart, 
+  Heart, 
   Plus, 
-  Trash2, 
-  ShoppingBag, 
+  Minus, 
+  X, 
   ArrowRight,
-  CreditCard,
+  Shield,
   Truck,
-  Shield
+  RefreshCcw,
+  Tag,
+  CreditCard
 } from 'lucide-react';
 
 export default function CartPage() {
-  const { 
-    cart, 
-    updateQuantity, 
-    removeFromCart, 
-    clearCart, 
-    getCartTotal, 
-    getItemCount 
-  } = useCart();
-  
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-
-  const handleQuantityChange = (productId, newQuantity, selectedVariant = null) => {
-    if (newQuantity <= 0) {
-      removeFromCart(productId, selectedVariant);
-    } else {
-      updateQuantity(productId, newQuantity, selectedVariant);
+  // Demo cart items
+  const [cartItems, setCartItems] = useState([
+    {
+      id: 1,
+      name: "Premium Ethiopian Coffee Beans",
+      price: 24.99,
+      originalPrice: 29.99,
+      quantity: 2,
+      image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?q=80&w=400&auto=format&fit=crop",
+      category: "Beverages",
+      inStock: true,
+      seller: "Addis Coffee Co."
+    },
+    {
+      id: 2,
+      name: "Hand-woven Kente Cloth Scarf",
+      price: 45.00,
+      originalPrice: 55.00,
+      quantity: 1,
+      image: "https://images.unsplash.com/photo-1594736797933-d0c6451faa9b?q=80&w=400&auto=format&fit=crop",
+      category: "Fashion",
+      inStock: true,
+      seller: "Ghana Weavers Guild"
+    },
+    {
+      id: 3,
+      name: "Organic Shea Butter - Pure & Natural",
+      price: 18.50,
+      originalPrice: 22.00,
+      quantity: 3,
+      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=400&auto=format&fit=crop",
+      category: "Beauty & Wellness",
+      inStock: true,
+      seller: "Burkina Beauty"
+    },
+    {
+      id: 4,
+      name: "Tanzanian Black Tea Premium Blend",
+      price: 16.75,
+      originalPrice: 19.99,
+      quantity: 1,
+      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop",
+      category: "Beverages",
+      inStock: false,
+      seller: "Kilimanjaro Tea Co."
     }
-  };
+  ]);
 
-  const handleCheckout = () => {
-    setIsCheckingOut(true);
-    // Redirect to checkout page
-    setTimeout(() => {
-      window.location.href = '/checkout';
-    }, 1000);
-  };
-
-  const formatPrice = (price) => {
-    if (typeof price === 'string') return price;
-    return `$${price.toFixed(2)}`;
-  };
-
-  const getItemTotal = (item) => {
-    const price = typeof item.price === 'string' 
-      ? parseFloat(item.price.replace('$', '')) 
-      : item.price;
-    return price * item.quantity;
-  };
-
-  const subtotal = getCartTotal();
-  const shipping = subtotal > 50 ? 0 : 9.99; // Free shipping over $50
-  const tax = subtotal * 0.08; // 8% tax
-  const total = subtotal + shipping + tax;
-
-  if (cart.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        
-        <main className="max-w-7xl mx-auto px-6 py-16">
-          <div className="text-center">
-            <div className="bg-gray-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-8">
-              <ShoppingBag size={64} className="text-gray-400" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Your cart is empty</h1>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Looks like you haven't added any items to your cart yet. Start shopping to fill it up!
-            </p>
-            <Link href="/categories">
-              <button className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-8 py-4 rounded-lg text-lg transition-colors">
-                Start Shopping
-              </button>
-            </Link>
-          </div>
-        </main>
-        
-        <Footer />
-      </div>
+  const updateQuantity = (id, change) => {
+    setCartItems(items => 
+      items.map(item => 
+        item.id === id 
+          ? { ...item, quantity: Math.max(1, item.quantity + change) }
+          : item
+      )
     );
-  }
+  };
+
+  const removeItem = (id) => {
+    setCartItems(items => items.filter(item => item.id !== id));
+  };
+
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const savings = cartItems.reduce((sum, item) => sum + ((item.originalPrice - item.price) * item.quantity), 0);
+  const shipping = subtotal > 75 ? 0 : 9.99;
+  const tax = subtotal * 0.08;
+  const total = subtotal + shipping + tax;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Shopping Cart</h1>
-          <p className="text-gray-600">
-            {getItemCount()} {getItemCount() === 1 ? 'item' : 'items'} in your cart
-          </p>
-        </div>
+      <main>
+        {/* Hero Section */}
+        <section className="bg-gradient-to-r from-orange-500 to-green-600 text-white py-12">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex items-center space-x-4 mb-4">
+              <ShoppingCart size={32} />
+              <h1 className="text-3xl lg:text-4xl font-bold">Shopping Cart</h1>
+            </div>
+            <p className="text-lg opacity-90">
+              Review your selected items and proceed to checkout
+            </p>
+          </div>
+        </section>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold">Cart Items</h2>
-                  <button
-                    onClick={clearCart}
-                    className="text-red-600 hover:text-red-700 text-sm font-medium"
-                  >
-                    Clear Cart
-                  </button>
+        {/* Cart Content */}
+        <section className="py-12">
+          <div className="max-w-7xl mx-auto px-6">
+            {cartItems.length > 0 ? (
+              <div className="lg:grid lg:grid-cols-3 lg:gap-8">
+                {/* Cart Items */}
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="bg-white rounded-xl shadow-sm">
+                    <div className="p-6 border-b border-gray-200">
+                      <h2 className="text-xl font-semibold text-gray-900">
+                        Your Items ({cartItems.length})
+                      </h2>
+                    </div>
+                    
+                    <div className="divide-y divide-gray-200">
+                      {cartItems.map((item) => (
+                        <div key={item.id} className="p-6">
+                          <div className="flex items-start space-x-4">
+                            <div className="relative">
+                              <Image
+                                src={item.image}
+                                alt={item.name}
+                                width={120}
+                                height={120}
+                                className="rounded-lg object-cover"
+                              />
+                              {!item.inStock && (
+                                <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                                  <span className="text-white text-xs font-semibold">Out of Stock</span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between">
+                                <div>
+                                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                                    {item.name}
+                                  </h3>
+                                  <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
+                                    <span className="bg-gray-100 px-2 py-1 rounded-full">{item.category}</span>
+                                    <span>•</span>
+                                    <span>by {item.seller}</span>
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-2 mb-3">
+                                    <span className="text-2xl font-bold text-orange-600">
+                                      ${item.price.toFixed(2)}
+                                    </span>
+                                    <span className="text-lg text-gray-500 line-through">
+                                      ${item.originalPrice.toFixed(2)}
+                                    </span>
+                                    <span className="bg-green-100 text-green-800 text-sm px-2 py-1 rounded-full">
+                                      {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% off
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-4">
+                                    <div className="flex items-center border border-gray-300 rounded-lg">
+                                      <button
+                                        onClick={() => updateQuantity(item.id, -1)}
+                                        className="p-2 text-gray-600 hover:text-orange-600 disabled:opacity-50"
+                                        disabled={!item.inStock}
+                                      >
+                                        <Minus size={16} />
+                                      </button>
+                                      <span className="px-4 py-2 border-x border-gray-300 min-w-[3rem] text-center">
+                                        {item.quantity}
+                                      </span>
+                                      <button
+                                        onClick={() => updateQuantity(item.id, 1)}
+                                        className="p-2 text-gray-600 hover:text-orange-600 disabled:opacity-50"
+                                        disabled={!item.inStock}
+                                      >
+                                        <Plus size={16} />
+                                      </button>
+                                    </div>
+                                    
+                                    <Link href="/wishlist">
+                                      <button className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors">
+                                        <Heart size={20} />
+                                        <span>Save for later</span>
+                                      </button>
+                                    </Link>
+                                  </div>
+                                </div>
+                                
+                                <div className="text-right">
+                                  <button
+                                    onClick={() => removeItem(item.id)}
+                                    className="text-gray-400 hover:text-red-500 transition-colors mb-4"
+                                  >
+                                    <X size={20} />
+                                  </button>
+                                  <div className="text-xl font-semibold text-gray-900">
+                                    ${(item.price * item.quantity).toFixed(2)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Recommendations */}
+                  <div className="bg-white rounded-xl shadow-sm p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">You might also like</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {[
+                        { name: "Moringa Tea", price: 12.99, image: "https://images.unsplash.com/photo-1556909114-47530a45e3e4?q=80&w=200&auto=format&fit=crop" },
+                        { name: "African Honey", price: 15.50, image: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?q=80&w=200&auto=format&fit=crop" },
+                        { name: "Boabab Oil", price: 22.00, image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=200&auto=format&fit=crop" },
+                        { name: "Macadamia Nuts", price: 18.75, image: "https://images.unsplash.com/photo-1529258283598-8d6fe60b27f4?q=80&w=200&auto=format&fit=crop" }
+                      ].map((product, index) => (
+                        <div key={index} className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            width={100}
+                            height={100}
+                            className="w-full h-20 object-cover rounded-md mb-2"
+                          />
+                          <h4 className="font-medium text-sm text-gray-900 mb-1">{product.name}</h4>
+                          <p className="text-orange-600 font-semibold">${product.price}</p>
+                          <button className="w-full mt-2 bg-orange-100 text-orange-600 text-sm py-1 rounded hover:bg-orange-200 transition-colors">
+                            Add to Cart
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="divide-y divide-gray-200">
-                {cart.map((item, index) => (
-                  <div key={`${item.id}-${index}`} className="p-6">
-                    <div className="flex items-center space-x-4">
-                      {/* Product Image */}
-                      <div className="flex-shrink-0">
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          width={120}
-                          height={120}
-                          className="w-24 h-24 object-cover rounded-lg"
-                        />
-                      </div>
+                
+                {/* Order Summary */}
+                <div className="lg:col-span-1">
+                  <div className="bg-white rounded-xl shadow-sm sticky top-6">
+                    <div className="p-6">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h3>
                       
-                      {/* Product Details */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          {item.name}
-                        </h3>
-                        {item.selectedVariant && (
-                          <p className="text-sm text-gray-600 mb-2">
-                            Variant: {item.selectedVariant.name}
-                          </p>
+                      <div className="space-y-4 mb-6">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Subtotal ({cartItems.length} items)</span>
+                          <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                        </div>
+                        
+                        {savings > 0 && (
+                          <div className="flex justify-between text-green-600">
+                            <span>You save</span>
+                            <span>-${savings.toFixed(2)}</span>
+                          </div>
                         )}
-                        <p className="text-lg font-semibold text-orange-600">
-                          {formatPrice(item.price)}
-                        </p>
+                        
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Shipping</span>
+                          <div className="text-right">
+                            {shipping === 0 ? (
+                              <span className="text-green-600 font-semibold">FREE</span>
+                            ) : (
+                              <span className="font-semibold">${shipping.toFixed(2)}</span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Tax</span>
+                          <span className="font-semibold">${tax.toFixed(2)}</span>
+                        </div>
+                        
+                        <div className="border-t pt-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-lg font-semibold text-gray-900">Total</span>
+                            <span className="text-2xl font-bold text-orange-600">${total.toFixed(2)}</span>
+                          </div>
+                        </div>
                       </div>
                       
-                      {/* Quantity Controls */}
-                      <div className="flex items-center space-x-3">
-                        <button
-                          onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.selectedVariant)}
-                          className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-                        >
-                          <Minus size={16} />
-                        </button>
-                        <span className="w-12 text-center font-medium">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.selectedVariant)}
-                          className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-                        >
-                          <Plus size={16} />
-                        </button>
-                      </div>
+                      {shipping > 0 && (
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                          <p className="text-sm text-orange-800">
+                            <span className="font-semibold">Free shipping</span> on orders over $75!
+                            Add ${(75 - subtotal).toFixed(2)} more to qualify.
+                          </p>
+                        </div>
+                      )}
                       
-                      {/* Item Total */}
-                      <div className="text-right">
-                        <p className="text-lg font-semibold text-gray-900">
-                          {formatPrice(getItemTotal(item))}
-                        </p>
-                        <button
-                          onClick={() => removeFromCart(item.id, item.selectedVariant)}
-                          className="text-red-600 hover:text-red-700 text-sm mt-2 flex items-center"
-                        >
-                          <Trash2 size={14} className="mr-1" />
-                          Remove
+                      <Link href="/checkout">
+                        <button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-4 px-6 rounded-lg text-lg transition-colors flex items-center justify-center space-x-2">
+                          <span>Proceed to Checkout</span>
+                          <ArrowRight size={20} />
                         </button>
+                      </Link>
+                      
+                      <div className="mt-6 space-y-3 text-sm text-gray-600">
+                        <div className="flex items-center space-x-2">
+                          <Shield className="text-green-500" size={16} />
+                          <span>Secure checkout with SSL encryption</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Truck className="text-blue-500" size={16} />
+                          <span>Fast shipping across Africa & globally</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RefreshCcw className="text-orange-500" size={16} />
+                          <span>30-day return policy</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              // Empty Cart
+              <div className="text-center py-16">
+                <div className="bg-white rounded-xl shadow-sm p-12 max-w-md mx-auto">
+                  <ShoppingCart className="text-gray-400 mx-auto mb-4" size={64} />
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-4">Your cart is empty</h2>
+                  <p className="text-gray-600 mb-6">
+                    Discover amazing products from African artisans and producers
+                  </p>
+                  <Link href="/categories">
+                    <button className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors">
+                      Start Shopping
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
+        </section>
 
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-              <h2 className="text-xl font-semibold mb-6">Order Summary</h2>
+        {/* Trust Indicators */}
+        <section className="py-12 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid md:grid-cols-3 gap-8 text-center">
+              <div className="flex flex-col items-center">
+                <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                  <Shield className="text-green-600" size={32} />
+                </div>
+                <h3 className="font-semibold text-lg mb-2">Secure Payment</h3>
+                <p className="text-gray-600">Your payment information is encrypted and secure</p>
+              </div>
               
-              {/* Order Details */}
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">{formatPrice(subtotal)}</span>
+              <div className="flex flex-col items-center">
+                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                  <Truck className="text-blue-600" size={32} />
                 </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping</span>
-                  <span className="font-medium">
-                    {shipping === 0 ? 'Free' : formatPrice(shipping)}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="font-medium">{formatPrice(tax)}</span>
-                </div>
-                
-                <div className="border-t border-gray-200 pt-4">
-                  <div className="flex justify-between">
-                    <span className="text-lg font-semibold">Total</span>
-                    <span className="text-lg font-semibold text-orange-600">
-                      {formatPrice(total)}
-                    </span>
-                  </div>
-                </div>
+                <h3 className="font-semibold text-lg mb-2">Global Shipping</h3>
+                <p className="text-gray-600">Fast and reliable delivery worldwide</p>
               </div>
-
-              {/* Shipping Info */}
-              {shipping > 0 && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-center text-orange-800">
-                    <Truck size={16} className="mr-2" />
-                    <span className="text-sm font-medium">
-                      Add {formatPrice(50 - subtotal)} more for free shipping!
-                    </span>
-                  </div>
+              
+              <div className="flex flex-col items-center">
+                <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                  <Heart className="text-orange-600" size={32} />
                 </div>
-              )}
-
-              {/* Checkout Button */}
-              <button
-                onClick={handleCheckout}
-                disabled={isCheckingOut}
-                className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white font-semibold py-4 rounded-lg transition-colors flex items-center justify-center"
-              >
-                {isCheckingOut ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    Proceed to Checkout
-                    <ArrowRight size={20} className="ml-2" />
-                  </>
-                )}
-              </button>
-
-              {/* Security Badge */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <div className="flex items-center justify-center text-gray-600">
-                  <Shield size={16} className="mr-2" />
-                  <span className="text-sm">Secure checkout</span>
-                </div>
-              </div>
-
-              {/* Continue Shopping */}
-              <div className="mt-4 text-center">
-                <Link href="/categories" className="text-orange-600 hover:text-orange-700 text-sm font-medium">
-                  Continue Shopping
-                </Link>
+                <h3 className="font-semibold text-lg mb-2">Authentic Products</h3>
+                <p className="text-gray-600">Genuine African products from verified sellers</p>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Recommended Products */}
-        <section className="mt-16">
-          <h2 className="text-2xl font-bold mb-8">You might also like</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Sample recommended products */}
-            {[
-              {
-                id: 'recommended-1',
-                name: 'Ethiopian Coffee Beans',
-                price: '$24.99',
-                image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=300&h=300&fit=crop',
-                rating: 4.7,
-                reviews: 234
-              },
-              {
-                id: 'recommended-2',
-                name: 'Handwoven Kente Scarf',
-                price: '$38.50',
-                image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop&auto=format',
-                rating: 4.8,
-                reviews: 124
-              },
-              {
-                id: 'recommended-3',
-                name: 'Raw Shea Butter',
-                price: '$32.00',
-                image: 'https://images.unsplash.com/photo-1576426863848-c21f53c60b19?w=300&h=300&fit=crop&auto=format',
-                rating: 4.6,
-                reviews: 201
-              },
-              {
-                id: 'recommended-4',
-                name: 'Maasai Hand-woven Basket',
-                price: '$35.99',
-                image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop',
-                rating: 4.8,
-                reviews: 67
-              }
-            ].map((product) => (
-              <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                <Link href={`/products/${product.id}`}>
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    width={300}
-                    height={200}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-4">
-                    <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
-                    <p className="text-lg font-bold text-orange-600">{product.price}</p>
-                  </div>
-                </Link>
-              </div>
-            ))}
           </div>
         </section>
       </main>
