@@ -48,7 +48,7 @@ const Footer = () => {
           <p className="text-xl text-gray-300 mb-8">
             Get exclusive deals, new product launches, and stories from African artisans delivered to your inbox.
           </p>
-          <form className="flex flex-col sm:flex-row max-w-md mx-auto gap-4">
+          <form className="flex flex-col sm:flex-row max-w-md mx-auto gap-4 items-center justify-center">
             <input
               type="email"
               placeholder="Enter your email address"

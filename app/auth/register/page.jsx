@@ -396,7 +396,7 @@ export default function RegisterPage() {
           <div className="hidden lg:block">
             <div className="text-center">
               <Image
-                src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=600&auto=format&fit=crop"
+                src="/utility/login-signup.png"
                 alt="African marketplace"
                 width={600}
                 height={400}
