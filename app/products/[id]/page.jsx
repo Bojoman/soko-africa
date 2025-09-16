@@ -4,6 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../../components/ui/Header';
 import Footer from '../../components/ui/Footer';
+import WriteReviewModal from '../../components/ui/WriteReviewModal';
+import FAQSection from '../../components/ui/FAQSection';
 import { useCart } from '../../hooks/useCart';
 import { useWishlist } from '../../hooks/useWishlist';
 import { 
@@ -32,6 +34,8 @@ export default function ProductDetailPage({ params }) {
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('description');
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviews, setReviews] = useState([]);
 
   // Sample product data - this will come from API
   const sampleProduct = {
@@ -40,10 +44,10 @@ export default function ProductDetailPage({ params }) {
     price: 12.99,
     originalPrice: 15.99,
     images: [
-      'https://images.unsplash.com/photo-1583062142100-4e1f49c8bb82?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1583062142100-4e1f49c8bb82?w=800&h=600&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1583062142100-4e1f49c8bb82?w=800&h=600&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1583062142100-4e1f49c8bb82?w=800&h=600&fit=crop&q=80'
+      '/hero/avocado.png',
+      '/products/avocados in the farm.png',
+      '/products/mangoes.png',
+      '/products/mangoes in a farm.png'
     ],
     rating: 4.8,
     reviews: 156,
@@ -88,8 +92,46 @@ export default function ProductDetailPage({ params }) {
     setTimeout(() => {
       setProduct(sampleProduct);
       setSelectedVariant(sampleProduct.variants[1]); // Default to medium pack
+      
+      // Initialize sample reviews
+      setReviews([
+        {
+          id: 1,
+          name: 'Sarah Johnson',
+          rating: 5,
+          date: '2024-01-15',
+          title: 'Absolutely perfect avocados!',
+          comment: 'Amazing quality! The avocados were perfectly ripe and delicious. Will definitely order again.',
+          verified: true,
+          helpful: 12,
+          wouldRecommend: true
+        },
+        {
+          id: 2,
+          name: 'Michael Chen',
+          rating: 4,
+          date: '2024-01-10',
+          title: 'Great quality with minor issues',
+          comment: 'Great product, fast shipping. One avocado was slightly overripe but overall very satisfied.',
+          verified: true,
+          helpful: 8,
+          wouldRecommend: true
+        },
+        {
+          id: 3,
+          name: 'Emma Davis',
+          rating: 5,
+          date: '2024-01-08',
+          title: 'Best avocados I\'ve ever had!',
+          comment: 'These avocados are incredible! Perfect for my morning toast and smoothies. The taste is so much better than store-bought ones.',
+          verified: false,
+          helpful: 15,
+          wouldRecommend: true
+        }
+      ]);
+      
       setIsLoading(false);
-    }, 1000);
+    }, 300);
   }, [resolvedParams.id]);
 
   const handleAddToCart = () => {
@@ -107,6 +149,14 @@ export default function ProductDetailPage({ params }) {
     } else {
       addToWishlist(product);
     }
+  };
+
+  const handleSubmitReview = (newReview) => {
+    // Add new review to the beginning of the list
+    setReviews(prevReviews => [newReview, ...prevReviews]);
+    
+    // Automatically switch to reviews tab to show the new review
+    setActiveTab('reviews');
   };
 
   const formatPrice = (price) => {
@@ -200,6 +250,7 @@ export default function ProductDetailPage({ params }) {
                 width={800}
                 height={600}
                 className="w-full h-96 object-cover rounded-lg"
+                priority
               />
               
               {/* Image Navigation */}
@@ -441,42 +492,144 @@ export default function ProductDetailPage({ params }) {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-semibold">Customer Reviews</h3>
-                  <button className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm">
+                  <button 
+                    onClick={() => setShowReviewModal(true)}
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                  >
                     Write a Review
                   </button>
                 </div>
                 
-                {/* Sample Reviews */}
-                {[
-                  {
-                    name: 'Sarah Johnson',
-                    rating: 5,
-                    date: '2024-01-15',
-                    comment: 'Amazing quality! The avocados were perfectly ripe and delicious. Will definitely order again.'
-                  },
-                  {
-                    name: 'Michael Chen',
-                    rating: 4,
-                    date: '2024-01-10',
-                    comment: 'Great product, fast shipping. One avocado was slightly overripe but overall very satisfied.'
-                  }
-                ].map((review, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
-                        <div>
-                          <div className="font-medium">{review.name}</div>
-                          <div className="flex items-center">
-                            {renderStars(review.rating)}
-                            <span className="ml-2 text-sm text-gray-600">{review.date}</span>
-                          </div>
+                {/* Reviews Summary */}
+                {reviews.length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                    <div className="grid md:grid-cols-3 gap-6">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-orange-600">
+                          {(reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)}
+                        </div>
+                        <div className="flex justify-center mb-2">
+                          {renderStars(Math.round(reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length))}
+                        </div>
+                        <div className="text-sm text-gray-600">{reviews.length} reviews</div>
+                      </div>
+                      <div className="space-y-2">
+                        {[5, 4, 3, 2, 1].map(rating => {
+                          const count = reviews.filter(r => r.rating === rating).length;
+                          const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                          return (
+                            <div key={rating} className="flex items-center space-x-3">
+                              <span className="text-sm w-3">{rating}</span>
+                              <Star className="text-yellow-400 fill-current" size={14} />
+                              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-yellow-400 rounded-full h-2 transition-all"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                              <span className="text-sm text-gray-600 w-8">{count}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Verified purchases:</span>
+                          <span className="font-medium">
+                            {reviews.filter(r => r.verified).length}/{reviews.length}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Would recommend:</span>
+                          <span className="font-medium">
+                            {Math.round((reviews.filter(r => r.wouldRecommend).length / reviews.length) * 100)}%
+                          </span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-gray-700">{review.comment}</p>
                   </div>
-                ))}
+                )}
+
+                {/* Individual Reviews */}
+                {reviews.length > 0 ? (
+                  <div className="space-y-6">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="border border-gray-200 rounded-lg p-6">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start space-x-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-semibold">
+                              {review.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <div className="font-medium">{review.name}</div>
+                                {review.verified && (
+                                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                                    Verified Purchase
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-2 mt-1">
+                                {renderStars(review.rating)}
+                                <span className="text-sm text-gray-600">{review.date}</span>
+                              </div>
+                            </div>
+                          </div>
+                          {review.wouldRecommend && (
+                            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                              Recommends
+                            </span>
+                          )}
+                        </div>
+                        
+                        {review.title && (
+                          <h4 className="font-semibold text-gray-900 mb-2">{review.title}</h4>
+                        )}
+                        
+                        <p className="text-gray-700 mb-4 leading-relaxed">{review.comment}</p>
+                        
+                        {review.photos && review.photos.length > 0 && (
+                          <div className="flex space-x-2 mb-4">
+                            {review.photos.map((photo, photoIndex) => (
+                              <Image
+                                key={photoIndex}
+                                src={photo.url}
+                                alt={`Review photo ${photoIndex + 1}`}
+                                width={80}
+                                height={80}
+                                className="w-20 h-20 object-cover rounded-lg"
+                              />
+                            ))}
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                          <div className="flex items-center space-x-4 text-sm text-gray-600">
+                            <button className="flex items-center space-x-1 hover:text-orange-600 transition-colors">
+                              <span>👍</span>
+                              <span>Helpful ({review.helpful || 0})</span>
+                            </button>
+                            <button className="hover:text-orange-600 transition-colors">
+                              Report
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <Star className="mx-auto text-gray-400 mb-4" size={48} />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No reviews yet</h3>
+                    <p className="text-gray-600 mb-4">Be the first to review this product!</p>
+                    <button 
+                      onClick={() => setShowReviewModal(true)}
+                      className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg transition-colors"
+                    >
+                      Write a Review
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -517,9 +670,28 @@ export default function ProductDetailPage({ params }) {
             )}
           </div>
         </div>
+
+        {/* FAQ Section */}
+        <section className="py-16 bg-gray-50">
+          <FAQSection 
+            userType="customer"
+            title="Product Questions"
+            subtitle="Common questions about this product and similar items"
+            showContactCTA={false}
+            className="max-w-6xl"
+          />
+        </section>
       </main>
       
       <Footer />
+
+      {/* Write Review Modal */}
+      <WriteReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        product={product}
+        onSubmitReview={handleSubmitReview}
+      />
     </div>
   );
 }

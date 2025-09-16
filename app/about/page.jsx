@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
+import FAQSection from '../components/ui/FAQSection';
 import { 
   Globe, 
   Heart, 
@@ -452,6 +453,15 @@ export default function AboutPage() {
               </Link>
             </div>
           </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="py-16 bg-white">
+          <FAQSection 
+            userType="customer"
+            title="Frequently Asked Questions"
+            subtitle="Find answers to common questions about shopping on SokoAfrica"
+          />
         </section>
 
       </main>

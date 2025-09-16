@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
+import FAQSection from '../components/ui/FAQSection';
 import { 
   Heart, 
   ShoppingCart, 
@@ -29,7 +30,7 @@ export default function WishlistPage() {
       name: "Authentic Maasai Beaded Jewelry Set",
       price: 89.99,
       originalPrice: 110.00,
-      image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=400&auto=format&fit=crop",
+      image: "/products/African bracelets.png",
       category: "Jewelry",
       rating: 4.9,
       reviews: 127,
@@ -43,7 +44,7 @@ export default function WishlistPage() {
       name: "Premium Ghanaian Cocoa Powder - Organic",
       price: 32.50,
       originalPrice: 38.99,
-      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=400&auto=format&fit=crop",
+      image: "/hero/Black beans.png",
       category: "Food & Beverages",
       rating: 4.8,
       reviews: 89,
@@ -57,7 +58,7 @@ export default function WishlistPage() {
       name: "Handwoven Basotho Blanket - Traditional",
       price: 125.00,
       originalPrice: 149.99,
-      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=400&auto=format&fit=crop",
+      image: "/hero/Ankara fabric.png",
       category: "Home & Textiles",
       rating: 5.0,
       reviews: 203,
@@ -71,7 +72,7 @@ export default function WishlistPage() {
       name: "Ethiopian Berbere Spice Blend Set",
       price: 24.99,
       originalPrice: 29.99,
-      image: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=400&auto=format&fit=crop",
+      image: "/hero/ndengu.png",
       category: "Spices & Seasonings",
       rating: 4.7,
       reviews: 156,
@@ -85,7 +86,7 @@ export default function WishlistPage() {
       name: "Moroccan Argan Oil - Pure & Certified",
       price: 45.00,
       originalPrice: 55.00,
-      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=400&auto=format&fit=crop",
+      image: "/products/African bracelets.png",
       category: "Beauty & Wellness",
       rating: 4.9,
       reviews: 342,
@@ -99,7 +100,7 @@ export default function WishlistPage() {
       name: "Senegalese Djembe Drum - Handcrafted",
       price: 189.99,
       originalPrice: 220.00,
-      image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=400&auto=format&fit=crop",
+      image: "/hero/massai wall art.png",
       category: "Musical Instruments",
       rating: 4.8,
       reviews: 74,
@@ -234,8 +235,8 @@ export default function WishlistPage() {
           </div>
         </div>
       </div>
-    </div>
-  );
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -245,25 +246,25 @@ export default function WishlistPage() {
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-orange-500 to-green-600 text-white py-12">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="flex items-center justify-between">
-              <div>
+          <div className="flex items-center justify-between">
+            <div>
                 <div className="flex items-center space-x-4 mb-4">
                   <Heart className="fill-current" size={32} />
                   <h1 className="text-3xl lg:text-4xl font-bold">My Wishlist</h1>
                 </div>
                 <p className="text-lg opacity-90">
                   {wishlistItems.length} items saved • ${totalSavings.toFixed(2)} total savings available
-                </p>
-              </div>
-              
+              </p>
+            </div>
+            
               {wishlistItems.length > 0 && (
                 <div className="flex space-x-2">
                   <button className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-colors">
                     <Download size={20} />
-                  </button>
+              </button>
                   <button className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-colors">
                     <Share2 size={20} />
-                  </button>
+              </button>
                 </div>
               )}
             </div>
@@ -292,8 +293,8 @@ export default function WishlistPage() {
                       >
                         <List size={16} />
                       </button>
-                    </div>
-                    
+        </div>
+
                     <div className="flex items-center space-x-2">
                       <SortDesc className="text-gray-600" size={16} />
                       <select
@@ -316,7 +317,7 @@ export default function WishlistPage() {
                     <Link href="/categories">
                       <button className="border border-gray-300 text-gray-700 hover:border-orange-600 hover:text-orange-600 font-semibold px-6 py-2 rounded-lg transition-colors">
                         Continue Shopping
-                      </button>
+                  </button>
                     </Link>
                   </div>
                 </div>
@@ -390,12 +391,12 @@ export default function WishlistPage() {
             <h3 className="text-2xl font-bold text-gray-900 mb-8">Recently Viewed</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {[
-                { name: "Kenyan Tea", price: 14.99, image: "https://images.unsplash.com/photo-1556909114-47530a45e3e4?q=80&w=200&auto=format&fit=crop" },
-                { name: "Ankara Fabric", price: 28.50, image: "https://images.unsplash.com/photo-1594736797933-d0c6451faa9b?q=80&w=200&auto=format&fit=crop" },
-                { name: "Shea Butter", price: 19.99, image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=200&auto=format&fit=crop" },
-                { name: "Coffee Beans", price: 22.75, image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?q=80&w=200&auto=format&fit=crop" },
-                { name: "Wooden Masks", price: 45.00, image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?q=80&w=200&auto=format&fit=crop" },
-                { name: "Baobab Oil", price: 32.99, image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=200&auto=format&fit=crop" }
+                { name: "Kenyan Tea", price: 14.99, image: "/hero/yellow beans.png" },
+                { name: "Ankara Fabric", price: 28.50, image: "/hero/Ankara fabric.png" },
+                { name: "Shea Butter", price: 19.99, image: "/products/African bracelets.png" },
+                { name: "Coffee Beans", price: 22.75, image: "/hero/Black beans.png" },
+                { name: "Wooden Masks", price: 45.00, image: "/hero/massai wall art.png" },
+                { name: "Baobab Oil", price: 32.99, image: "/products/mangoes.png" }
               ].map((product, index) => (
                 <div key={index} className="bg-gray-50 rounded-lg p-3 hover:shadow-md transition-shadow">
                   <Image
@@ -414,6 +415,17 @@ export default function WishlistPage() {
               ))}
             </div>
           </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="py-16 bg-white">
+          <FAQSection 
+            userType="customer"
+            title="Wishlist Questions"
+            subtitle="Common questions about saving and managing your favorite products"
+            showContactCTA={false}
+            className="max-w-6xl"
+          />
         </section>
       </main>
       

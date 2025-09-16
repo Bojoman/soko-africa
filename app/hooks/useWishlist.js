@@ -105,6 +105,7 @@ export function useWishlist() {
     toggleWishlist,
     clearWishlist,
     isInWishlist,
+    isWishlisted: isInWishlist, // Add alias for backward compatibility
     getWishlistCount,
     moveToCart,
     isEmpty: wishlist.length === 0,

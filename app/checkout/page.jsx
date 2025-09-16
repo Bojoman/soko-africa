@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
+import FAQSection from '../components/ui/FAQSection';
 import { 
   CreditCard, 
   Shield, 
@@ -37,7 +38,7 @@ export default function CheckoutPage() {
       name: "Premium Ethiopian Coffee Beans",
       price: 24.99,
       quantity: 2,
-      image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?q=80&w=100&auto=format&fit=crop",
+      image: "/hero/Black beans.png",
       seller: "Addis Coffee Co."
     },
     {
@@ -45,7 +46,7 @@ export default function CheckoutPage() {
       name: "Hand-woven Kente Cloth Scarf",
       price: 45.00,
       quantity: 1,
-      image: "https://images.unsplash.com/photo-1594736797933-d0c6451faa9b?q=80&w=100&auto=format&fit=crop",
+      image: "/hero/Ankara fabric.png",
       seller: "Ghana Weavers Guild"
     },
     {
@@ -53,7 +54,7 @@ export default function CheckoutPage() {
       name: "Organic Shea Butter - Pure & Natural",
       price: 18.50,
       quantity: 3,
-      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=100&auto=format&fit=crop",
+      image: "/products/African bracelets.png",
       seller: "Burkina Beauty"
     }
   ];
@@ -615,6 +616,17 @@ export default function CheckoutPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="py-16 bg-white">
+          <FAQSection 
+            userType="customer"
+            title="Checkout Questions"
+            subtitle="Common questions about payment, shipping, and order processing"
+            showContactCTA={false}
+            className="max-w-6xl"
+          />
         </section>
       </main>
       

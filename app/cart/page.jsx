@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
+import FAQSection from '../components/ui/FAQSection';
 import { 
   ShoppingCart, 
   Heart, 
@@ -27,7 +28,7 @@ export default function CartPage() {
       price: 24.99,
       originalPrice: 29.99,
       quantity: 2,
-      image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?q=80&w=400&auto=format&fit=crop",
+      image: "/hero/Black beans.png",
       category: "Beverages",
       inStock: true,
       seller: "Addis Coffee Co."
@@ -38,7 +39,7 @@ export default function CartPage() {
       price: 45.00,
       originalPrice: 55.00,
       quantity: 1,
-      image: "https://images.unsplash.com/photo-1594736797933-d0c6451faa9b?q=80&w=400&auto=format&fit=crop",
+      image: "/hero/Ankara fabric.png",
       category: "Fashion",
       inStock: true,
       seller: "Ghana Weavers Guild"
@@ -49,7 +50,7 @@ export default function CartPage() {
       price: 18.50,
       originalPrice: 22.00,
       quantity: 3,
-      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=400&auto=format&fit=crop",
+      image: "/products/African bracelets.png",
       category: "Beauty & Wellness",
       inStock: true,
       seller: "Burkina Beauty"
@@ -60,7 +61,7 @@ export default function CartPage() {
       price: 16.75,
       originalPrice: 19.99,
       quantity: 1,
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop",
+      image: "/hero/ndengu.png",
       category: "Beverages",
       inStock: false,
       seller: "Kilimanjaro Tea Co."
@@ -216,10 +217,10 @@ export default function CartPage() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">You might also like</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {[
-                        { name: "Moringa Tea", price: 12.99, image: "https://images.unsplash.com/photo-1556909114-47530a45e3e4?q=80&w=200&auto=format&fit=crop" },
-                        { name: "African Honey", price: 15.50, image: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?q=80&w=200&auto=format&fit=crop" },
-                        { name: "Boabab Oil", price: 22.00, image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=200&auto=format&fit=crop" },
-                        { name: "Macadamia Nuts", price: 18.75, image: "https://images.unsplash.com/photo-1529258283598-8d6fe60b27f4?q=80&w=200&auto=format&fit=crop" }
+                        { name: "Moringa Tea", price: 12.99, image: "/hero/yellow beans.png" },
+                        { name: "African Honey", price: 15.50, image: "/products/mangoes.png" },
+                        { name: "Boabab Oil", price: 22.00, image: "/products/African bracelets.png" },
+                        { name: "Macadamia Nuts", price: 18.75, image: "/hero/ndengu.png" }
                       ].map((product, index) => (
                         <div key={index} className="border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
                           <Image
@@ -366,6 +367,17 @@ export default function CartPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="py-16 bg-white">
+          <FAQSection 
+            userType="customer"
+            title="Shopping Questions"
+            subtitle="Common questions about your cart and checkout process"
+            showContactCTA={false}
+            className="max-w-6xl"
+          />
         </section>
       </main>
       
