@@ -1,96 +1,67 @@
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import { Search, MessageCircle, Phone, Mail, Book, Users } from 'lucide-react';
+import EnhancedFAQSection from '../components/ui/EnhancedFAQSection'; // Corrected import
+import { Suspense } from 'react';
 
-export const metadata = {
-  title: "Help Center - SokoAfrica",
-  description: "Get help with your SokoAfrica orders, account, and shopping questions."
-};
+async function fetchFaqs() {
+  // In a real app, this would be an absolute URL
+  const res = await fetch('http://localhost:3000/api/faqs?userType=customer', {
+    next: { revalidate: 3600 } // Revalidate every hour
+  });
+  if (!res.ok) {
+    // This will activate the closest `error.js` Error Boundary
+    throw new Error('Failed to fetch FAQs');
+  }
+  const data = await res.json();
+  return data.faqs;
+}
 
-export default function HelpPage() {
+function FaqList({ faqs }) {
+  return (
+    <EnhancedFAQSection
+      faqs={faqs}
+      title="Frequently Asked Questions"
+      subtitle="Find answers to common questions about our platform."
+    />
+  );
+}
+
+export default async function HelpPage() {
+  const faqs = await fetchFaqs();
+  
   const helpCategories = [
     {
       title: "Order & Shipping",
       icon: <Book className="w-8 h-8 text-orange-600" />,
-      topics: [
-        "Track your order",
-        "Shipping information",
-        "Delivery times",
-        "Order modifications",
-        "International shipping"
-      ]
+      topics: ["Track your order", "Shipping information", "Delivery times", "Order modifications", "International shipping"]
     },
     {
       title: "Returns & Refunds",
       icon: <Users className="w-8 h-8 text-green-600" />,
-      topics: [
-        "Return policy",
-        "How to return items",
-        "Refund process",
-        "Exchange products",
-        "Damaged items"
-      ]
+      topics: ["Return policy", "How to return items", "Refund process", "Exchange products", "Damaged items"]
     },
     {
       title: "Account & Payment",
       icon: <MessageCircle className="w-8 h-8 text-blue-600" />,
-      topics: [
-        "Create account",
-        "Payment methods",
-        "Billing issues",
-        "Password reset",
-        "Account security"
-      ]
+      topics: ["Create account", "Payment methods", "Billing issues", "Password reset", "Account security"]
     },
     {
       title: "Products & Sellers",
       icon: <Search className="w-8 h-8 text-purple-600" />,
-      topics: [
-        "Product authenticity",
-        "Seller information",
-        "Product reviews",
-        "Size guides",
-        "Care instructions"
-      ]
-    }
-  ];
-
-  const faqs = [
-    {
-      question: "How long does shipping take?",
-      answer: "Shipping times vary by location. Domestic orders typically arrive within 3-7 business days, while international orders take 7-21 business days."
-    },
-    {
-      question: "Can I return a product if I don't like it?",
-      answer: "Yes! We offer a 30-day return policy for most items. Products must be in original condition with tags attached."
-    },
-    {
-      question: "How do I track my order?",
-      answer: "Once your order ships, you'll receive a tracking number via email. You can also track orders in your account dashboard."
-    },
-    {
-      question: "Are the products authentic?",
-      answer: "Absolutely! We work directly with verified African artisans and suppliers to ensure all products are authentic and high-quality."
-    },
-    {
-      question: "What payment methods do you accept?",
-      answer: "We accept major credit cards (Visa, Mastercard, Amex), PayPal, and mobile money payments (M-Pesa, Airtel Money)."
+      topics: ["Product authenticity", "Seller information", "Product reviews", "Size guides", "Care instructions"]
     }
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">Help Center</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             Find answers to your questions or get in touch with our support team.
           </p>
-          
-          {/* Search Bar */}
           <div className="max-w-2xl mx-auto">
             <div className="relative">
               <input
@@ -102,8 +73,7 @@ export default function HelpPage() {
             </div>
           </div>
         </div>
-
-        {/* Help Categories */}
+        
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Browse Help Topics</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -127,20 +97,12 @@ export default function HelpPage() {
           </div>
         </div>
 
-        {/* FAQs */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Frequently Asked Questions</h2>
-          <div className="max-w-4xl mx-auto space-y-6">
-            {faqs.map((faq, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">{faq.question}</h3>
-                <p className="text-gray-600">{faq.answer}</p>
-              </div>
-            ))}
-          </div>
+          <Suspense fallback={<div>Loading FAQs...</div>}>
+            <FaqList faqs={faqs} />
+          </Suspense>
         </div>
 
-        {/* Contact Options */}
         <div className="bg-white rounded-lg shadow-md p-8">
           <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Still Need Help?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -154,7 +116,6 @@ export default function HelpPage() {
                 Start Chat
               </button>
             </div>
-            
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Phone className="w-8 h-8 text-green-600" />
@@ -163,7 +124,6 @@ export default function HelpPage() {
               <p className="text-gray-600 mb-4">+254 700 123 456</p>
               <p className="text-sm text-gray-500">Mon-Fri: 8AM-8PM EAT</p>
             </div>
-            
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Mail className="w-8 h-8 text-blue-600" />
@@ -175,7 +135,6 @@ export default function HelpPage() {
           </div>
         </div>
       </main>
-      
       <Footer />
     </div>
   );

@@ -5,7 +5,8 @@ import Link from 'next/link';
 import Header from '../../components/ui/Header';
 import Footer from '../../components/ui/Footer';
 import WriteReviewModal from '../../components/ui/WriteReviewModal';
-import FAQSection from '../../components/ui/FAQSection';
+import EnhancedFAQSection from '../components/ui/EnhancedFAQSection';
+import useFAQ from '../hooks/useFAQ';
 import { useCart } from '../../hooks/useCart';
 import { useWishlist } from '../../hooks/useWishlist';
 import { 
@@ -673,7 +674,7 @@ export default function ProductDetailPage({ params }) {
 
         {/* FAQ Section */}
         <section className="py-16 bg-gray-50">
-          <FAQSection 
+          <EnhancedFAQSection 
             userType="customer"
             title="Product Questions"
             subtitle="Common questions about this product and similar items"

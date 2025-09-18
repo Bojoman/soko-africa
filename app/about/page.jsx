@@ -4,7 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
-import FAQSection from '../components/ui/FAQSection';
+import EnhancedFAQSection from '../components/ui/EnhancedFAQSection';
+import useFAQ from '../hooks/useFAQ';
 import { 
   Globe, 
   Heart, 
@@ -108,6 +109,8 @@ export default function AboutPage() {
       bio: "Expert in e-commerce platforms with a focus on emerging market solutions."
     }
   ];
+
+  const { faqs, loading, error } = useFAQ('customer');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -456,12 +459,8 @@ export default function AboutPage() {
         </section>
 
         {/* FAQ Section */}
-        <section className="py-16 bg-white">
-          <FAQSection 
-            userType="customer"
-            title="Frequently Asked Questions"
-            subtitle="Find answers to common questions about shopping on SokoAfrica"
-          />
+        <section className="py-16 bg-gray-50">
+          {faqs && <EnhancedFAQSection faqs={faqs} />}
         </section>
 
       </main>

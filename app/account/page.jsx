@@ -1,153 +1,159 @@
+"use client";
+import React, { useState, useEffect } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { profileUpdateSchema } from '../lib/validations';
+import ProtectedRoute from '../components/auth/ProtectedRoute';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
-import { User, Package, Heart, Settings, MapPin, CreditCard } from 'lucide-react';
-
-export const metadata = {
-  title: "My Account - SokoAfrica",
-  description: "Manage your SokoAfrica account, orders, and preferences."
-};
+import { useAuth } from '../contexts/AuthContext';
+import { useRoleAccess } from '../hooks/useRoleAccess';
+import { FormInput } from '../components/forms/FormInput';
+import { FormSelect } from '../components/forms/FormSelect';
+import { FormButton } from '../components/forms/FormButton';
+import { FormAlert } from '../components/forms/FormAlert';
+import { User, Mail, Phone, MapPin, Calendar, Shield, Edit, Save, X } from 'lucide-react';
 
 export default function AccountPage() {
-  const accountSections = [
-    {
-      icon: <Package className="w-8 h-8 text-blue-600" />,
-      title: "My Orders",
-      description: "Track orders and view purchase history",
-      href: "/orders"
+  const { user, updateProfile } = useAuth();
+  const { getRoleDisplayName, getRoleColor } = useRoleAccess();
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [serverMessage, setServerMessage] = useState({ type: '', text: '' });
+
+  const methods = useForm({
+    resolver: zodResolver(profileUpdateSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      phone: '',
+      country: '',
+      bio: '',
+      address: '',
+      city: '',
+      postalCode: '',
     },
-    {
-      icon: <Heart className="w-8 h-8 text-red-600" />,
-      title: "Wishlist",
-      description: "Save products for later",
-      href: "/wishlist"
-    },
-    {
-      icon: <MapPin className="w-8 h-8 text-green-600" />,
-      title: "Addresses",
-      description: "Manage shipping and billing addresses",
-      href: "/account/addresses"
-    },
-    {
-      icon: <CreditCard className="w-8 h-8 text-purple-600" />,
-      title: "Payment Methods",
-      description: "Manage saved payment methods",
-      href: "/account/payment"
-    },
-    {
-      icon: <Settings className="w-8 h-8 text-gray-600" />,
-      title: "Account Settings",
-      description: "Update profile and preferences",
-      href: "/account/settings"
+  });
+
+  const { handleSubmit, reset, formState: { isSubmitting, isDirty } } = methods;
+
+  useEffect(() => {
+    if (user) {
+      reset({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        phone: user.phone || '',
+        country: user.country || '',
+        bio: user.bio || '',
+        address: user.address || '',
+        city: user.city || '',
+        postalCode: user.postalCode || '',
+      });
     }
-  ];
+  }, [user, reset]);
+
+  const onSubmit = async (data) => {
+    setServerMessage({ type: '', text: '' });
+    const result = await updateProfile(data);
+    if (result.success) {
+      setServerMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setIsEditing(false);
+    } else {
+      setServerMessage({ type: 'error', text: result.error || 'Failed to update profile.' });
+    }
+  };
+
+  const handleCancel = () => {
+    reset(); // Resets form to defaultValues (or last reset values)
+    setIsEditing(false);
+    setServerMessage({ type: '', text: '' });
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Account Header */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-          <div className="flex items-center">
-            <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mr-6">
-              <User className="w-10 h-10 text-orange-600" />
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="max-w-4xl mx-auto px-6 py-8">
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <User className="text-blue-600" size={24} />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">My Account</h1>
+                <p className="text-gray-600">Manage your profile and account settings</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome back, John!</h1>
-              <p className="text-gray-600">Manage your account and track your orders</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-3xl font-bold text-orange-600 mb-2">12</div>
-            <div className="text-gray-600">Total Orders</div>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-3xl font-bold text-green-600 mb-2">8</div>
-            <div className="text-gray-600">Wishlist Items</div>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">2</div>
-            <div className="text-gray-600">Pending Orders</div>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-2">$1,234</div>
-            <div className="text-gray-600">Total Spent</div>
-          </div>
-        </div>
-
-        {/* Account Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {accountSections.map((section, index) => (
-            <a
-              key={index}
-              href={section.href}
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow group"
+            <button
+              onClick={() => isEditing ? handleCancel() : setIsEditing(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
             >
-              <div className="flex items-start">
-                <div className="flex-shrink-0 mr-4">
-                  {section.icon}
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2 group-hover:text-orange-600 transition-colors">
-                    {section.title}
-                  </h3>
-                  <p className="text-gray-600">{section.description}</p>
-                </div>
-              </div>
-            </a>
-          ))}
-        </div>
+              {isEditing ? <X size={16} /> : <Edit size={16} />}
+              <span>{isEditing ? 'Cancel' : 'Edit Profile'}</span>
+            </button>
+          </div>
+          
+          <FormAlert message={serverMessage.text} type={serverMessage.type} />
 
-        {/* Recent Orders */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Orders</h2>
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="grid grid-cols-5 gap-4 text-sm font-semibold text-gray-600 uppercase tracking-wider">
-                <div>Order #</div>
-                <div>Date</div>
-                <div>Status</div>
-                <div>Total</div>
-                <div>Action</div>
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow-md p-6 text-center">
+                <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <User className="text-orange-600" size={32} />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {user?.firstName} {user?.lastName}
+                </h2>
+                <p className="text-gray-600 mb-2">{user?.email}</p>
+                <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
+                  {getRoleDisplayName(user?.role)}
+                </span>
               </div>
             </div>
-            
-            {[
-              { id: "ORD-2024-001", date: "Sep 10, 2025", status: "Delivered", total: "$89.99", action: "View Details" },
-              { id: "ORD-2024-002", date: "Sep 8, 2025", status: "Shipped", total: "$156.50", action: "Track Order" },
-              { id: "ORD-2024-003", date: "Sep 5, 2025", status: "Processing", total: "$234.00", action: "View Details" }
-            ].map((order, index) => (
-              <div key={index} className="px-6 py-4 border-b border-gray-100 last:border-b-0">
-                <div className="grid grid-cols-5 gap-4 items-center">
-                  <div className="font-semibold text-gray-800">{order.id}</div>
-                  <div className="text-gray-600">{order.date}</div>
-                  <div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      order.status === 'Delivered' ? 'bg-green-100 text-green-600' :
-                      order.status === 'Shipped' ? 'bg-blue-100 text-blue-600' :
-                      'bg-yellow-100 text-yellow-600'
-                    }`}>
-                      {order.status}
-                    </span>
-                  </div>
-                  <div className="font-semibold text-gray-800">{order.total}</div>
-                  <div>
-                    <button className="text-orange-600 hover:text-orange-700 font-semibold text-sm">
-                      {order.action}
-                    </button>
-                  </div>
-                </div>
+
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Profile Information</h3>
+                <FormProvider {...methods}>
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <FormInput name="firstName" label="First Name" disabled={!isEditing} />
+                      <FormInput name="lastName" label="Last Name" disabled={!isEditing} />
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <p className="text-gray-500">{user?.email}</p>
+                      </div>
+
+                      <FormInput name="phone" label="Phone Number" icon={Phone} disabled={!isEditing} />
+                      
+                      <FormSelect name="country" label="Country" icon={MapPin} disabled={!isEditing}>
+                        <option value="Kenya">Kenya</option>
+                        <option value="Nigeria">Nigeria</option>
+                        <option value="South Africa">South Africa</option>
+                      </FormSelect>
+
+                      <div className="md:col-span-2">
+                        <FormInput name="bio" label="Bio" placeholder="Tell us about yourself..." disabled={!isEditing} />
+                      </div>
+                    </div>
+
+                    {isEditing && (
+                      <div className="flex space-x-3 mt-6 pt-6 border-t border-gray-200">
+                        <FormButton isLoading={isSubmitting} disabled={!isDirty}>
+                          <Save size={16} className="mr-2" />
+                          Save Changes
+                        </FormButton>
+                      </div>
+                    )}
+                  </form>
+                </FormProvider>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </main>
-      
-      <Footer />
-    </div>
+        </main>
+        <Footer />
+      </div>
+    </ProtectedRoute>
   );
 }

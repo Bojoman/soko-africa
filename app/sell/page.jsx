@@ -2,7 +2,8 @@
 import React from 'react';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
-import FAQSection from '../components/ui/FAQSection';
+import EnhancedFAQSection from '../components/ui/EnhancedFAQSection';
+import { useFAQ } from '../hooks/useFAQ';
 import { 
   Store, 
   TrendingUp, 
@@ -15,6 +16,8 @@ import {
 } from 'lucide-react';
 
 export default function SellPage() {
+  const { faqs, loading, error } = useFAQ('seller');
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -139,11 +142,7 @@ export default function SellPage() {
 
         {/* FAQ Section */}
         <section className="py-16 bg-white">
-          <FAQSection 
-            userType="seller"
-            title="Seller Questions"
-            subtitle="Common questions about selling on SokoAfrica"
-          />
+          {faqs && <EnhancedFAQSection faqs={faqs} userType="seller" />}
         </section>
 
         {/* CTA Section */}

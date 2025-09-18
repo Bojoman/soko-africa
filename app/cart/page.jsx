@@ -4,7 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
-import FAQSection from '../components/ui/FAQSection';
+import EnhancedFAQSection from '../components/ui/EnhancedFAQSection';
+import { useFAQ } from '../hooks/useFAQ';
 import { 
   ShoppingCart, 
   Heart, 
@@ -87,6 +88,8 @@ export default function CartPage() {
   const shipping = subtotal > 75 ? 0 : 9.99;
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
+
+  const { faqs, loading, error } = useFAQ('customer');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -370,14 +373,8 @@ export default function CartPage() {
         </section>
 
         {/* FAQ Section */}
-        <section className="py-16 bg-white">
-          <FAQSection 
-            userType="customer"
-            title="Shopping Questions"
-            subtitle="Common questions about your cart and checkout process"
-            showContactCTA={false}
-            className="max-w-6xl"
-          />
+        <section className="py-16 bg-gray-50">
+          {faqs && <EnhancedFAQSection faqs={faqs} />}
         </section>
       </main>
       

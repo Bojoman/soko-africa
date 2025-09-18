@@ -5,45 +5,46 @@ const faqData = {
   customer: [
     {
       id: 'customer-1',
-      question: "How secure is my payment information on your platform?",
-      answer: "We use industry-standard SSL encryption and partner with trusted payment processors to ensure your financial data is completely secure. All transactions are processed through PCI-compliant systems with bank-level security measures.",
-      category: 'security',
+      question: "How long does shipping take?",
+      answer: "Shipping times vary by location. Domestic orders typically arrive within 3-7 business days, while international orders take 7-21 business days.",
+      category: 'shipping',
       priority: 1,
-      tags: ['payment', 'security', 'encryption']
+      tags: ['shipping', 'delivery', 'time']
     },
     {
       id: 'customer-2',
-      question: "What makes SokoAfrica different from other African marketplaces?",
-      answer: "SokoAfrica focuses exclusively on authentic African products with verified sellers, fair trade practices, and direct support to African communities. We provide end-to-end logistics, quality assurance, and transparent supply chain tracking.",
-      category: 'general',
+      question: "Can I return a product if I don't like it?",
+      answer: "Yes! We offer a 30-day return policy for most items. Products must be in original condition with tags attached.",
+      category: 'returns',
       priority: 2,
-      tags: ['marketplace', 'authentic', 'african']
+      tags: ['returns', 'policy', 'refund']
     },
     {
       id: 'customer-3',
-      question: "Can I track my order from Africa to my doorstep?",
-      answer: "Yes! Our platform offers real-time tracking from the moment your order is placed until it reaches your door. You'll receive updates at every stage including processing, shipping, customs, and final delivery.",
+      question: "How do I track my order?",
+      answer: "Once your order ships, you'll receive a tracking number via email. You can also track orders in your account dashboard.",
       category: 'shipping',
       priority: 3,
-      tags: ['tracking', 'shipping', 'delivery']
+      tags: ['tracking', 'order', 'status']
     },
     {
       id: 'customer-4',
-      question: "Is there a limit to the number of products I can order?",
-      answer: "No, there's no limit on the number of products you can order. However, some items may have quantity restrictions due to availability or shipping regulations. We'll notify you if any limits apply to your specific order.",
-      category: 'orders',
+      question: "Are the products authentic?",
+      answer: "Absolutely! We work directly with verified African artisans and suppliers to ensure all products are authentic and high-quality.",
+      category: 'products',
       priority: 4,
-      tags: ['orders', 'quantity', 'limits']
+      tags: ['authentic', 'quality', 'sourcing']
     },
     {
       id: 'customer-5',
-      question: "Do you offer customer support and assistance for international buyers?",
-      answer: "Absolutely! We provide 24/7 customer support in multiple languages, including English, French, and local African languages. Our team can help with orders, shipping, customs, and any questions about African products.",
-      category: 'support',
+      question: "What payment methods do you accept?",
+      answer: "We accept major credit cards (Visa, Mastercard, Amex), PayPal, and mobile money payments (M-Pesa, Airtel Money).",
+      category: 'payment',
       priority: 5,
-      tags: ['support', 'international', 'languages']
+      tags: ['payment', 'credit card', 'paypal']
     }
   ],
+  // seller and partner FAQs can be updated as well if needed
   seller: [
     {
       id: 'seller-1',

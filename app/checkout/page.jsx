@@ -4,7 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
-import FAQSection from '../components/ui/FAQSection';
+import EnhancedFAQSection from '../components/ui/EnhancedFAQSection';
+import useFAQ from '../hooks/useFAQ';
 import { 
   CreditCard, 
   Shield, 
@@ -397,6 +398,8 @@ export default function CheckoutPage() {
     </div>
   );
 
+  const { faqs, loading, error } = useFAQ('customer');
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -620,13 +623,7 @@ export default function CheckoutPage() {
 
         {/* FAQ Section */}
         <section className="py-16 bg-white">
-          <FAQSection 
-            userType="customer"
-            title="Checkout Questions"
-            subtitle="Common questions about payment, shipping, and order processing"
-            showContactCTA={false}
-            className="max-w-6xl"
-          />
+          {faqs && <EnhancedFAQSection faqs={faqs} />}
         </section>
       </main>
       

@@ -2,7 +2,8 @@
 import React from 'react';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
-import FAQSection from '../components/ui/FAQSection';
+import EnhancedFAQSection from '../components/ui/EnhancedFAQSection';
+import { useFAQ } from '../hooks/useFAQ';
 import { 
   Handshake, 
   Network, 
@@ -15,6 +16,8 @@ import {
 } from 'lucide-react';
 
 export default function PartnerPage() {
+  const { faqs, loading, error } = useFAQ('partner');
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -154,11 +157,7 @@ export default function PartnerPage() {
 
     {/* FAQ Section */}
     <section className="py-16 bg-white">
-      <FAQSection 
-        userType="partner"
-        title="Partnership Questions"
-        subtitle="Common questions about partnering with SokoAfrica"
-      />
+      {faqs && <EnhancedFAQSection faqs={faqs} userType="partner" />}
     </section>
 
     {/* CTA Section */}

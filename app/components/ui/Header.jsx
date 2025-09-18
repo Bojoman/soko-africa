@@ -2,10 +2,13 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Menu, ShoppingCart, User, MapPin, ChevronDown } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { Search, Menu, ShoppingCart, User, MapPin, ChevronDown, LogOut, Settings, Store, Shield } from 'lucide-react';
 
 const Header = () => {
+  const { user, isAuthenticated, logout, hasRole } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const categories = [
     { name: 'All Categories', href: '/categories' },
@@ -68,9 +71,9 @@ const Header = () => {
                 </div>
               </div>
               
-              <Link href="/categories" className="text-gray-700 hover:text-orange-600 transition-colors">
+              {/* <Link href="/categories" className="text-gray-700 hover:text-orange-600 transition-colors">
                 All Categories
-              </Link>
+              </Link> */}
               <Link href="/about" className="text-gray-700 hover:text-orange-600 transition-colors">
                 About
               </Link>
@@ -105,10 +108,105 @@ const Header = () => {
 
           {/* Right Icons */}
           <div className="flex items-center space-x-3 sm:space-x-4 lg:space-x-6">
-            <Link href="/account" className="flex items-center space-x-1 text-gray-700 hover:text-orange-600 transition-colors">
-              <User size={20} className="sm:w-6 sm:h-6" />
-              <span className="hidden lg:block text-sm">Account</span>
-            </Link>
+            {/* User Account */}
+            {isAuthenticated ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center space-x-1 text-gray-700 hover:text-orange-600 transition-colors"
+                >
+                  <User size={20} className="sm:w-6 sm:h-6" />
+                  <span className="hidden lg:block text-sm">
+                    {user?.firstName || 'Account'}
+                  </span>
+                  <ChevronDown size={16} />
+                </button>
+                
+                {/* User Dropdown Menu */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                    <div className="py-2">
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <p className="text-sm font-medium text-gray-900">
+                          {user?.firstName} {user?.lastName}
+                        </p>
+                        <p className="text-xs text-gray-500 capitalize">
+                          {user?.role}
+                        </p>
+                      </div>
+                      
+                      <Link
+                        href="/account"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <Settings size={16} className="mr-2" />
+                        Profile Settings
+                      </Link>
+                      
+                      <Link
+                        href="/orders"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <ShoppingCart size={16} className="mr-2" />
+                        My Orders
+                      </Link>
+                      
+                      {hasRole('seller') && (
+                        <Link
+                          href="/seller/dashboard"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <Store size={16} className="mr-2" />
+                          Seller Dashboard
+                        </Link>
+                      )}
+                      
+                      {hasRole('admin') && (
+                        <Link
+                          href="/admin/dashboard"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <Shield size={16} className="mr-2" />
+                          Admin Dashboard
+                        </Link>
+                      )}
+                      
+                      <button
+                        onClick={() => {
+                          logout();
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                      >
+                        <LogOut size={16} className="mr-2" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link
+                  href="/auth/login"
+                  className="text-sm text-gray-700 hover:text-orange-600 transition-colors"
+                >
+                  Sign In
+                </Link>
+                <span className="text-gray-300">|</span>
+                <Link
+                  href="/auth/register"
+                  className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
+            
             <Link href="/cart" className="flex items-center space-x-1 text-gray-700 hover:text-orange-600 transition-colors relative">
               <ShoppingCart size={20} className="sm:w-6 sm:h-6" />
               <span className="hidden lg:block text-sm">Cart</span>
