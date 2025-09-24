@@ -140,6 +140,15 @@ const Header = () => {
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
+                        <User size={16} className="mr-2" />
+                        Account Dashboard
+                      </Link>
+                      
+                      <Link
+                        href="/account/profile"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
                         <Settings size={16} className="mr-2" />
                         Profile Settings
                       </Link>
