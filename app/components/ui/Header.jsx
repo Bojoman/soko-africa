@@ -27,7 +27,8 @@ const Header = () => {
           <div className="flex items-center space-x-2 sm:space-x-4">
             <span className="flex items-center text-xs sm:text-sm">
               <MapPin size={12} className="mr-1 sm:mr-2" /> 
-              <span className="hidden sm:inline">Deliver to </span>Nairobi
+              <span className="hidden sm:inline">Deliver to Nairobi
+              </span>
             </span>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">

@@ -5,16 +5,46 @@ import EnhancedFAQSection from '../components/ui/EnhancedFAQSection'; // Correct
 import { Suspense } from 'react';
 
 async function fetchFaqs() {
-  // In a real app, this would be an absolute URL
-  const res = await fetch('http://localhost:3000/api/faqs?userType=customer', {
-    next: { revalidate: 3600 } // Revalidate every hour
-  });
-  if (!res.ok) {
-    // This will activate the closest `error.js` Error Boundary
-    throw new Error('Failed to fetch FAQs');
+  try {
+    // Use relative URL for internal API calls during build
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NODE_ENV === 'production'
+      ? `${process.env.NEXT_PUBLIC_APP_URL || 'https://soko-africa.vercel.app'}`
+      : 'http://localhost:3000';
+    
+    const res = await fetch(`${baseUrl}/api/faqs?userType=customer`, {
+      next: { revalidate: 3600 } // Revalidate every hour
+    });
+    
+    if (!res.ok) {
+      // This will activate the closest `error.js` Error Boundary
+      throw new Error('Failed to fetch FAQs');
+    }
+    const data = await res.json();
+    return data.faqs;
+  } catch (error) {
+    console.error('Error fetching FAQs:', error);
+    // Return fallback data to prevent build failure
+    return [
+      {
+        id: 'fallback-1',
+        question: "How long does shipping take?",
+        answer: "Shipping times vary by location. Domestic orders typically arrive within 3-7 business days, while international orders take 7-21 business days.",
+        category: 'shipping',
+        priority: 1,
+        tags: ['shipping', 'delivery', 'time']
+      },
+      {
+        id: 'fallback-2',
+        question: "Can I return a product if I don't like it?",
+        answer: "Yes! We offer a 30-day return policy for most items. Products must be in original condition with tags attached.",
+        category: 'returns',
+        priority: 2,
+        tags: ['returns', 'policy', 'refund']
+      }
+    ];
   }
-  const data = await res.json();
-  return data.faqs;
 }
 
 function FaqList({ faqs }) {
