@@ -5,7 +5,7 @@ import { PRODUCT_CATEGORIES } from '../../lib/constants';
 
 const CategoriesSection = ({ 
   title = "Shop by Category",
-  className = "text-orange-600" 
+  className = "text-soko-bright-cyan" 
 }) => {
   // Use categories from constants with additional display properties
   const categories = PRODUCT_CATEGORIES.map(category => ({
@@ -17,7 +17,7 @@ const CategoriesSection = ({
 
   return (
     <section className={`max-w-7xl mx-auto px-6 py-16 ${className}`}>
-      <h2 className="text-3xl font-bold text-orange-600 text-center mb-12">{title}</h2>
+      <h2 className="text-3xl font-bold text-soko-bright-cyan text-center mb-12">{title}</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {categories.map((category, index) => (
           <CategoryCard

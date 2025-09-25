@@ -63,22 +63,22 @@ export default async function HelpPage() {
   const helpCategories = [
     {
       title: "Order & Shipping",
-      icon: <Book className="w-8 h-8 text-orange-600" />,
+      icon: <Book className="w-8 h-8 text-soko-orange" />,
       topics: ["Track your order", "Shipping information", "Delivery times", "Order modifications", "International shipping"]
     },
     {
       title: "Returns & Refunds",
-      icon: <Users className="w-8 h-8 text-green-600" />,
+      icon: <Users className="w-8 h-8 text-soko-bright-cyan" />,
       topics: ["Return policy", "How to return items", "Refund process", "Exchange products", "Damaged items"]
     },
     {
       title: "Account & Payment",
-      icon: <MessageCircle className="w-8 h-8 text-blue-600" />,
+      icon: <MessageCircle className="w-8 h-8 text-soko-dark-teal" />,
       topics: ["Create account", "Payment methods", "Billing issues", "Password reset", "Account security"]
     },
     {
       title: "Products & Sellers",
-      icon: <Search className="w-8 h-8 text-purple-600" />,
+      icon: <Search className="w-8 h-8 text-soko-dark-brown" />,
       topics: ["Product authenticity", "Seller information", "Product reviews", "Size guides", "Care instructions"]
     }
   ];
@@ -97,7 +97,7 @@ export default async function HelpPage() {
               <input
                 type="text"
                 placeholder="Search for help articles..."
-                className="w-full pl-12 pr-4 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
+                className="w-full pl-12 pr-4 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:border-soko-orange focus:ring-2 focus:ring-soko-cream"
               />
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             </div>
@@ -115,7 +115,7 @@ export default async function HelpPage() {
                   <ul className="space-y-2 w-full">
                     {category.topics.map((topic, idx) => (
                       <li key={idx}>
-                        <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors text-sm">
+                        <a href="#" className="text-gray-600 hover:text-soko-orange transition-colors text-sm">
                           {topic}
                         </a>
                       </li>
@@ -137,26 +137,26 @@ export default async function HelpPage() {
           <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Still Need Help?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-8 h-8 text-orange-600" />
+              <div className="w-16 h-16 bg-soko-cream rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle className="w-8 h-8 text-soko-orange" />
               </div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">Live Chat</h3>
               <p className="text-gray-600 mb-4">Chat with our support team</p>
-              <button className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+              <button className="bg-soko-orange hover:bg-soko-orange-red text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                 Start Chat
               </button>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Phone className="w-8 h-8 text-green-600" />
+              <div className="w-16 h-16 bg-soko-light-blue rounded-full flex items-center justify-center mx-auto mb-4">
+                <Phone className="w-8 h-8 text-soko-bright-cyan" />
               </div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">Phone Support</h3>
               <p className="text-gray-600 mb-4">+254 700 123 456</p>
               <p className="text-sm text-gray-500">Mon-Fri: 8AM-8PM EAT</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mail className="w-8 h-8 text-blue-600" />
+              <div className="w-16 h-16 bg-soko-cream rounded-full flex items-center justify-center mx-auto mb-4">
+                <Mail className="w-8 h-8 text-soko-dark-teal" />
               </div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">Email Support</h3>
               <p className="text-gray-600 mb-4">support@sokoafrica.com</p>
