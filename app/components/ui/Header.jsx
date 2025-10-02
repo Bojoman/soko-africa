@@ -22,7 +22,7 @@ const Header = () => {
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
       {/* Top Bar */}
-      <div className="bg-gray-900 text-white text-sm py-2">
+      <div className="bg-soko-dark-brown text-white text-sm py-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
           <div className="flex items-center space-x-2 sm:space-x-4">
             <span className="flex items-center text-xs sm:text-sm">
@@ -30,7 +30,7 @@ const Header = () => {
               <span className="hidden sm:inline">Deliver to Nairobi
               </span>
             </span>
-          </div>
+          </div> 
           <div className="flex items-center space-x-2 sm:space-x-4">
             <span className="text-xs sm:text-sm">📞 <span className="hidden sm:inline">+254 700 123 456</span></span>
             <span className="text-xs sm:text-sm">🌍 Ship Globally</span>
@@ -44,13 +44,20 @@ const Header = () => {
           {/* Logo */}
           <div className="flex items-center space-x-4 lg:space-x-8">
             <Link href="/" className="text-lg sm:text-xl lg:text-2xl font-bold text-soko-bright-cyan">
-              SOKO<span className="text-soko-dark-red">AFRICA</span>
+              <Image 
+                // src="/utility/logo_2_soko_africa.png" 
+                src="/utility/logo_1.png"
+                alt="SokoAfrica Logo"
+                width={150}
+                height={50}
+                className="w-auto h-8 sm:h-10 lg:h-12"
+              />
             </Link>
             
             {/* Categories Dropdown */}
             <nav className="hidden lg:flex items-center space-x-6">
               <div className="relative group">
-                <button className="flex items-center space-x-1 text-gray-700 hover:text-soko-bright-cyan transition-colors">
+                <button className="flex items-center space-x-1 text-gray-700 hover:text-soko-orange-red transition-colors">
                   <Menu size={20} />
                   <span>All Categories</span>
                   <ChevronDown size={16} />
@@ -59,15 +66,15 @@ const Header = () => {
                 {/* Dropdown Menu */}
                 <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                   <div className="py-2">
-                    {categories.map((category, index) => (
-                      <Link
-                        key={index}
-                        href={category.href}
-                        className="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
-                      >
-                        {category.name}
-                      </Link>
-                    ))}
+                     {categories.map((category, index) => (
+                       <Link
+                         key={index}
+                         href={category.href}
+                         className="block px-4 py-2 text-gray-700 hover:bg-soko-cream hover:text-soko-orange-red transition-colors"
+                       >
+                         {category.name}
+                       </Link>
+                     ))}
                   </div>
                 </div>
               </div>
@@ -75,7 +82,7 @@ const Header = () => {
               {/* <Link href="/categories" className="text-gray-700 hover:text-orange-600 transition-colors">
                 All Categories
               </Link> */}
-              <Link href="/about" className="text-gray-700 hover:text-orange-600 transition-colors">
+              {/* <Link href="/about" className="text-gray-700 hover:text-orange-600 transition-colors">
                 About
               </Link>
               <Link href="/nyamazone" className="text-gray-700 hover:text-orange-600 transition-colors">
@@ -86,7 +93,7 @@ const Header = () => {
               </Link>
               <Link href="/sell" className="text-gray-700 hover:text-orange-600 transition-colors">
                 Sell
-              </Link>
+              </Link> */}
             </nav>
           </div>
 
@@ -100,7 +107,7 @@ const Header = () => {
               />
               <button 
                 type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-orange-600 text-white p-1.5 sm:p-2 rounded-md hover:bg-orange-700 transition-colors"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-soko-orange-red text-white p-1.5 sm:p-2 rounded-md hover:bg-soko-orange-red transition-colors"
               >
                 <Search size={16} className="sm:w-5 sm:h-5" />
               </button>
@@ -114,7 +121,7 @@ const Header = () => {
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-1 text-gray-700 hover:text-soko-bright-cyan transition-colors"
+                  className="flex items-center space-x-1 text-soko-dark-brown hover:text-soko-orange-red transition-colors"
                 >
                   <User size={20} className="sm:w-6 sm:h-6" />
                   <span className="hidden lg:block text-sm">
@@ -190,7 +197,7 @@ const Header = () => {
                           logout();
                           setIsUserMenuOpen(false);
                         }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
                       >
                         <LogOut size={16} className="mr-2" />
                         Sign Out

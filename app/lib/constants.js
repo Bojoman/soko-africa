@@ -37,41 +37,54 @@ export const API_ENDPOINTS = {
   reviews: '/api/reviews',
 };
 
-// Product categories
+// Product categories with curated images
 export const PRODUCT_CATEGORIES = [
   {
     id: 'agriculture',
-    name: 'Agri & Natural Products',
+    name: 'Fresh Produce & Grains',
     icon: '🌾',
-    description: 'Fresh produce, coffee, spices, and natural ingredients',
+    description: 'Farm-fresh fruits, coffee, spices & organic ingredients',
+    image: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800&q=80', // African market produce
+    trending: true,
+    count: '500+ items',
     subcategories: ['Avocadoes', 'Macadamia', 'Coffee', 'Tea', 'Honey', 'Oranges', 'Spices', 'Grains']
+  },
+  {
+    id: 'fashion',
+    name: 'Fashion & Textiles',
+    icon: '👗',
+    description: 'Bold Ankara prints, traditional wear & accessories',
+    image: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=80', // African fashion
+    trending: true,
+    count: '350+ items',
+    subcategories: ['Ankara Fabrics', 'Clothes', 'Textiles', 'Traditional Wear', 'Accessories', 'Jewelry']
   },
   {
     id: 'handcrafted',
     name: 'Handcrafted Goods',
     icon: '🏺',
-    description: 'Pottery, woodwork, sculptures, and traditional crafts',
+    description: 'Unique pottery, woodwork, baskets & artisan crafts',
+    image: 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=800&q=80', // African crafts
+    count: '420+ items',
     subcategories: ['Baskets & Bags', 'Homeware', 'Maasai Market', 'Pottery', 'Woodwork', 'Sculptures']
   },
   {
-    id: 'fashion',
-    name: 'Textile & Fashion',
-    icon: '👗',
-    description: 'Ankara fabrics, clothes, and traditional fashion',
-    subcategories: ['Ankara Fabrics', 'Clothes', 'Textiles', 'Traditional Wear', 'Accessories', 'Jewelry']
-  },
-  {
     id: 'beauty',
-    name: 'Natural Beauty & Wellness',
+    name: 'Beauty & Wellness',
     icon: '🧴',
-    description: 'Natural oils, soaps, and herbal wellness products',
+    description: 'Natural shea butter, oils & herbal skincare',
+    image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&q=80', // Beauty products
+    trending: true,
+    count: '280+ items',
     subcategories: ['Oils', 'Soaps', 'Herbal Products', 'Skincare', 'Wellness', 'Traditional Medicine']
   },
   {
     id: 'nyamazone',
     name: 'Nyamazone Meats',
     icon: '🥩',
-    description: 'Premium quality meats and delicacies',
+    description: 'Premium grass-fed meats & specialty cuts',
+    image: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=800&q=80', // Quality meat
+    count: '150+ items',
     subcategories: ['Lamb', 'Beef', 'Fish', 'Chicken', 'Meat Products', 'Game Meat']
   }
 ];

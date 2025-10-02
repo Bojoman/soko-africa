@@ -2,10 +2,12 @@
 import React from 'react';
 import Link from 'next/link';
 import ProductCard from '../ui/ProductCard';
+import { TrendingUp, Star } from 'lucide-react';
 
 const FeaturedProductsSection = ({ 
-  title = "Featured Products",
-  className = "text-orange-600" 
+  title = "Trending This Week",
+  subtitle = "Most loved by our global community",
+  className = "" 
 }) => {
   const featuredProducts = [
     {
@@ -86,19 +88,33 @@ const FeaturedProductsSection = ({
   ];
 
   return (
-    <section className={`bg-white py-16 ${className}`}>
+    <section className={`relative py-20 bg-gradient-to-br from-gray-50 to-white ${className}`}>
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex justify-between items-center mb-12">
-          <h2 className="text-3xl font-bold text-orange-600">{title}</h2>
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-soko-bright-cyan/10 text-soko-bright-cyan px-4 py-2 rounded-full text-sm font-semibold mb-3">
+              <TrendingUp size={16} />
+              <span>Bestsellers</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
+              {title}
+            </h2>
+            <p className="text-gray-600 text-lg">
+              {subtitle}
+            </p>
+          </div>
           <Link 
             href="/products" 
-            className="text-orange-600 hover:text-orange-700 font-semibold transition-colors"
+            className="inline-flex items-center gap-2 text-soko-bright-cyan hover:text-soko-orange font-bold transition-colors text-lg group"
           >
-            View All →
+            <span>View All</span>
+            <span className="group-hover:translate-x-1 transition-transform">→</span>
           </Link>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {featuredProducts.slice(0, 8).map((product) => (
             <ProductCard
               key={product.id}
@@ -109,11 +125,24 @@ const FeaturedProductsSection = ({
           ))}
         </div>
         
-        {/* View More Button for Mobile */}
-        <div className="text-center mt-8 lg:hidden">
+        {/* Bottom CTA Section */}
+        <div className="mt-16 bg-gradient-to-r from-soko-dark-teal to-soko-bright-cyan rounded-3xl p-8 md:p-12 text-white text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Star className="fill-soko-orange text-soko-orange" size={24} />
+            <Star className="fill-soko-orange text-soko-orange" size={24} />
+            <Star className="fill-soko-orange text-soko-orange" size={24} />
+            <Star className="fill-soko-orange text-soko-orange" size={24} />
+            <Star className="fill-soko-orange text-soko-orange" size={24} />
+          </div>
+          <h3 className="text-2xl md:text-3xl font-bold mb-3">
+            Join 50,000+ Happy Customers Worldwide
+          </h3>
+          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
+            Experience authentic African products with trusted quality and fast global shipping
+          </p>
           <Link href="/products">
-            <button className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
-              View All Products
+            <button className="bg-white text-soko-dark-teal px-8 py-4 rounded-xl font-bold text-lg hover:bg-soko-orange hover:text-white transition-all duration-300 transform hover:scale-105 shadow-lg">
+              Explore All Products
             </button>
           </Link>
         </div>

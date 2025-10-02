@@ -16,12 +16,12 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-}
+} */
 
 body {
   background: var(--background);
@@ -82,37 +82,91 @@ button {
 }
 
 /* Soko Africa Brand Color Utilities */
-.text-soko-dark-teal { color: var(--soko-dark-teal); }
-.text-soko-light-blue { color: var(--soko-light-blue); }
-.text-soko-cream { color: var(--soko-cream); }
-.text-soko-orange-red { color: var(--soko-orange-red); }
-.text-soko-dark-brown { color: var(--soko-dark-brown); }
-.text-soko-bright-cyan { color: var(--soko-bright-cyan); }
-.text-soko-orange { color: var(--soko-orange); }
-.text-soko-dark-red { color: var(--soko-dark-red); }
+.text-soko-dark-teal { color: var(--soko-dark-teal) !important; }
+.text-soko-light-blue { color: var(--soko-light-blue) !important; }
+.text-soko-cream { color: var(--soko-cream) !important; }
+.text-soko-orange-red { color: var(--soko-orange-red) !important; }
+.text-soko-dark-brown { color: var(--soko-dark-brown) !important; }
+.text-soko-bright-cyan { color: var(--soko-bright-cyan) !important; }
+.text-soko-orange { color: var(--soko-orange) !important; }
+.text-soko-dark-red { color: var(--soko-dark-red) !important; }
 
-.bg-soko-dark-teal { background-color: var(--soko-dark-teal); }
-.bg-soko-light-blue { background-color: var(--soko-light-blue); }
-.bg-soko-cream { background-color: var(--soko-cream); }
-.bg-soko-orange-red { background-color: var(--soko-orange-red); }
-.bg-soko-dark-brown { background-color: var(--soko-dark-brown); }
-.bg-soko-bright-cyan { background-color: var(--soko-bright-cyan); }
-.bg-soko-orange { background-color: var(--soko-orange); }
-.bg-soko-dark-red { background-color: var(--soko-dark-red); }
+.bg-soko-dark-teal { background-color: var(--soko-dark-teal) !important; }
+.bg-soko-light-blue { background-color: var(--soko-light-blue) !important; }
+.bg-soko-cream { background-color: var(--soko-cream) !important; }
+.bg-soko-orange-red { background-color: var(--soko-orange-red) !important; }
+.bg-soko-dark-brown { background-color: var(--soko-dark-brown) !important; }
+.bg-soko-bright-cyan { background-color: var(--soko-bright-cyan) !important; }
+.bg-soko-orange { background-color: var(--soko-orange) !important; }
+.bg-soko-dark-red { background-color: var(--soko-dark-red) !important; }
 
-.border-soko-dark-teal { border-color: var(--soko-dark-teal); }
-.border-soko-light-blue { border-color: var(--soko-light-blue); }
-.border-soko-cream { border-color: var(--soko-cream); }
-.border-soko-orange-red { border-color: var(--soko-orange-red); }
-.border-soko-dark-brown { border-color: var(--soko-dark-brown); }
-.border-soko-bright-cyan { border-color: var(--soko-bright-cyan); }
-.border-soko-orange { border-color: var(--soko-orange); }
-.border-soko-dark-red { border-color: var(--soko-dark-red); }
+.border-soko-dark-teal { border-color: var(--soko-dark-teal) !important; }
+.border-soko-light-blue { border-color: var(--soko-light-blue) !important; }
+.border-soko-cream { border-color: var(--soko-cream) !important; }
+.border-soko-orange-red { border-color: var(--soko-orange-red) !important; }
+.border-soko-dark-brown { border-color: var(--soko-dark-brown) !important; }
+.border-soko-bright-cyan { border-color: var(--soko-bright-cyan) !important; }
+.border-soko-orange { border-color: var(--soko-orange) !important; }
+.border-soko-dark-red { border-color: var(--soko-dark-red) !important; }
 
 /* Brand-specific hover states */
-.hover\:bg-soko-dark-teal:hover { background-color: var(--soko-dark-teal); }
-.hover\:bg-soko-bright-cyan:hover { background-color: var(--soko-bright-cyan); }
-.hover\:bg-soko-orange:hover { background-color: var(--soko-orange); }
-.hover\:text-soko-dark-teal:hover { color: var(--soko-dark-teal); }
-.hover\:text-soko-bright-cyan:hover { color: var(--soko-bright-cyan); }
-.hover\:text-soko-orange:hover { color: var(--soko-orange); }
+.hover\:bg-soko-dark-teal:hover { background-color: var(--soko-dark-teal) !important; }
+.hover\:bg-soko-light-blue:hover { background-color: var(--soko-light-blue) !important; }
+.hover\:bg-soko-cream:hover { background-color: var(--soko-cream) !important; }
+.hover\:bg-soko-orange-red:hover { background-color: var(--soko-orange-red) !important; }
+.hover\:bg-soko-dark-brown:hover { background-color: var(--soko-dark-brown) !important; }
+.hover\:bg-soko-bright-cyan:hover { background-color: var(--soko-bright-cyan) !important; }
+.hover\:bg-soko-orange:hover { background-color: var(--soko-orange) !important; }
+.hover\:bg-soko-dark-red:hover { background-color: var(--soko-dark-red) !important; }
+
+.hover\:text-soko-dark-teal:hover { color: var(--soko-dark-teal) !important; }
+.hover\:text-soko-light-blue:hover { color: var(--soko-light-blue) !important; }
+.hover\:text-soko-cream:hover { color: var(--soko-cream) !important; }
+.hover\:text-soko-orange-red:hover { color: var(--soko-orange-red) !important; }
+.hover\:text-soko-dark-brown:hover { color: var(--soko-dark-brown) !important; }
+.hover\:text-soko-bright-cyan:hover { color: var(--soko-bright-cyan) !important; }
+.hover\:text-soko-orange:hover { color: var(--soko-orange) !important; }
+.hover\:text-soko-dark-red:hover { color: var(--soko-dark-red) !important; }
+
+.hover\:border-soko-dark-teal:hover { border-color: var(--soko-dark-teal) !important; }
+.hover\:border-soko-light-blue:hover { border-color: var(--soko-light-blue) !important; }
+.hover\:border-soko-cream:hover { border-color: var(--soko-cream) !important; }
+.hover\:border-soko-orange-red:hover { border-color: var(--soko-orange-red) !important; }
+.hover\:border-soko-dark-brown:hover { border-color: var(--soko-dark-brown) !important; }
+.hover\:border-soko-bright-cyan:hover { border-color: var(--soko-bright-cyan) !important; }
+.hover\:border-soko-orange:hover { border-color: var(--soko-orange) !important; }
+.hover\:border-soko-dark-red:hover { border-color: var(--soko-dark-red) !important; }
+
+/* Focus states */
+.focus\:border-soko-orange-red:focus { border-color: var(--soko-orange-red) !important; }
+.focus\:border-soko-bright-cyan:focus { border-color: var(--soko-bright-cyan) !important; }
+.focus\:ring-soko-orange-red:focus { --tw-ring-color: var(--soko-orange-red) !important; }
+.focus\:ring-soko-bright-cyan:focus { --tw-ring-color: var(--soko-bright-cyan) !important; }
+
+/* Opacity variants for backgrounds */
+.bg-soko-dark-teal\/10 { background-color: rgb(0 74 99 / 0.1) !important; }
+.bg-soko-dark-teal\/20 { background-color: rgb(0 74 99 / 0.2) !important; }
+.bg-soko-light-blue\/10 { background-color: rgb(168 214 226 / 0.1) !important; }
+.bg-soko-cream\/30 { background-color: rgb(236 230 204 / 0.3) !important; }
+.bg-soko-orange-red\/10 { background-color: rgb(207 54 4 / 0.1) !important; }
+.bg-soko-orange-red\/20 { background-color: rgb(207 54 4 / 0.2) !important; }
+.bg-soko-dark-brown\/20 { background-color: rgb(102 59 0 / 0.2) !important; }
+.bg-soko-bright-cyan\/10 { background-color: rgb(3 177 208 / 0.1) !important; }
+.bg-soko-bright-cyan\/20 { background-color: rgb(3 177 208 / 0.2) !important; }
+.bg-soko-orange\/10 { background-color: rgb(237 149 42 / 0.1) !important; }
+.bg-soko-orange\/20 { background-color: rgb(237 149 42 / 0.2) !important; }
+.bg-soko-dark-red\/20 { background-color: rgb(86 0 0 / 0.2) !important; }
+
+/* Gradient variants */
+.from-soko-cream { --tw-gradient-from: var(--soko-cream) var(--tw-gradient-from-position) !important; }
+.via-soko-cream { --tw-gradient-via: var(--soko-cream) var(--tw-gradient-via-position) !important; }
+.to-soko-cream { --tw-gradient-to: var(--soko-cream) var(--tw-gradient-to-position) !important; }
+.from-soko-orange { --tw-gradient-from: var(--soko-orange) var(--tw-gradient-from-position) !important; }
+.via-soko-orange { --tw-gradient-via: var(--soko-orange) var(--tw-gradient-via-position) !important; }
+.to-soko-orange { --tw-gradient-to: var(--soko-orange) var(--tw-gradient-to-position) !important; }
+.from-soko-dark-red { --tw-gradient-from: var(--soko-dark-red) var(--tw-gradient-from-position) !important; }
+.via-soko-dark-red { --tw-gradient-via: var(--soko-dark-red) var(--tw-gradient-via-position) !important; }
+.to-soko-dark-red { --tw-gradient-to: var(--soko-dark-red) var(--tw-gradient-to-position) !important; }
+.from-soko-bright-cyan { --tw-gradient-from: var(--soko-bright-cyan) var(--tw-gradient-from-position) !important; }
+.via-soko-bright-cyan { --tw-gradient-via: var(--soko-bright-cyan) var(--tw-gradient-via-position) !important; }
+.to-soko-bright-cyan { --tw-gradient-to: var(--soko-bright-cyan) var(--tw-gradient-to-position) !important; }

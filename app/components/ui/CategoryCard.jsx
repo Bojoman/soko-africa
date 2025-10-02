@@ -1,59 +1,80 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 const CategoryCard = ({ 
   category, 
-  className = "text-orange-600",
+  className = "",
   showProductCount = true 
 }) => {
   return (
-    <Link href={category.href || `/categories/${category.slug || category.name.toLowerCase().replace(/\s+/g, '-')}`}>
-      <div className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group ${className}`}>
-        {/* Image/Icon Section - 70% of card height */}
-        <div className="relative h-56 sm:h-64 md:h-72 lg:h-80 bg-gradient-to-br from-soko-cream to-soko-light-blue flex items-center justify-center">
-          {/* Category Icon */}
-          <div className="text-5xl sm:text-6xl group-hover:scale-110 transition-transform duration-300">
-            {category.icon}
+    <Link href={category.href || `/categories/${category.slug || category.id}`}>
+      <div className={`relative bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer group transform hover:-translate-y-2 ${className}`}>
+        {/* Image Section with Overlay */}
+        <div className="relative h-64 sm:h-72 overflow-hidden">
+          {category.image ? (
+            <Image
+              src={category.image}
+              alt={category.name}
+              fill
+              className="object-cover group-hover:scale-110 transition-transform duration-700"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+              quality={85}
+              unoptimized={category.image.includes('unsplash')}
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-soko-orange via-soko-bright-cyan to-soko-dark-teal flex items-center justify-center">
+              <div className="text-7xl opacity-80 group-hover:scale-110 transition-transform duration-300">
+                {category.icon}
+              </div>
+            </div>
+          )}
+          
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-90 group-hover:opacity-70 transition-opacity duration-300"></div>
+          
+          {/* Trending Badge (optional) */}
+          {category.trending && (
+            <div className="absolute top-3 right-3 bg-soko-orange text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg flex items-center gap-1">
+              <Sparkles size={12} />
+              Trending
+            </div>
+          )}
+          
+          {/* Content Overlay */}
+          <div className="absolute inset-0 p-5 flex flex-col justify-end">
+            {/* Category Name */}
+            <h3 className="font-bold text-white text-xl mb-2 group-hover:text-soko-orange transition-colors drop-shadow-lg">
+              {category.name}
+            </h3>
+            
+            {/* Description */}
+            {category.description && (
+              <p className="text-white/90 text-sm line-clamp-2 mb-3 drop-shadow">
+                {category.description}
+              </p>
+            )}
+            
+            {/* Product Count & CTA */}
+            <div className="flex items-center justify-between">
+              {showProductCount && category.count && (
+                <p className="text-white/80 text-xs font-medium">
+                  {category.count}
+                </p>
+              )}
+              
+              <div className="flex items-center gap-1 text-white font-semibold text-sm group-hover:text-soko-orange transition-colors">
+                <span>Shop Now</span>
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
           </div>
-          
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          
-          {/* Category Badge */}
-          <span className="absolute top-3 left-3 bg-white text-black text-xs px-3 py-1 rounded-full font-medium shadow-sm">
-            Category
-          </span>
         </div>
         
-        {/* Content Section - 30% of card height */}
-        <div className="p-4 space-y-2">
-          {/* Category Name */}
-          <h3 className="font-semibold text-gray-900 text-sm group-hover:text-soko-dark-red transition-colors line-clamp-2">
-            {category.name}
-          </h3>
-          
-          {/* Product Count */}
-          {showProductCount && category.count && (
-            <p className="text-gray-600 text-xs">
-              {category.count} products available
-            </p>
-          )}
-          
-          {/* Description (optional) */}
-          {category.description && (
-            <p className="text-gray-500 text-xs line-clamp-2">
-              {category.description}
-            </p>
-          )}
-          
-          {/* Explore Link */}
-          <div className="flex items-center text-xs text-soko-bright-cyan hover:text-soko-dark-red transition-colors pt-1">
-            <span>Explore category</span>
-            <ArrowRight size={12} className="ml-1" />
-          </div>
-        </div>
+        {/* Bottom Accent Bar */}
+        <div className="h-1 bg-gradient-to-r from-soko-bright-cyan via-soko-orange to-soko-dark-red transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
       </div>
     </Link>
   );
