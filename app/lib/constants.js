@@ -2,6 +2,18 @@
  * Application constants for Soko Africa
  */
 
+// Brand Colors - Updated from brand book
+export const BRAND_COLORS = {
+  darkTeal: '#004A63',
+  lightBlue: '#A8D6E2', 
+  cream: '#ECE6CC',
+  orangeRed: '#CF3604',
+  darkBrown: '#663B00',
+  brightCyan: '#03B1D0',
+  orange: '#ED952A',
+  darkRed: '#560000',
+};
+
 // Application configuration
 export const APP_CONFIG = {
   name: 'Soko Africa',

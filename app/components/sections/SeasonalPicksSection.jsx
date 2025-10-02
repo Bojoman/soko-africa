@@ -6,7 +6,7 @@ import { SEASONAL_PICKS } from '../../lib/constants';
 
 const SeasonalPicksSection = ({ 
   title = "Seasonal Picks & Featured Products",
-  className = "text-orange-600" 
+  className = "text-soko-bright-cyan" 
 }) => {
   const seasonalProducts = [
     {
@@ -71,7 +71,7 @@ const SeasonalPicksSection = ({
     <section className={`py-16 bg-gradient-to-br from-orange-50 to-green-50 ${className}`}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-orange-600 mb-4">{title}</h2>
+          <h2 className="text-3xl font-bold text-soko-bright-cyan mb-4">{title}</h2>
           <p className="text-xl text-gray-600">
             Discover the best of Africa's seasonal harvest and trending products
           </p>
@@ -83,7 +83,7 @@ const SeasonalPicksSection = ({
             <Link
               key={index}
               href={`/categories?filter=${pick.category.toLowerCase()}`}
-              className="bg-white px-6 py-3 rounded-full shadow-md hover:shadow-lg transition-shadow text-gray-700 hover:text-orange-600 font-medium"
+              className="bg-white px-6 py-3 rounded-full shadow-md hover:shadow-lg transition-shadow text-gray-700 hover:text-soko-bright-cyan font-medium"
             >
               {pick.category}
             </Link>
@@ -118,7 +118,7 @@ const SeasonalPicksSection = ({
                 </div>
                 
                 <div className="p-6">
-                  <h3 className="font-bold text-lg mb-2 group-hover:text-orange-600 transition-colors">
+                  <h3 className="font-bold text-lg mb-2 group-hover:text-soko-dark-red transition-colors">
                     {product.name}
                   </h3>
                   <p className="text-gray-600 text-sm mb-4 line-clamp-2">

@@ -5,8 +5,8 @@ import Link from 'next/link';
 import Header from '../../components/ui/Header';
 import Footer from '../../components/ui/Footer';
 import WriteReviewModal from '../../components/ui/WriteReviewModal';
-import EnhancedFAQSection from '../components/ui/EnhancedFAQSection';
-import useFAQ from '../hooks/useFAQ';
+import EnhancedFAQSection from '../../components/ui/EnhancedFAQSection';
+
 import { useCart } from '../../hooks/useCart';
 import { useWishlist } from '../../hooks/useWishlist';
 import { 

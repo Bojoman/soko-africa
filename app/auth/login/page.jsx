@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema } from '../../lib/validations';
@@ -15,7 +15,7 @@ import { FormButton } from '../../components/forms/FormButton';
 import { FormAlert } from '../../components/forms/FormAlert';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
   const { login, isAuthenticated, user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -170,5 +170,21 @@ export default function LoginPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <LoginForm />
+    </Suspense>
   );
 }

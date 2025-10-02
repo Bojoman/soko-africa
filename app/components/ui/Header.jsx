@@ -27,7 +27,8 @@ const Header = () => {
           <div className="flex items-center space-x-2 sm:space-x-4">
             <span className="flex items-center text-xs sm:text-sm">
               <MapPin size={12} className="mr-1 sm:mr-2" /> 
-              <span className="hidden sm:inline">Deliver to </span>Nairobi
+              <span className="hidden sm:inline">Deliver to Nairobi
+              </span>
             </span>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
@@ -42,14 +43,14 @@ const Header = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-4 lg:space-x-8">
-            <Link href="/" className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600">
-              SOKO<span className="text-green-600">AFRICA</span>
+            <Link href="/" className="text-lg sm:text-xl lg:text-2xl font-bold text-soko-bright-cyan">
+              SOKO<span className="text-soko-dark-red">AFRICA</span>
             </Link>
             
             {/* Categories Dropdown */}
             <nav className="hidden lg:flex items-center space-x-6">
               <div className="relative group">
-                <button className="flex items-center space-x-1 text-gray-700 hover:text-orange-600 transition-colors">
+                <button className="flex items-center space-x-1 text-gray-700 hover:text-soko-bright-cyan transition-colors">
                   <Menu size={20} />
                   <span>All Categories</span>
                   <ChevronDown size={16} />
@@ -113,7 +114,7 @@ const Header = () => {
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-1 text-gray-700 hover:text-orange-600 transition-colors"
+                  className="flex items-center space-x-1 text-gray-700 hover:text-soko-bright-cyan transition-colors"
                 >
                   <User size={20} className="sm:w-6 sm:h-6" />
                   <span className="hidden lg:block text-sm">
@@ -137,7 +138,16 @@ const Header = () => {
                       
                       <Link
                         href="/account"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-soko-cream hover:text-soko-dark-red transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <User size={16} className="mr-2" />
+                        Account Dashboard
+                      </Link>
+                      
+                      <Link
+                        href="/account/profile"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-soko-cream hover:text-soko-dark-red transition-colors"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <Settings size={16} className="mr-2" />
@@ -146,7 +156,7 @@ const Header = () => {
                       
                       <Link
                         href="/orders"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-soko-cream hover:text-soko-dark-red transition-colors"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <ShoppingCart size={16} className="mr-2" />
@@ -156,7 +166,7 @@ const Header = () => {
                       {hasRole('seller') && (
                         <Link
                           href="/seller/dashboard"
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-soko-cream hover:text-soko-dark-red transition-colors"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           <Store size={16} className="mr-2" />
@@ -167,7 +177,7 @@ const Header = () => {
                       {hasRole('admin') && (
                         <Link
                           href="/admin/dashboard"
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-soko-cream hover:text-soko-dark-red transition-colors"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           <Shield size={16} className="mr-2" />

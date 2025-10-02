@@ -1,154 +1,273 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { profileUpdateSchema } from '../lib/validations';
+import React from 'react';
 import ProtectedRoute from '../components/auth/ProtectedRoute';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import { useAuth } from '../contexts/AuthContext';
-import { useRoleAccess } from '../hooks/useRoleAccess';
-import { FormInput } from '../components/forms/FormInput';
-import { FormSelect } from '../components/forms/FormSelect';
-import { FormButton } from '../components/forms/FormButton';
-import { FormAlert } from '../components/forms/FormAlert';
-import { User, Mail, Phone, MapPin, Calendar, Shield, Edit, Save, X } from 'lucide-react';
+import { useCart } from '../hooks/useCart';
+import { useWishlist } from '../hooks/useWishlist';
+import { 
+  User, 
+  Package, 
+  Heart, 
+  Clock, 
+  DollarSign, 
+  ShoppingBag, 
+  MapPin, 
+  CreditCard, 
+  Settings,
+  ArrowRight,
+  Eye,
+  Truck
+} from 'lucide-react';
+import Link from 'next/link';
 
 export default function AccountPage() {
-  const { user, updateProfile } = useAuth();
-  const { getRoleDisplayName, getRoleColor } = useRoleAccess();
-  
-  const [isEditing, setIsEditing] = useState(false);
-  const [serverMessage, setServerMessage] = useState({ type: '', text: '' });
+  const { user } = useAuth();
+  const { itemCount } = useCart();
+  const { count: wishlistCount } = useWishlist();
 
-  const methods = useForm({
-    resolver: zodResolver(profileUpdateSchema),
-    defaultValues: {
-      firstName: '',
-      lastName: '',
-      phone: '',
-      country: '',
-      bio: '',
-      address: '',
-      city: '',
-      postalCode: '',
+  // Mock data for demonstration - replace with real API calls
+  const mockStats = {
+    totalOrders: 12,
+    pendingOrders: 2,
+    totalSpent: 1234
+  };
+
+  const mockRecentOrders = [
+    {
+      id: 'ORD-2024-001',
+      date: 'Sep 10, 2025',
+      status: 'Delivered',
+      statusColor: 'bg-green-100 text-green-800',
+      total: 89.99,
+      action: 'View Details'
     },
-  });
-
-  const { handleSubmit, reset, formState: { isSubmitting, isDirty } } = methods;
-
-  useEffect(() => {
-    if (user) {
-      reset({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        phone: user.phone || '',
-        country: user.country || '',
-        bio: user.bio || '',
-        address: user.address || '',
-        city: user.city || '',
-        postalCode: user.postalCode || '',
-      });
+    {
+      id: 'ORD-2024-002',
+      date: 'Sep 8, 2025',
+      status: 'Shipped',
+      statusColor: 'bg-blue-100 text-blue-800',
+      total: 156.50,
+      action: 'Track Order'
+    },
+    {
+      id: 'ORD-2024-003',
+      date: 'Sep 5, 2025',
+      status: 'Processing',
+      statusColor: 'bg-yellow-100 text-yellow-800',
+      total: 234.00,
+      action: 'View Details'
     }
-  }, [user, reset]);
+  ];
 
-  const onSubmit = async (data) => {
-    setServerMessage({ type: '', text: '' });
-    const result = await updateProfile(data);
-    if (result.success) {
-      setServerMessage({ type: 'success', text: 'Profile updated successfully!' });
-      setIsEditing(false);
-    } else {
-      setServerMessage({ type: 'error', text: result.error || 'Failed to update profile.' });
+  const quickActions = [
+    {
+      title: 'My Orders',
+      description: 'Track orders and view purchase history',
+      icon: Package,
+      href: '/orders',
+      color: 'bg-blue-50 text-blue-600'
+    },
+    {
+      title: 'Wishlist',
+      description: 'Save products for later',
+      icon: Heart,
+      href: '/wishlist',
+      color: 'bg-red-50 text-red-600'
+    },
+    {
+      title: 'Addresses',
+      description: 'Manage shipping and billing addresses',
+      icon: MapPin,
+      href: '/account/addresses',
+      color: 'bg-green-50 text-green-600'
+    },
+    {
+      title: 'Payment Methods',
+      description: 'Manage saved payment methods',
+      icon: CreditCard,
+      href: '/account/payment-methods',
+      color: 'bg-purple-50 text-purple-600'
+    },
+    {
+      title: 'Account Settings',
+      description: 'Update profile and preferences',
+      icon: Settings,
+      href: '/account/profile',
+      color: 'bg-gray-50 text-gray-600'
     }
-  };
-
-  const handleCancel = () => {
-    reset(); // Resets form to defaultValues (or last reset values)
-    setIsEditing(false);
-    setServerMessage({ type: '', text: '' });
-  };
+  ];
 
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <main className="max-w-4xl mx-auto px-6 py-8">
-          <div className="mb-8 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <User className="text-blue-600" size={24} />
+        <main className="max-w-7xl mx-auto px-6 py-8">
+          {/* Welcome Section */}
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
+                <User className="text-orange-600" size={24} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">My Account</h1>
-                <p className="text-gray-600">Manage your profile and account settings</p>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Welcome back, {user?.firstName || 'Customer'}!
+                </h1>
+                <p className="text-gray-600">Manage your account and track your orders</p>
               </div>
             </div>
-            <button
-              onClick={() => isEditing ? handleCancel() : setIsEditing(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-            >
-              {isEditing ? <X size={16} /> : <Edit size={16} />}
-              <span>{isEditing ? 'Cancel' : 'Edit Profile'}</span>
-            </button>
           </div>
-          
-          <FormAlert message={serverMessage.text} type={serverMessage.type} />
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="text-orange-600" size={32} />
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Total Orders</p>
+                  <p className="text-2xl font-bold text-orange-600">{mockStats.totalOrders}</p>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900">
-                  {user?.firstName} {user?.lastName}
-                </h2>
-                <p className="text-gray-600 mb-2">{user?.email}</p>
-                <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
-                  {getRoleDisplayName(user?.role)}
-                </span>
+                <div className="p-3 bg-orange-100 rounded-lg">
+                  <Package className="text-orange-600" size={24} />
+                </div>
               </div>
             </div>
 
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Profile Information</h3>
-                <FormProvider {...methods}>
-                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <FormInput name="firstName" label="First Name" disabled={!isEditing} />
-                      <FormInput name="lastName" label="Last Name" disabled={!isEditing} />
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                        <p className="text-gray-500">{user?.email}</p>
-                      </div>
-
-                      <FormInput name="phone" label="Phone Number" icon={Phone} disabled={!isEditing} />
-                      
-                      <FormSelect name="country" label="Country" icon={MapPin} disabled={!isEditing}>
-                        <option value="Kenya">Kenya</option>
-                        <option value="Nigeria">Nigeria</option>
-                        <option value="South Africa">South Africa</option>
-                      </FormSelect>
-
-                      <div className="md:col-span-2">
-                        <FormInput name="bio" label="Bio" placeholder="Tell us about yourself..." disabled={!isEditing} />
-                      </div>
-                    </div>
-
-                    {isEditing && (
-                      <div className="flex space-x-3 mt-6 pt-6 border-t border-gray-200">
-                        <FormButton isLoading={isSubmitting} disabled={!isDirty}>
-                          <Save size={16} className="mr-2" />
-                          Save Changes
-                        </FormButton>
-                      </div>
-                    )}
-                  </form>
-                </FormProvider>
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Wishlist Items</p>
+                  <p className="text-2xl font-bold text-red-600">{wishlistCount}</p>
+                </div>
+                <div className="p-3 bg-red-100 rounded-lg">
+                  <Heart className="text-red-600" size={24} />
+                </div>
               </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Pending Orders</p>
+                  <p className="text-2xl font-bold text-blue-600">{mockStats.pendingOrders}</p>
+                </div>
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <Clock className="text-blue-600" size={24} />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Total Spent</p>
+                  <p className="text-2xl font-bold text-purple-600">${mockStats.totalSpent}</p>
+                </div>
+                <div className="p-3 bg-purple-100 rounded-lg">
+                  <DollarSign className="text-purple-600" size={24} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {quickActions.map((action) => (
+                <Link
+                  key={action.title}
+                  href={action.href}
+                  className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow group"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`p-3 rounded-lg ${action.color}`}>
+                      <action.icon size={24} />
+                    </div>
+                    <ArrowRight 
+                      className="text-gray-400 group-hover:text-gray-600 transition-colors" 
+                      size={20} 
+                    />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">{action.title}</h3>
+                  <p className="text-gray-600 text-sm">{action.description}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent Orders */}
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">Recent Orders</h2>
+                <Link 
+                  href="/orders"
+                  className="text-orange-600 hover:text-orange-700 text-sm font-medium flex items-center"
+                >
+                  View All Orders
+                  <ArrowRight size={16} className="ml-1" />
+                </Link>
+              </div>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Order #
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {mockRecentOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {order.id}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {order.date}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${order.statusColor}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${order.total}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <button className="text-orange-600 hover:text-orange-700 font-medium flex items-center">
+                          {order.action === 'Track Order' ? (
+                            <>
+                              <Truck size={16} className="mr-1" />
+                              Track Order
+                            </>
+                          ) : (
+                            <>
+                              <Eye size={16} className="mr-1" />
+                              View Details
+                            </>
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </main>

@@ -12,7 +12,7 @@ const CategoryCard = ({
     <Link href={category.href || `/categories/${category.slug || category.name.toLowerCase().replace(/\s+/g, '-')}`}>
       <div className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group ${className}`}>
         {/* Image/Icon Section - 70% of card height */}
-        <div className="relative h-56 sm:h-64 md:h-72 lg:h-80 bg-gradient-to-br from-orange-100 to-green-100 flex items-center justify-center">
+        <div className="relative h-56 sm:h-64 md:h-72 lg:h-80 bg-gradient-to-br from-soko-cream to-soko-light-blue flex items-center justify-center">
           {/* Category Icon */}
           <div className="text-5xl sm:text-6xl group-hover:scale-110 transition-transform duration-300">
             {category.icon}
@@ -30,7 +30,7 @@ const CategoryCard = ({
         {/* Content Section - 30% of card height */}
         <div className="p-4 space-y-2">
           {/* Category Name */}
-          <h3 className="font-semibold text-gray-900 text-sm group-hover:text-orange-600 transition-colors line-clamp-2">
+          <h3 className="font-semibold text-gray-900 text-sm group-hover:text-soko-dark-red transition-colors line-clamp-2">
             {category.name}
           </h3>
           
@@ -49,7 +49,7 @@ const CategoryCard = ({
           )}
           
           {/* Explore Link */}
-          <div className="flex items-center text-xs text-orange-600 hover:text-orange-700 transition-colors pt-1">
+          <div className="flex items-center text-xs text-soko-bright-cyan hover:text-soko-dark-red transition-colors pt-1">
             <span>Explore category</span>
             <ArrowRight size={12} className="ml-1" />
           </div>
