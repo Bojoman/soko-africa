@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-// Sample products data (in a real app, this would come from a database)
+// Sample products data for review purposes
 const products = [
   {
     id: 'kenyan-avocadoes',

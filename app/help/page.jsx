@@ -57,7 +57,7 @@ export default async function HelpPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="text-center mb-12">
+        {/* <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">Help Center</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             Find answers to your questions or get in touch with our support team.
@@ -72,9 +72,9 @@ export default async function HelpPage() {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             </div>
           </div>
-        </div>
+        </div> */}
         
-        <div className="mb-16">
+        {/* <div className="mb-16">
           <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Browse Help Topics</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {helpCategories.map((category, index) => (
@@ -95,7 +95,7 @@ export default async function HelpPage() {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         <div className="mb-16">
           <Suspense fallback={<div>Loading FAQs...</div>}>

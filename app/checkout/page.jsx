@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import EnhancedFAQSection from '../components/ui/EnhancedFAQSection';
-import useFAQ from '../hooks/useFAQ';
+import { useFAQ } from '../hooks/useFAQ';
 import { 
   CreditCard, 
   Shield, 

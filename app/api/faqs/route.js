@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-// Mock FAQ data - in production, this would come from a database
+// Mock FAQ data for specific user types and pages to simulate FAQ retrieval for review purposes
 const faqData = {
   customer: [
     {

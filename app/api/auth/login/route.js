@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-// Mock user database - In production, this would be a real database
+// Mock user database to simulate user authentication for review purposes
 const users = [
   {
     id: '1',
     email: 'admin@sokoafrica.com',
-    password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+    password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     firstName: 'Admin',
     lastName: 'User',
     role: 'admin',
