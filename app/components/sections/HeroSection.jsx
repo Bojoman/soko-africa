@@ -219,7 +219,7 @@ const slides = [
   },
 ];
 
-const SLIDE_DURATION = 5000; // Auto-slide every 5 seconds
+const SLIDE_DURATION = 5000; 
 
 const trustBadgesData = [
   { icon: Shield, title: "Verified Quality", description: "Every product is certified to meet international standards" },
@@ -294,14 +294,14 @@ const HeroSection = () => {
 
   return (
     <section
-      className="relative overflow-hidden bg-gradient-to-br from-soko-dark-teal via-soko-dark-brown to-soko-bright-cyan min-h-screen"
+      className="relative overflow-hidden bg-gradient-to-br from-soko-dark-teal via-soko-dark-brown to-soko-bright-cyan min-h-[70vh] lg:min-h-[75vh]"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       role="region"
       aria-label="Featured products carousel"
       aria-live="polite"
     >
-      <div className="relative h-screen">
+      <div className="relative h-[70vh] lg:h-[75vh]">
         {slides.map((slide, idx) => (
           <div
             key={idx}

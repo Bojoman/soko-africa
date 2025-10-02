@@ -7,13 +7,15 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 const CategoryCard = ({ 
   category, 
   className = "",
-  showProductCount = true 
+  showProductCount = true,
+  showSubcategories = false,
+  variant = "default" // "default" or "large"
 }) => {
   return (
     <Link href={category.href || `/categories/${category.slug || category.id}`}>
       <div className={`relative bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer group transform hover:-translate-y-2 ${className}`}>
         {/* Image Section with Overlay */}
-        <div className="relative h-64 sm:h-72 overflow-hidden">
+        <div className={`relative overflow-hidden ${variant === 'large' ? 'h-80 sm:h-96' : 'h-64 sm:h-72'}`}>
           {category.image ? (
             <Image
               src={category.image}
@@ -72,6 +74,28 @@ const CategoryCard = ({
             </div>
           </div>
         </div>
+        
+        {/* Subcategories Section - Only for large variant */}
+        {showSubcategories && variant === 'large' && category.subcategories && (
+          <div className="p-6 bg-gray-50 border-t">
+            <h4 className="font-semibold text-gray-800 mb-3 text-sm">Popular in {category.name}:</h4>
+            <div className="flex flex-wrap gap-2">
+              {category.subcategories.slice(0, 6).map((subcategory, index) => (
+                <span 
+                  key={index}
+                  className="px-3 py-1 bg-white text-gray-600 text-xs rounded-full border hover:border-soko-orange hover:text-soko-orange transition-colors"
+                >
+                  {subcategory}
+                </span>
+              ))}
+              {category.subcategories.length > 6 && (
+                <span className="px-3 py-1 text-soko-bright-cyan text-xs font-medium">
+                  +{category.subcategories.length - 6} more
+                </span>
+              )}
+            </div>
+          </div>
+        )}
         
         {/* Bottom Accent Bar */}
         <div className="h-1 bg-gradient-to-r from-soko-bright-cyan via-soko-orange to-soko-dark-red transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>

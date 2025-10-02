@@ -5,7 +5,6 @@ import CategoriesSection from './components/sections/CategoriesSection';
 import SeasonalPicksSection from './components/sections/SeasonalPicksSection';
 import FeaturedProductsSection from './components/sections/FeaturedProductsSection';
 import TestimonialsSection from './components/sections/TestimonialsSection';
-import WhyChooseUsSection from './components/sections/WhyChooseUsSection';
 
 export default function Home() {
   return (
@@ -18,7 +17,6 @@ export default function Home() {
         <SeasonalPicksSection />
         <FeaturedProductsSection />
         <TestimonialsSection />
-        <WhyChooseUsSection />
       </main>
       
       <Footer />
