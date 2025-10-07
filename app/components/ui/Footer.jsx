@@ -74,25 +74,23 @@ const Footer = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             {/* Brand Section */}
-            <div>
-              <Link href="/" className="mb-4 block">
+            <div className="flex flex-col">
+              <Link href="/" className="mb-5 inline-block">
                 <Image
                   src="/utility/logo_3.png"
                   alt="SokoAfrica Logo"
-                  width={180}
-                  height={60}
-                  className="h-12 w-auto"
+                  width={220}
+                  height={75}
+                  className="h-auto w-full max-w-[220px] object-contain"
                   priority
                 />
               </Link>
-              <p className="text-soko-cream/80 mb-4">
+              <p className="text-soko-cream/80 mb-4 leading-relaxed text-[15px]" style={{ maxWidth: '220px' }}>
                 Connecting Africa&apos;s finest products with the world through trusted sourcing and quality delivery.
               </p>
-              <div className="flex space-x-4">
-              </div>
               
               {/* Social Media */}
-              <div className="mt-6 flex space-x-4">
+              <div className="mt-auto flex space-x-4">
                 <a href="#" className="text-soko-cream/70 hover:text-soko-orange transition-colors" aria-label="Facebook">
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>

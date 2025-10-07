@@ -135,7 +135,7 @@ export default function AboutPage() {
       
       <main>
         {/* Hero Section with Bridge Illustration */}
-        <section className="relative text-white py-20 overflow-hidden">
+        <section className="relative text-soko-dark-red py-20 overflow-hidden">
           {/* Background Image */}
           <div className="absolute inset-0">
             <Image
@@ -254,7 +254,7 @@ export default function AboutPage() {
                   <span className="text-soko-orange font-semibold">Curated Marketplace</span>
                 </div>
                 
-                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
+                <h2 className="text-3xl lg:text-4xl font-bold text-soko-dark-red leading-tight">
                   Connecting Global Buyers to Africa's Finest
                 </h2>
                 
@@ -296,7 +296,7 @@ export default function AboutPage() {
                   <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent"></div>
                   
                   <div className="grid grid-cols-2 gap-6 relative z-10">
-                    <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
+                    <div className="bg-[#F5F5F5] backdrop-blur-sm p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
                       <div className="bg-soko-orange w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                         <Heart className="text-white" size={28} />
                       </div>
@@ -320,7 +320,7 @@ export default function AboutPage() {
                       <p className="text-sm text-gray-600 leading-relaxed">Worldwide shipping</p>
                     </div>
                     
-                    <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
+                    <div className="bg-[#F5F5F5] backdrop-blur-sm p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
                       <div className="bg-soko-dark-brown w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                         <Award className="text-white" size={28} />
                       </div>
@@ -343,7 +343,7 @@ export default function AboutPage() {
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl font-bold mb-4 text-soko-orange">Our Mission</h2>
+                <h2 className="text-3xl font-bold mb-4 text-soko-dark-red">Our Mission</h2>
                 <p className="text-xl text-gray-700 mb-6">
                   To create a trusted gateway for African products, enabling producers to reach global markets — and buyers to source with confidence, purpose, and impact.
                 </p>
@@ -459,7 +459,7 @@ export default function AboutPage() {
 
 
         {/* Final CTA Section */}
-        <section className="py-20 bg-gradient-to-br from-soko-dark-teal via-soko-dark-red to-soko-orange text-white relative overflow-hidden">
+        <section className="py-20 bg-soko-dark-teal text-white relative overflow-hidden">
           {/* Global network background pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-20 left-20 w-3 h-3 bg-soko-cream rounded-full animate-pulse"></div>
@@ -492,13 +492,13 @@ export default function AboutPage() {
           {/* Background overlay for better readability */}
           <div className="absolute inset-0 bg-black/30"></div>
           
-          <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+          <div className="max-w-4xl mx-auto  px-6 text-center relative z-10">
             <div className="mb-8">
               <div className="inline-flex items-center bg-gradient-to-r from-soko-bright-cyan/20 to-soko-orange/20 backdrop-blur-sm px-6 py-3 rounded-full mb-6 border border-white/30">
                 <Sparkles className="text-soko-cream mr-2" size={20} />
                 <span className="text-soko-cream font-semibold">Ready to Connect?</span>
               </div>
-              <h2 className="text-4xl font-bold mb-4 text-white drop-shadow-lg">Join the SokoAfrica Community</h2>
+              <h2 className="text-4xl font-bold mb-4 text-soko-dark-red drop-shadow-lg">Join the SokoAfrica Community</h2>
               <p className="text-xl mb-8 max-w-3xl mx-auto text-white/90 leading-relaxed">
                 Whether you're a customer seeking authentic African products, a producer ready to reach global markets, 
                 or a partner looking to make an impact—we're here to support your journey.
@@ -506,17 +506,17 @@ export default function AboutPage() {
             </div>
             
             <div className="grid md:grid-cols-3 gap-6 mb-10">
-              <div className="bg-gradient-to-br from-soko-bright-cyan/20 to-soko-dark-teal/20 backdrop-blur-sm p-6 rounded-xl border border-soko-bright-cyan/30 hover:bg-soko-bright-cyan/30 transition-all duration-300">
+              <div className="bg-soko-dark-teal backdrop-blur-sm p-6 rounded-xl border border-soko-bright-cyan/30 hover:bg-soko-bright-cyan/30 transition-all duration-300">
                 <Users className="text-soko-cream mb-4 mx-auto" size={40} />
                 <h3 className="font-semibold text-lg mb-2 text-white">For Customers</h3>
                 <p className="text-sm text-white/80">Discover authentic African products with global delivery</p>
               </div>
-              <div className="bg-gradient-to-br from-soko-orange/20 to-soko-orange-red/20 backdrop-blur-sm p-6 rounded-xl border border-soko-orange/30 hover:bg-soko-orange/30 transition-all duration-300">
+              <div className="bg-soko-dark-teal backdrop-blur-sm p-6 rounded-xl border border-soko-orange/30 hover:bg-soko-orange/30 transition-all duration-300">
                 <Heart className="text-soko-cream mb-4 mx-auto" size={40} />
                 <h3 className="font-semibold text-lg mb-2 text-white">For Producers</h3>
                 <p className="text-sm text-white/80">Scale your business and reach international markets</p>
               </div>
-              <div className="bg-gradient-to-br from-soko-dark-red/20 to-soko-orange-red/20 backdrop-blur-sm p-6 rounded-xl border border-soko-dark-red/30 hover:bg-soko-dark-red/30 transition-all duration-300">
+              <div className="bg-soko-dark-teal backdrop-blur-sm p-6 rounded-xl border border-soko-dark-red/30 hover:bg-soko-dark-red/30 transition-all duration-300">
                 <Globe className="text-soko-cream mb-4 mx-auto" size={40} />
                 <h3 className="font-semibold text-lg mb-2 text-white">For Partners</h3>
                 <p className="text-sm text-white/80">Collaborate with us to create meaningful impact</p>
@@ -525,7 +525,7 @@ export default function AboutPage() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/categories">
-                <button className="bg-gradient-to-r from-soko-cream to-white text-soko-dark-teal hover:from-soko-bright-cyan hover:to-soko-cream hover:text-white font-bold px-8 py-4 rounded-xl text-lg transition-all duration-300 transform hover:scale-105 w-full sm:w-auto shadow-xl hover:shadow-2xl">
+                <button className="bg-white hover:from-soko-bright-cyan hover:to-soko-cream text-soko-orange hover:text-white font-bold px-8 py-4 rounded-xl text-lg transition-all duration-300 transform hover:scale-105 w-full sm:w-auto shadow-xl hover:shadow-2xl">
                   Start Shopping
                 </button>
               </Link>

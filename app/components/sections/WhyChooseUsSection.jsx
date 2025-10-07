@@ -59,7 +59,7 @@ const WhyChooseUsSection = ({
             <Shield size={16} />
             <span>Why Choose Us</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{title}</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-soko-dark-red mb-4">{title}</h2>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             Discover what makes SokoAfrica the trusted choice for authentic African products worldwide
           </p>
