@@ -1,14 +1,18 @@
 "use client";
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import ProductCard from '../ui/ProductCard';
-import { TrendingUp, Star } from 'lucide-react';
+import { TrendingUp, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const FeaturedProductsSection = ({ 
   title = "Trending This Week",
   subtitle = "Most loved by our global community",
   className = "" 
 }) => {
+  const scrollContainerRef = useRef(null);
+  const [showLeftButton, setShowLeftButton] = useState(false);
+  const [showRightButton, setShowRightButton] = useState(true);
+
   const featuredProducts = [
     {
       id: 1,
@@ -84,69 +88,185 @@ const FeaturedProductsSection = ({
       rating: 4.9,
       reviews: 203,
       badge: 'Premium'
+    },
+    {
+      id: 9,
+      name: 'Traditional Baskets',
+      price: '$42.00',
+      image: 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=300&h=300&fit=crop',
+      rating: 4.6,
+      reviews: 87,
+      badge: 'Artisan'
+    },
+    {
+      id: 10,
+      name: 'African Print Cushions',
+      price: '$29.99',
+      originalPrice: '$39.99',
+      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop',
+      rating: 4.7,
+      reviews: 124,
+      badge: 'Sale'
     }
   ];
 
+  const scroll = (direction) => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const scrollAmount = direction === 'left' ? -400 : 400;
+      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      
+      setTimeout(() => {
+        checkScrollPosition();
+      }, 300);
+    }
+  };
+
+  const checkScrollPosition = () => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      setShowLeftButton(container.scrollLeft > 0);
+      setShowRightButton(
+        container.scrollLeft < container.scrollWidth - container.clientWidth - 10
+      );
+    }
+  };
+
   return (
-    <section className={`relative py-20 bg-gradient-to-br from-gray-50 to-white ${className}`}>
-      <div className="max-w-7xl mx-auto px-6">
+    <section className={`relative py-12 sm:py-16 bg-gradient-to-br from-soko-cream/30 to-white border-t border-soko-light-blue/40 ${className}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-soko-bright-cyan/10 text-soko-bright-cyan px-4 py-2 rounded-full text-sm font-semibold mb-3">
-              <TrendingUp size={16} />
-              <span>Bestsellers</span>
+        <div className="flex items-center justify-between mb-6 sm:mb-8">
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-soko-orange via-soko-orange-red to-soko-dark-red p-2.5 rounded-xl shadow-lg">
+              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-soko-dark-teal" />
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
-              {title}
-            </h2>
-            <p className="text-gray-600 text-lg">
-              {subtitle}
-            </p>
+            <div>
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-soko-dark-teal">
+                {title}
+              </h2>
+              <p className="text-xs sm:text-sm text-soko-dark-brown/80 mt-0.5">
+                {subtitle}
+              </p>
+            </div>
           </div>
-          <Link 
-            href="/products" 
-            className="inline-flex items-center gap-2 text-soko-bright-cyan hover:text-soko-orange font-bold transition-colors text-lg group"
+          
+          {/* Navigation Buttons - Desktop */}
+          <div className="hidden sm:flex items-center gap-2">
+            <button
+              onClick={() => scroll('left')}
+              disabled={!showLeftButton}
+              className={`p-2.5 rounded-full border-2 transition-all duration-300 ${
+                showLeftButton
+                  ? 'border-soko-bright-cyan bg-white text-soko-bright-cyan hover:bg-soko-bright-cyan hover:text-white shadow-md'
+                  : 'border-soko-cream bg-soko-cream/50 text-gray-400 cursor-not-allowed'
+              }`}
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              disabled={!showRightButton}
+              className={`p-2.5 rounded-full border-2 transition-all duration-300 ${
+                showRightButton
+                  ? 'border-soko-bright-cyan bg-white text-soko-bright-cyan hover:bg-soko-bright-cyan hover:text-white shadow-md'
+                  : 'border-soko-cream bg-soko-cream/50 text-gray-400 cursor-not-allowed'
+              }`}
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Horizontal Scrolling Container */}
+        <div className="relative">
+          <div
+            ref={scrollContainerRef}
+            onScroll={checkScrollPosition}
+            className="flex gap-4 sm:gap-5 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            <span>View All</span>
-            <span className="group-hover:translate-x-1 transition-transform">→</span>
+            {featuredProducts.map((product) => (
+              <div key={product.id} className="flex-shrink-0 w-[200px] sm:w-[220px] md:w-[240px] lg:w-[260px]">
+                <ProductCard
+                  product={product}
+                  showWishlist={true}
+                  showAddToCart={true}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Mobile Navigation Buttons */}
+          <div className="flex sm:hidden items-center justify-center gap-3 mt-4">
+            <button
+              onClick={() => scroll('left')}
+              disabled={!showLeftButton}
+              className={`p-2 rounded-full border-2 transition-all duration-300 shadow-sm ${
+                showLeftButton
+                  ? 'border-soko-bright-cyan text-soko-bright-cyan bg-white'
+                  : 'border-soko-cream text-gray-400 bg-soko-cream/30'
+              }`}
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              disabled={!showRightButton}
+              className={`p-2 rounded-full border-2 transition-all duration-300 shadow-sm ${
+                showRightButton
+                  ? 'border-soko-bright-cyan text-soko-bright-cyan bg-white'
+                  : 'border-soko-cream text-gray-400 bg-soko-cream/30'
+              }`}
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* View All Button */}
+        <div className="mt-8 sm:mt-10 text-center">
+          <Link
+            href="/products?filter=trending"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-soko-orange via-soko-orange-red to-soko-dark-red text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base hover:from-soko-dark-red hover:to-soko-orange transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-soko-orange/50"
+          >
+            View All Trending Products
+            <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
         
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {featuredProducts.slice(0, 8).map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              showWishlist={true}
-              showAddToCart={true}
-            />
-          ))}
-        </div>
-        
         {/* Bottom CTA Section */}
-        <div className="mt-16 bg-gradient-to-r from-soko-dark-teal to-soko-bright-cyan rounded-3xl p-8 md:p-12 text-white text-center">
+        <div className="mt-12 sm:mt-16 bg-gradient-to-br from-soko-dark-teal via-soko-dark-teal to-soko-bright-cyan rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 text-white text-center shadow-xl border border-soko-bright-cyan/20">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Star className="fill-soko-orange text-soko-orange" size={24} />
-            <Star className="fill-soko-orange text-soko-orange" size={24} />
-            <Star className="fill-soko-orange text-soko-orange" size={24} />
-            <Star className="fill-soko-orange text-soko-orange" size={24} />
-            <Star className="fill-soko-orange text-soko-orange" size={24} />
+            <Star className="fill-soko-orange text-soko-orange w-5 h-5 sm:w-6 sm:h-6 drop-shadow-lg" />
+            <Star className="fill-soko-orange text-soko-orange w-5 h-5 sm:w-6 sm:h-6 drop-shadow-lg" />
+            <Star className="fill-soko-orange text-soko-orange w-5 h-5 sm:w-6 sm:h-6 drop-shadow-lg" />
+            <Star className="fill-soko-orange text-soko-orange w-5 h-5 sm:w-6 sm:h-6 drop-shadow-lg" />
+            <Star className="fill-soko-orange text-soko-orange w-5 h-5 sm:w-6 sm:h-6 drop-shadow-lg" />
           </div>
-          <h3 className="text-2xl md:text-3xl font-bold mb-3">
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 text-white">
             Join 50,000+ Happy Customers Worldwide
           </h3>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
+          <p className="text-soko-cream/90 mb-6 max-w-2xl mx-auto text-sm sm:text-base">
             Experience authentic African products with trusted quality and fast global shipping
           </p>
           <Link href="/products">
-            <button className="bg-white text-soko-dark-teal px-8 py-4 rounded-xl font-bold text-lg hover:bg-soko-orange hover:text-white transition-all duration-300 transform hover:scale-105 shadow-lg">
+            <button className="bg-gradient-to-r from-soko-orange to-soko-orange-red text-grey-900 px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg hover:from-white hover:to-soko-cream hover:text-soko-dark-teal transition-all duration-300 transform hover:scale-105 shadow-lg border-2 border-soko-orange/50 hover:border-white">
               Explore All Products
             </button>
           </Link>
         </div>
       </div>
+
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </section>
   );
 };

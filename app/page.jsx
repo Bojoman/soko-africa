@@ -1,7 +1,7 @@
 import Header from './components/ui/Header';
 import Footer from './components/ui/Footer';
 import HeroSection from './components/sections/HeroSection';
-import CategoriesSection from './components/sections/CategoriesSection';
+import Categories from './components/sections/Categories';
 import SeasonalPicksSection from './components/sections/SeasonalPicksSection';
 import FeaturedProductsSection from './components/sections/FeaturedProductsSection';
 import TestimonialsSection from './components/sections/TestimonialsSection';
@@ -13,7 +13,7 @@ export default function Home() {
       
       <main>
         <HeroSection />
-        <CategoriesSection />
+        <Categories />
         <SeasonalPicksSection />
         <FeaturedProductsSection />
         <TestimonialsSection />

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, Heart, ShoppingCart, Plus, ArrowRight } from 'lucide-react';
+import { Star, Heart, ArrowRight } from 'lucide-react';
 
 const ProductCard = ({ 
   product,
@@ -40,8 +40,8 @@ const ProductCard = ({
         size={14}
         className={`${
           i < Math.floor(rating) 
-            ? "text-yellow-400 fill-current" 
-            : "text-gray-300"
+            ? "text-soko-orange fill-current" 
+            : "text-soko-cream"
         }`}
       />
     ));
@@ -53,7 +53,7 @@ const ProductCard = ({
   };
 
   return (
-    <div className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group ${className}`}>
+    <div className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl hover:shadow-soko-dark-red/20 transition-all duration-300 group border-2 border-transparent hover:border-soko-dark-red/30 ${className}`}>
       <Link href={`/products/${product.id}`} className="block">
         {/* Image Section - 70% of card height */}
         <div className="relative overflow-hidden h-64 sm:h-72 md:h-80 lg:h-96">
@@ -68,18 +68,18 @@ const ProductCard = ({
           />
           
           {/* Gradient overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-soko-dark-red/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           
           {/* Product Badge - Popular Now */}
           {product.badge && (
-            <span className="absolute top-3 left-3 bg-white text-black text-xs px-3 py-1 rounded-full font-medium shadow-sm">
+            <span className="absolute top-3 left-3 bg-gradient-to-r from-soko-dark-red to-soko-orange-red text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg">
               {product.badge}
             </span>
           )}
           
           {/* Discount Badge */}
           {product.originalPrice && (
-            <span className="absolute top-3 right-14 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+            <span className="absolute top-3 right-14 bg-soko-orange text-soko-dark-red text-xs px-2.5 py-1 rounded-full font-bold shadow-md">
               {Math.round(((parseFloat(product.originalPrice.replace('$', '')) - parseFloat(product.price.replace('$', ''))) / parseFloat(product.originalPrice.replace('$', ''))) * 100)}% OFF
             </span>
           )}
@@ -88,15 +88,19 @@ const ProductCard = ({
           {showWishlist && (
             <button
               onClick={handleWishlistToggle}
-              className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
+              className={`absolute top-3 right-3 p-2 rounded-full shadow-lg transition-all duration-300 ${
+                isWishlisted
+                  ? "bg-soko-dark-red hover:bg-soko-orange-red"
+                  : "bg-white hover:bg-soko-cream"
+              }`}
               aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
             >
               <Heart
                 size={16}
                 className={`${
                   isWishlisted 
-                    ? "text-red-500 fill-current" 
-                    : "text-gray-600"
+                    ? "text-white fill-current" 
+                    : "text-soko-dark-red"
                 }`}
               />
             </button>
@@ -104,21 +108,21 @@ const ProductCard = ({
         </div>
         
         {/* Content Section - 30% of card height */}
-        <div className="p-4 space-y-3">
+        <div className="p-4 space-y-3 bg-gradient-to-b from-white to-soko-cream/10">
           {/* Product Type Indicator */}
-          <div className="flex items-center text-xs text-gray-500">
-            <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+          <div className="flex items-center text-xs text-soko-dark-brown font-medium">
+            <span className="w-2 h-2 bg-soko-dark-red rounded-full mr-2 shadow-sm"></span>
             <span>African Handicraft</span>
           </div>
           
           {/* Product Name */}
-          <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 group-hover:text-orange-600 transition-colors">
+          <h3 className="font-semibold text-soko-dark-teal text-sm line-clamp-2 group-hover:text-soko-dark-red transition-colors">
             {product.name}
           </h3>
           
           {/* Creator/Brand */}
           {product.creator && (
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-soko-dark-brown/70">
               By {product.creator}
             </p>
           )}
@@ -126,11 +130,11 @@ const ProductCard = ({
           {/* Price and Rating Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <span className="text-lg font-bold text-gray-900">
+              <span className="text-lg font-bold text-soko-dark-red">
                 {formatPrice(product.price)}
               </span>
               {product.originalPrice && (
-                <span className="text-sm text-gray-500 line-through">
+                <span className="text-sm text-soko-dark-brown/50 line-through">
                   {formatPrice(product.originalPrice)}
                 </span>
               )}
@@ -139,41 +143,32 @@ const ProductCard = ({
             {/* Rating */}
             {product.rating && (
               <div className="flex items-center space-x-1">
-                <Star size={12} className="text-yellow-400 fill-current" />
-                <span className="text-xs font-medium text-gray-700">{product.rating}</span>
+                <Star size={12} className="text-soko-orange fill-current" />
+                <span className="text-xs font-medium text-soko-dark-teal">{product.rating}</span>
                 {product.reviews && (
-                  <span className="text-xs text-gray-500">({product.reviews})</span>
+                  <span className="text-xs text-soko-dark-brown/60">({product.reviews})</span>
                 )}
               </div>
             )}
           </div>
           
           {/* Action Buttons */}
-          <div className="flex items-center space-x-2">
-            {/* Add to Cart Button */}
-            {showAddToCart && (
-              <button
-                onClick={handleAddToCart}
-                disabled={isLoading}
-                className="flex-1 bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center border border-black"
-              >
-                {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    <Plus size={14} className="mr-1" />
-                    Add to cart
-                  </>
-                )}
-              </button>
-            )}
-            
-            {/* More like this link */}
-            <button className="flex items-center text-xs text-gray-600 hover:text-orange-600 transition-colors">
-              More like this
-              <ArrowRight size={12} className="ml-1" />
+          {showAddToCart && (
+            <button
+              onClick={handleAddToCart}
+              disabled={isLoading}
+              className="w-full bg-white hover:bg-soko-dark-red disabled:bg-gray-100 text-soko-dark-red hover:text-white disabled:text-gray-400 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center justify-between border-2 border-soko-dark-red hover:border-soko-dark-red disabled:border-gray-300 group"
+            >
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-soko-dark-red border-t-transparent rounded-full animate-spin mx-auto"></div>
+              ) : (
+                <>
+                  <span>Add to cart</span>
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                </>
+              )}
             </button>
-          </div>
+          )}
         </div>
       </Link>
     </div>

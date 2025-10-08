@@ -147,26 +147,51 @@ button {
 .bg-soko-dark-teal\/10 { background-color: rgb(0 74 99 / 0.1) !important; }
 .bg-soko-dark-teal\/20 { background-color: rgb(0 74 99 / 0.2) !important; }
 .bg-soko-light-blue\/10 { background-color: rgb(168 214 226 / 0.1) !important; }
+.bg-soko-light-blue\/40 { background-color: rgb(168 214 226 / 0.4) !important; }
+.bg-soko-cream\/10 { background-color: rgb(236 230 204 / 0.1) !important; }
 .bg-soko-cream\/30 { background-color: rgb(236 230 204 / 0.3) !important; }
+.bg-soko-cream\/50 { background-color: rgb(236 230 204 / 0.5) !important; }
 .bg-soko-orange-red\/10 { background-color: rgb(207 54 4 / 0.1) !important; }
 .bg-soko-orange-red\/20 { background-color: rgb(207 54 4 / 0.2) !important; }
+.bg-soko-orange-red\/40 { background-color: rgb(207 54 4 / 0.4) !important; }
 .bg-soko-dark-brown\/20 { background-color: rgb(102 59 0 / 0.2) !important; }
+.bg-soko-dark-brown\/50 { background-color: rgb(102 59 0 / 0.5) !important; }
+.bg-soko-dark-brown\/60 { background-color: rgb(102 59 0 / 0.6) !important; }
+.bg-soko-dark-brown\/70 { background-color: rgb(102 59 0 / 0.7) !important; }
 .bg-soko-bright-cyan\/10 { background-color: rgb(3 177 208 / 0.1) !important; }
 .bg-soko-bright-cyan\/20 { background-color: rgb(3 177 208 / 0.2) !important; }
 .bg-soko-orange\/10 { background-color: rgb(237 149 42 / 0.1) !important; }
 .bg-soko-orange\/20 { background-color: rgb(237 149 42 / 0.2) !important; }
+.bg-soko-orange\/50 { background-color: rgb(237 149 42 / 0.5) !important; }
 .bg-soko-dark-red\/20 { background-color: rgb(86 0 0 / 0.2) !important; }
+.bg-soko-dark-red\/30 { background-color: rgb(86 0 0 / 0.3) !important; }
+.bg-soko-dark-red\/40 { background-color: rgb(86 0 0 / 0.4) !important; }
 
 /* Gradient variants */
+.from-soko-dark-teal { --tw-gradient-from: var(--soko-dark-teal) var(--tw-gradient-from-position) !important; }
+.via-soko-dark-teal { --tw-gradient-via: var(--soko-dark-teal) var(--tw-gradient-via-position) !important; }
+.to-soko-dark-teal { --tw-gradient-to: var(--soko-dark-teal) var(--tw-gradient-to-position) !important; }
 .from-soko-cream { --tw-gradient-from: var(--soko-cream) var(--tw-gradient-from-position) !important; }
 .via-soko-cream { --tw-gradient-via: var(--soko-cream) var(--tw-gradient-via-position) !important; }
 .to-soko-cream { --tw-gradient-to: var(--soko-cream) var(--tw-gradient-to-position) !important; }
 .from-soko-orange { --tw-gradient-from: var(--soko-orange) var(--tw-gradient-from-position) !important; }
 .via-soko-orange { --tw-gradient-via: var(--soko-orange) var(--tw-gradient-via-position) !important; }
 .to-soko-orange { --tw-gradient-to: var(--soko-orange) var(--tw-gradient-to-position) !important; }
+.from-soko-orange-red { --tw-gradient-from: var(--soko-orange-red) var(--tw-gradient-from-position) !important; }
+.via-soko-orange-red { --tw-gradient-via: var(--soko-orange-red) var(--tw-gradient-via-position) !important; }
+.to-soko-orange-red { --tw-gradient-to: var(--soko-orange-red) var(--tw-gradient-to-position) !important; }
 .from-soko-dark-red { --tw-gradient-from: var(--soko-dark-red) var(--tw-gradient-from-position) !important; }
 .via-soko-dark-red { --tw-gradient-via: var(--soko-dark-red) var(--tw-gradient-via-position) !important; }
 .to-soko-dark-red { --tw-gradient-to: var(--soko-dark-red) var(--tw-gradient-to-position) !important; }
 .from-soko-bright-cyan { --tw-gradient-from: var(--soko-bright-cyan) var(--tw-gradient-from-position) !important; }
 .via-soko-bright-cyan { --tw-gradient-via: var(--soko-bright-cyan) var(--tw-gradient-via-position) !important; }
 .to-soko-bright-cyan { --tw-gradient-to: var(--soko-bright-cyan) var(--tw-gradient-to-position) !important; }
+
+/* Hover gradient variants */
+.hover\:from-soko-orange:hover { --tw-gradient-from: var(--soko-orange) var(--tw-gradient-from-position) !important; }
+.hover\:to-soko-orange:hover { --tw-gradient-to: var(--soko-orange) var(--tw-gradient-to-position) !important; }
+.hover\:from-soko-dark-red:hover { --tw-gradient-from: var(--soko-dark-red) var(--tw-gradient-from-position) !important; }
+.hover\:to-soko-dark-red:hover { --tw-gradient-to: var(--soko-dark-red) var(--tw-gradient-to-position) !important; }
+.hover\:from-white:hover { --tw-gradient-from: #ffffff var(--tw-gradient-from-position) !important; }
+.hover\:to-white:hover { --tw-gradient-to: #ffffff var(--tw-gradient-to-position) !important; }
+.hover\:to-soko-cream:hover { --tw-gradient-to: var(--soko-cream) var(--tw-gradient-to-position) !important; }
