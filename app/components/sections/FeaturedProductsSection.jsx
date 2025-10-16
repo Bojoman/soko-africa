@@ -189,11 +189,11 @@ const FeaturedProductsSection = ({
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {featuredProducts.map((product) => (
-              <div key={product.id} className="flex-shrink-0 w-[200px] sm:w-[220px] md:w-[240px] lg:w-[260px]">
+              <div key={product.id} className="flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px]">
                 <ProductCard
                   product={product}
                   showWishlist={true}
-                  showAddToCart={true}
+                  showAddToCart={false}
                 />
               </div>
             ))}
