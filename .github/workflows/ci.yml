@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/soko_africa?schema=public
+      JWT_SECRET: ci-jwt-secret-minimum-32-characters-long-for-tests
+      NODE_ENV: test
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: soko_africa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Dependency vulnerability scan
+        # Fails the build on high/critical advisories (H4 in the security
+        # review — this is what would have caught the disclosed Next.js CVE
+        # before it ever reached a review). Moderate/low findings are
+        # tracked separately and don't block CI.
+        run: pnpm audit --audit-level high
+
+      - name: Generate Prisma client
+        run: pnpm --filter backend exec prisma generate
+
+      - name: Apply database migrations
+        run: pnpm --filter backend exec prisma migrate deploy
+
+      - name: Lint frontend
+        run: pnpm --filter frontend lint
+
+      - name: Build frontend
+        run: pnpm --filter frontend build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+
+      - name: Backend syntax check
+        run: |
+          node --check apps/backend/app.js
+          node --check apps/backend/plugins/mail.js
+          node --check apps/backend/lib/order-notifications.js
+
+      - name: Backend tests
+        run: pnpm --filter backend test
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for committed secrets
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

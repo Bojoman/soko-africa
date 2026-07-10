@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "moduleResolution": "bundler",
+    "target": "ES2017",
+    "jsx": "preserve",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "skipLibCheck": true,
+    "paths": {
+      "@/components/*": ["./components/*"],
+      "@/lib/utils": ["./lib/utils.js"],
+      "@/lib/auth-cookies": ["./app/lib/auth-cookies.js"],
+      "@/lib/product-utils": ["./app/lib/product-utils.js"],
+      "@/hooks/*": ["./app/hooks/*"]
+    }
+  },
+  "include": ["app", "components", "lib"],
+  "exclude": ["node_modules", ".next"]
+}

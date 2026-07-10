@@ -1,32 +1,33 @@
 {
-  "name": "soko-africa",
-  "version": "0.1.0",
+  "name": "soko-africa-root",
   "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
   },
-  "dependencies": {
-    "@hookform/resolvers": "^5.2.2",
-    "@tailwindcss/typography": "^0.5.16",
-    "bcryptjs": "^3.0.2",
-    "clsx": "^2.1.1",
-    "framer-motion": "^12.23.13",
-    "jsonwebtoken": "^9.0.2",
-    "lucide-react": "^0.539.0",
-    "next": "15.4.6",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-hook-form": "^7.62.0",
-    "zod": "^4.1.9"
+  "scripts": {
+    "frontend:dev": "pnpm --filter frontend dev",
+    "frontend:build": "pnpm --filter frontend build",
+    "backend:dev": "pnpm --filter backend dev",
+    "backend:start": "pnpm --filter backend start",
+    "db:seed": "pnpm --filter backend run db:seed",
+    "db:migrate": "pnpm --filter backend exec prisma migrate deploy",
+    "dev": "concurrently -n backend,frontend -c blue,green \"pnpm run backend:dev\" \"pnpm run frontend:dev\"",
+    "build": "pnpm --filter frontend build",
+    "lint": "pnpm --filter frontend lint",
+    "type-check": "pnpm --filter frontend type-check",
+    "clean": "pnpm -r exec rm -rf node_modules .next dist",
+    "update-deps": "pnpm -r update --latest"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "eslint": "^9",
-    "eslint-config-next": "15.4.6",
-    "tailwindcss": "^4"
+    "@types/node": "^22.15.12",
+    "concurrently": "^9.1.2",
+    "typescript": "^5.8.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "shell-quote": ">=1.8.4",
+      "hono": ">=4.12.25"
+    }
   }
 }
