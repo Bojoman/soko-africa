@@ -1,11 +1,11 @@
-// /** @type {import('next').NextConfig} */
-// const nextConfig = {};
+import { resolveLanHosts } from './scripts/resolve-lan-host.mjs';
 
-// export default nextConfig;
-
+const lanHosts = resolveLanHosts();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Allow phones/tablets on the same Wi-Fi to load Turbopack dev assets.
+  allowedDevOrigins: lanHosts,
   // Image optimization and security
   images: {
     qualities: [75, 85, 90],
@@ -57,6 +57,11 @@ const nextConfig = {
   },
 
   async headers() {
+    // Strict CSP (especially upgrade-insecure-requests) breaks LAN dev over HTTP.
+    if (process.env.NODE_ENV === 'development') {
+      return [];
+    }
+
     return [
       {
         source: '/(.*)',

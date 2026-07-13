@@ -12,6 +12,7 @@
     "backend:start": "pnpm --filter backend start",
     "db:seed": "pnpm --filter backend run db:seed",
     "db:migrate": "pnpm --filter backend exec prisma migrate deploy",
+    "predev": "node scripts/free-dev-ports.mjs",
     "dev": "concurrently -n backend,frontend -c blue,green \"pnpm run backend:dev\" \"pnpm run frontend:dev\"",
     "build": "pnpm --filter frontend build",
     "lint": "pnpm --filter frontend lint",
