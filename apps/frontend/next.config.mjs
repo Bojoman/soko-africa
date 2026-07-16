@@ -31,8 +31,8 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
-    dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Keep SVG opt-in off unless remote SVGs are required — reduces XSS surface.
+    dangerouslyAllowSVG: false,
   },
   
   // Performance optimizations
@@ -40,20 +40,10 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
   
-  // Security headers
+  // Security headers — no catch-all /api rewrite: App Router BFF routes
+  // attach httpOnly cookie → Bearer. Rewriting would bypass that bridge.
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-    return [
-      {
-        source: '/api/auth/profile',
-        destination: `${backendUrl}/auth/me`,
-      },
-      {
-        source: '/api/:path*',
-        destination: `${backendUrl}/:path*`,
-      },
-    ];
+    return [];
   },
 
   async headers() {

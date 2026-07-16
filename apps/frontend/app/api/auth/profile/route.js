@@ -15,7 +15,10 @@ export async function GET(request) {
     const token = cookieToken || headerToken;
 
     if (!token) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { message: 'Unauthorized', code: 'NO_SESSION' },
+        { status: 401 }
+      );
     }
 
     const response = await fetch(`${API_BASE_URL}/auth/me`, {

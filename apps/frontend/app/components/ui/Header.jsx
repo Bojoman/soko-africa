@@ -115,9 +115,10 @@ const Header = () => {
                 src="/utility/logo_1.png"
                 alt="SokoAfrica Logo"
                 width={150}
-                height={50}
+                height={78}
+                priority
                 className="object-contain"
-                style={{ width: '150px', height: 'auto' }}
+                style={{ width: 'auto', height: 'auto', maxWidth: '150px' }}
               />
             </Link>
 

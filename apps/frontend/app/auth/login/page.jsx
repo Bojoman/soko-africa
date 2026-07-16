@@ -152,7 +152,8 @@ function LoginForm() {
                 src="/utility/login-signup.png"
                 alt="African marketplace"
                 width={600}
-                height={400}
+                height={600}
+                priority
                 className="rounded-lg shadow-lg mb-8"
               />
               <h2 className="text-2xl font-bold text-gray-900 mb-4">

@@ -1,5 +1,8 @@
 /** Product reviews — GET public; POST requires JWT. */
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const productIdParam = {
   params: {
     type: 'object',
@@ -7,6 +10,12 @@ const productIdParam = {
     properties: { productId: { type: 'string', maxLength: 100 } }
   }
 };
+
+function productWhere(productId) {
+  return UUID_RE.test(productId)
+    ? { id: productId, deletedAt: null, status: 'PUBLISHED' }
+    : { slug: productId, deletedAt: null, status: 'PUBLISHED' };
+}
 
 const createReviewSchema = {
   body: {
@@ -28,14 +37,14 @@ export default async function (fastify) {
     const { productId } = request.params;
 
     const product = await fastify.prisma.product.findFirst({
-      where: { id: productId, deletedAt: null, status: 'PUBLISHED' }
+      where: productWhere(productId)
     });
     if (!product) {
       return reply.code(404).send({ message: 'Product not found' });
     }
 
     const reviews = await fastify.prisma.review.findMany({
-      where: { productId },
+      where: { productId: product.id },
       orderBy: { createdAt: 'desc' },
       take: 50,
       include: { user: { select: { firstName: true, lastName: true } } }
@@ -77,7 +86,7 @@ export default async function (fastify) {
       }
 
       const product = await fastify.prisma.product.findFirst({
-        where: { id: productId, deletedAt: null, status: 'PUBLISHED' }
+        where: productWhere(productId)
       });
       if (!product) {
         return reply.code(404).send({ message: 'Product not found' });
@@ -89,7 +98,7 @@ export default async function (fastify) {
           where: {
             id: orderItemId,
             order: { userId },
-            variant: { productId }
+            variant: { productId: product.id }
           }
         });
         if (!oi) {
@@ -102,7 +111,7 @@ export default async function (fastify) {
 
       const created = await fastify.prisma.review.create({
         data: {
-          productId,
+          productId: product.id,
           userId,
           rating: r,
           title: title && String(title).trim() ? String(title).trim() : null,

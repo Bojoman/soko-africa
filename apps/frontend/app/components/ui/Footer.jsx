@@ -80,10 +80,9 @@ const Footer = () => {
                   src="/utility/logo_3.png"
                   alt="SokoAfrica Logo"
                   width={220}
-                  height={75}
+                  height={114}
                   className="object-contain"
-                  style={{ width: '220px', height: 'auto' }}
-                  priority
+                  style={{ width: 'auto', height: 'auto', maxWidth: '220px' }}
                 />
               </Link>
               <p className="text-soko-cream/80 mb-4 leading-relaxed text-[15px]" style={{ maxWidth: '220px' }}>

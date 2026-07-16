@@ -26,7 +26,7 @@ function clearClientAuthState() {
 
 /**
  * @param {string} endpoint
- * @param {RequestInit & { _retried?: boolean }} options
+ * @param {RequestInit & { _retried?: boolean, skipRefresh?: boolean }} options
  */
 export async function apiClient(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -44,7 +44,14 @@ export async function apiClient(endpoint, options = {}) {
 
   const response = await fetch(url, config);
 
-  if (response.status === 401 && !options._retried) {
+  // Never recurse refresh; skip for bootstrap auth endpoints to avoid guest 401 storms.
+  const skipRefresh =
+    options.skipRefresh ||
+    endpoint === '/auth/refresh' ||
+    endpoint === '/auth/login' ||
+    endpoint === '/auth/register';
+
+  if (response.status === 401 && !options._retried && !skipRefresh) {
     const refreshed = await tryRefreshSession();
     if (refreshed.ok) {
       return apiClient(endpoint, { ...options, _retried: true });
@@ -125,8 +132,27 @@ export const authApi = {
     }),
   logout: () => post('/auth/logout', {}),
   refresh: () => post('/auth/refresh', {}),
-  me: () => get('/auth/profile'),
-  updateProfile: (data) => patch('/auth/profile', data),
+  me: async () => {
+    // Soft probe first — guests have no cookies; avoid a useless refresh round-trip.
+    const response = await apiClient('/auth/me', {
+      method: 'GET',
+      skipRefresh: true
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+      if (data.code === 'NO_SESSION') {
+        throw new Error('Unauthorized');
+      }
+      const refreshed = await tryRefreshSession();
+      if (refreshed.ok) {
+        return get('/auth/me');
+      }
+      throw new Error('Unauthorized');
+    }
+    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+    return data;
+  },
+  updateProfile: (data) => patch('/auth/me', data),
   forgotPassword: (email) => post('/auth/forgot-password', { email }),
   resetPassword: (token, password) => post('/auth/reset-password', { token, password })
 };

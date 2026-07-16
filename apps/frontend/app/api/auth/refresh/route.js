@@ -8,11 +8,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request) {
+export async function POST() {
   try {
-    const body = await request.json().catch(() => ({}));
-    const cookieRefresh = await getRefreshTokenFromCookies();
-    const refreshToken = body.refreshToken || cookieRefresh;
+    // Cookie-only refresh — never accept tokens from the request body.
+    const refreshToken = await getRefreshTokenFromCookies();
 
     if (!refreshToken) {
       return NextResponse.json(

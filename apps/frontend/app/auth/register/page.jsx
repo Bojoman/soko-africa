@@ -190,10 +190,9 @@ export default function RegisterPage() {
                 src="/utility/login-signup.png"
                 alt="African marketplace"
                 width={600}
-                height={400}
-                className="rounded-lg shadow-lg mb-8"
+                height={600}
                 priority
-                loading="eager"
+                className="rounded-lg shadow-lg mb-8"
               />
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 Why Join Soko Africa?

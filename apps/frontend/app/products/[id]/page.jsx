@@ -142,11 +142,14 @@ export default function ProductDetailPage({ params }) {
     };
   }, [resolvedParams.id]);
 
-  // Fetch reviews
+  // Fetch reviews once product is resolved (supports slug URLs)
   useEffect(() => {
     let cancelled = false;
-    const id = resolvedParams.id;
-    if (!id) return;
+    const id = product?.id;
+    if (!id) {
+      setReviews([]);
+      return;
+    }
     (async () => {
       try {
         const r = await get(`/reviews/${encodeURIComponent(id)}`);
@@ -158,7 +161,7 @@ export default function ProductDetailPage({ params }) {
     return () => {
       cancelled = true;
     };
-  }, [resolvedParams.id]);
+  }, [product?.id]);
 
   // Fetch related products
   useEffect(() => {
@@ -244,8 +247,9 @@ export default function ProductDetailPage({ params }) {
   };
 
   const handleSubmitReview = async (newReview) => {
+    const reviewProductId = product?.id || resolvedParams.id;
     const data = await post(
-      `/reviews/${encodeURIComponent(resolvedParams.id)}`,
+      `/reviews/${encodeURIComponent(reviewProductId)}`,
       {
         rating: newReview.rating,
         title: newReview.title,
