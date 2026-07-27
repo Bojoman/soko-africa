@@ -1,0 +1,12 @@
+# Shared monorepo: keep Railway service Root Directory empty (repo root).
+# Link Postgres and set DATABASE_URL on this service before the first deploy.
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "pnpm install --frozen-lockfile && pnpm --filter backend exec prisma generate && pnpm --filter backend exec prisma migrate deploy"
+
+[deploy]
+startCommand = "pnpm --filter backend start"
+restartPolicyType = "ON_FAILURE"
+healthcheckPath = "/health"
+healthcheckTimeout = 30

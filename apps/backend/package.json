@@ -11,7 +11,8 @@
   },
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=\"--experimental-strip-types --no-warnings=ExperimentalWarning\" fastify start -l info -P --plugin-timeout=30000 app.js",
-    "start": "cross-env NODE_OPTIONS=\"--experimental-strip-types --no-warnings=ExperimentalWarning\" fastify start -l info --plugin-timeout=30000 app.js",
+    "start": "cross-env NODE_OPTIONS=\"--experimental-strip-types --no-warnings=ExperimentalWarning\" node server.js",
+    "start:cli": "cross-env NODE_OPTIONS=\"--experimental-strip-types --no-warnings=ExperimentalWarning\" fastify start -l info -a 0.0.0.0 --plugin-timeout=30000 app.js",
     "test": "node --experimental-strip-types --test",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",

@@ -3,8 +3,6 @@ import { proxyAuthHeaders } from '../../lib/proxy-auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-export const dynamic = 'force-dynamic';
-
 async function readJson(response) {
   return response.json().catch(() => ({}));
 }
@@ -18,7 +16,7 @@ export async function GET(request) {
     const response = await fetch(`${API_BASE_URL}/products?${queryString}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
-      cache: 'no-store'
+      next: { revalidate: 60 }
     });
 
     const data = await readJson(response);

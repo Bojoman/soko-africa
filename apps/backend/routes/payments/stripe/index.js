@@ -5,6 +5,10 @@
 import { notifyOrderPaid } from '../../../lib/order-notifications.js';
 import { finalizePaidOrder } from '../../../lib/finalize-paid-order.js';
 import { logSecurityEvent } from '../../../lib/security-events.js';
+import {
+  assertOrderPaymentAccess,
+  resolveAuthedUserId
+} from '../../../lib/order-access.js';
 
 const ZERO_DECIMAL = new Set([
   'BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW',
@@ -41,20 +45,27 @@ export default async function (fastify) {
 
   fastify.post(
     '/create-intent',
-    { schema: { body: createIntentBody } },
+    {
+      schema: { body: createIntentBody },
+      config: { rateLimit: { max: 20, timeWindow: '15 minutes' } }
+    },
     async (request, reply) => {
       if (!ensureStripe(reply)) return;
       const { orderId } = request.body;
 
+      const authedUserId = await resolveAuthedUserId(request);
       const order = await fastify.prisma.order.findUnique({
         where: { id: orderId },
-        select: { id: true, total: true, currency: true, status: true, email: true }
+        select: {
+          id: true,
+          total: true,
+          currency: true,
+          status: true,
+          email: true,
+          userId: true
+        }
       });
-      if (!order) {
-        return reply
-          .code(404)
-          .send({ statusCode: 404, error: 'Not Found', message: 'Order not found' });
-      }
+      if (!assertOrderPaymentAccess(order, authedUserId, reply)) return;
       if (order.status === 'PAID') {
         return reply.code(409).send({
           statusCode: 409,

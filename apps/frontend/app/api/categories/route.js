@@ -2,9 +2,6 @@ import { NextResponse } from 'next/server';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-// Uses request URL query params, so force dynamic route execution.
-export const dynamic = 'force-dynamic';
-
 async function readJson(response) {
   return response.json().catch(() => ({}));
 }
@@ -16,7 +13,7 @@ export async function GET(request) {
     const url = `${API_BASE_URL}/categories${queryString ? `?${queryString}` : ''}`;
     const response = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
-      cache: 'no-store'
+      next: { revalidate: 120 }
     });
     const data = await readJson(response);
 

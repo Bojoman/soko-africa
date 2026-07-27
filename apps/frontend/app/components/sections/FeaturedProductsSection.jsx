@@ -20,7 +20,11 @@ const FeaturedProductsSection = ({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/products?limit=12&sortBy=createdAt&sortOrder=desc');
+        // Same listing as hero (limit 12 covers hero's 10) — one network shape,
+        // shared CDN/BFF cache via /api/products revalidate.
+        const res = await fetch(
+          '/api/products?limit=12&sortBy=createdAt&sortOrder=desc'
+        );
         const data = await res.json();
         if (!cancelled) setFeaturedProducts(data?.products || []);
       } catch {

@@ -9,6 +9,10 @@
 import { notifyOrderPaid } from '../../../lib/order-notifications.js';
 import { finalizePaidOrder } from '../../../lib/finalize-paid-order.js';
 import { logSecurityEvent } from '../../../lib/security-events.js';
+import {
+  assertOrderPaymentAccess,
+  resolveAuthedUserId
+} from '../../../lib/order-access.js';
 
 // Verifies an incoming PayPal webhook against PayPal's own
 // verify-webhook-signature endpoint (POST /v1/notifications/verify-webhook-signature)
@@ -84,18 +88,18 @@ function fmt(amount, currency) {
 export default async function (fastify) {
   fastify.post(
     '/create-order',
-    { schema: { body: createOrderBody } },
+    {
+      schema: { body: createOrderBody },
+      config: { rateLimit: { max: 20, timeWindow: '15 minutes' } }
+    },
     async (request, reply) => {
       const { orderId, returnUrl, cancelUrl } = request.body;
+      const authedUserId = await resolveAuthedUserId(request);
       const order = await fastify.prisma.order.findUnique({
         where: { id: orderId },
-        select: { id: true, total: true, currency: true, status: true }
+        select: { id: true, total: true, currency: true, status: true, userId: true }
       });
-      if (!order) {
-        return reply
-          .code(404)
-          .send({ statusCode: 404, error: 'Not Found', message: 'Order not found' });
-      }
+      if (!assertOrderPaymentAccess(order, authedUserId, reply)) return;
       if (order.status === 'PAID') {
         return reply.code(409).send({
           statusCode: 409,
@@ -167,11 +171,15 @@ export default async function (fastify) {
 
   fastify.post(
     '/capture',
-    { schema: { body: captureBody } },
+    {
+      schema: { body: captureBody },
+      config: { rateLimit: { max: 20, timeWindow: '15 minutes' } }
+    },
     async (request, reply) => {
       const { paypalOrderId } = request.body;
       const payment = await fastify.prisma.payment.findFirst({
-        where: { providerRef: paypalOrderId, provider: 'PAYPAL' }
+        where: { providerRef: paypalOrderId, provider: 'PAYPAL' },
+        include: { order: { select: { id: true, userId: true } } }
       });
       if (!payment) {
         return reply.code(404).send({
@@ -180,6 +188,8 @@ export default async function (fastify) {
           message: 'Payment not found for that PayPal order id'
         });
       }
+      const authedUserId = await resolveAuthedUserId(request);
+      if (!assertOrderPaymentAccess(payment.order, authedUserId, reply)) return;
 
       let res;
       try {

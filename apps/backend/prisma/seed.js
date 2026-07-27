@@ -225,8 +225,8 @@ async function main() {
     }
   });
 
-  // Product images are served by the backend as generated media endpoints.
-  // The frontend proxies /api/* to the backend, so these paths resolve as-is.
+  // Product images are served by the backend media route; the frontend BFF
+  // proxies /api/products/media/:filename → /products/media/:filename.
   const productImg = (filename) => `/api/products/media/${filename}`;
 
   const catalog = [

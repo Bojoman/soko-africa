@@ -42,6 +42,7 @@ const nextConfig = {
   
   // Security headers — no catch-all /api rewrite: App Router BFF routes
   // attach httpOnly cookie → Bearer. Rewriting would bypass that bridge.
+  // Product media is proxied by app/api/products/media/[filename]/route.js.
   async rewrites() {
     return [];
   },

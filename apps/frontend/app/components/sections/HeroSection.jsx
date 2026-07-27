@@ -70,7 +70,9 @@ const HeroSection = () => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/products?limit=10&sortBy=createdAt&sortOrder=desc');
+        const res = await fetch(
+          '/api/products?limit=12&sortBy=createdAt&sortOrder=desc'
+        );
         const data = await res.json();
         const list = data?.products || [];
         if (!list.length || cancelled) return;

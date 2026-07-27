@@ -7,6 +7,10 @@ import { timingSafeEqual } from 'crypto';
 import { notifyOrderPaid } from '../../../lib/order-notifications.js';
 import { finalizePaidOrder } from '../../../lib/finalize-paid-order.js';
 import { logSecurityEvent } from '../../../lib/security-events.js';
+import {
+  assertOrderPaymentAccess,
+  resolveAuthedUserId
+} from '../../../lib/order-access.js';
 
 // Cents-level tolerance when comparing the amount Daraja says was actually
 // paid against the order total, to absorb currency-rounding differences.
@@ -53,7 +57,10 @@ const stkBody = {
 export default async function (fastify) {
   fastify.post(
     '/stk',
-    { schema: { body: stkBody } },
+    {
+      schema: { body: stkBody },
+      config: { rateLimit: { max: 10, timeWindow: '15 minutes' } }
+    },
     async (request, reply) => {
       const { orderId, phone } = request.body;
       const phoneE164 = normalizeKenyanPhone(phone);
@@ -65,15 +72,12 @@ export default async function (fastify) {
         });
       }
 
+      const authedUserId = await resolveAuthedUserId(request);
       const order = await fastify.prisma.order.findUnique({
         where: { id: orderId },
-        select: { id: true, total: true, currency: true, status: true }
+        select: { id: true, total: true, currency: true, status: true, userId: true }
       });
-      if (!order) {
-        return reply
-          .code(404)
-          .send({ statusCode: 404, error: 'Not Found', message: 'Order not found' });
-      }
+      if (!assertOrderPaymentAccess(order, authedUserId, reply)) return;
       if (order.status === 'PAID') {
         return reply.code(409).send({
           statusCode: 409,
@@ -242,70 +246,44 @@ export default async function (fastify) {
     }
   );
 
-  fastify.get('/status/:checkoutRequestId', async (request, reply) => {
-    const { checkoutRequestId } = request.params;
-    if (!checkoutRequestId) {
-      return reply.code(400).send({
-        statusCode: 400,
-        error: 'Bad Request',
-        message: 'checkoutRequestId required'
-      });
-    }
-
-    const payment = await fastify.prisma.payment.findFirst({
-      where: { providerRef: checkoutRequestId, provider: 'MPESA' },
-      include: { order: { select: { id: true, status: true } } }
-    });
-    if (!payment) {
-      return reply.code(404).send({
-        statusCode: 404,
-        error: 'Not Found',
-        message: 'Payment not found'
-      });
-    }
-
-    // If still in flight, query Daraja for the latest result.
-    if (payment.status === 'INITIATED' || payment.status === 'PENDING') {
-      try {
-        const { data, ok } = await fastify.payments.mpesa.stkQuery(
-          checkoutRequestId
-        );
-        if (ok && data && data.ResultCode !== undefined) {
-          const status = resultCodeToStatus(data.ResultCode);
-          await fastify.prisma.payment.update({
-            where: { id: payment.id },
-            data: {
-              status,
-              rawPayload: {
-                ...((payment.rawPayload) || {}),
-                query: data
-              }
-            }
-          });
-          if (status === 'SUCCESS') {
-            await fastify.prisma.order.update({
-              where: { id: payment.orderId },
-              data: { status: 'PAID' }
-            });
-            notifyOrderPaid(fastify, payment.orderId).catch(() => {});
-            finalizePaidOrder(fastify, payment.orderId).catch(() => {});
-          }
-          payment.status = status;
-          payment.order = { ...payment.order, status: status === 'SUCCESS' ? 'PAID' : payment.order.status };
-        }
-      } catch (err) {
-        // Don't fail polling on transient query errors.
-        request.log.warn({ err: err.message }, 'STK query failed');
+  // Read-only poll. Order finalization is owned by the signed callback so
+  // unauthenticated clients cannot mark orders paid via status probing.
+  fastify.get(
+    '/status/:checkoutRequestId',
+    { config: { rateLimit: { max: 60, timeWindow: '1 minute' } } },
+    async (request, reply) => {
+      const { checkoutRequestId } = request.params;
+      if (!checkoutRequestId) {
+        return reply.code(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'checkoutRequestId required'
+        });
       }
-    }
 
-    return {
-      checkoutRequestId,
-      status: payment.status,
-      orderId: payment.orderId,
-      orderStatus: payment.order?.status,
-      amount: Number(payment.amount),
-      currency: payment.currency
-    };
-  });
+      const payment = await fastify.prisma.payment.findFirst({
+        where: { providerRef: checkoutRequestId, provider: 'MPESA' },
+        include: { order: { select: { id: true, status: true, userId: true } } }
+      });
+      if (!payment) {
+        return reply.code(404).send({
+          statusCode: 404,
+          error: 'Not Found',
+          message: 'Payment not found'
+        });
+      }
+
+      const authedUserId = await resolveAuthedUserId(request);
+      if (!assertOrderPaymentAccess(payment.order, authedUserId, reply)) return;
+
+      return {
+        checkoutRequestId,
+        status: payment.status,
+        orderId: payment.orderId,
+        orderStatus: payment.order?.status,
+        amount: Number(payment.amount),
+        currency: payment.currency
+      };
+    }
+  );
 }

@@ -57,3 +57,8 @@ temp
 # Prisma
 apps/backend/prisma/migrations/*/migration_lock.toml
 apps/backend/prisma/generated/
+
+# Local DB dumps for cloud restore (secrets)
+soko-local.dump
+*.dump
+
