@@ -1,11 +1,15 @@
 import fp from 'fastify-plugin';
 import nodemailer from 'nodemailer';
 
-function isConfigured() {
+function hasSmtpConfig() {
   return Boolean(process.env.SMTP_HOST || process.env.SMTP_URL);
 }
 
-function buildTransport() {
+function isConfigured() {
+  return Boolean(process.env.RESEND_API_KEY) || hasSmtpConfig();
+}
+
+function buildSmtpTransport() {
   if (process.env.SMTP_URL) {
     return nodemailer.createTransport(process.env.SMTP_URL);
   }
@@ -24,7 +28,10 @@ function buildTransport() {
 }
 
 function fromAddress() {
-  return process.env.MAIL_FROM || 'SokoAfrica <noreply@soko-africa.com>';
+  if (process.env.RESEND_API_KEY) {
+    return process.env.RESEND_FROM || 'SokoAfrica Support <support@sokoafrica.com>';
+  }
+  return process.env.MAIL_FROM || 'SokoAfrica Support <support@sokoafrica.com>';
 }
 
 function appUrl(path = '') {
@@ -32,15 +39,51 @@ function appUrl(path = '') {
   return `${base}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
+function escapeHtml(value) {
+  return String(value).replace(
+    /[&<>"']/g,
+    (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[char]
+  );
+}
+
 export default fp(async (fastify) => {
   const enabled = isConfigured() || process.env.NODE_ENV !== 'production';
-  const transport = buildTransport();
+  const transport = buildSmtpTransport();
 
   fastify.decorate('mail', {
     enabled,
 
     async send({ to, subject, text, html }) {
       if (!to) return { skipped: true };
+
+      if (process.env.RESEND_API_KEY) {
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: fromAddress(),
+            to: [to],
+            subject,
+            text,
+            html
+          })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(result.message || `Resend request failed (${response.status})`);
+        }
+        return result;
+      }
+
       const info = await transport.sendMail({
         from: fromAddress(),
         to,
@@ -52,6 +95,21 @@ export default fp(async (fastify) => {
         fastify.log.info({ to, subject, preview: info.message }, 'Mail (dev jsonTransport)');
       }
       return info;
+    },
+
+    async sendWelcome(user) {
+      const name = String(user.firstName || '').trim();
+      const greeting = name ? `Hi ${name},` : 'Hi,';
+      const htmlGreeting = name ? `Hi ${escapeHtml(name)},` : 'Hi,';
+      const destination = user.role === 'SELLER' ? '/sell?apply=true' : '/account';
+      const action = user.role === 'SELLER'
+        ? 'Complete your seller profile'
+        : 'View your account';
+      const link = appUrl(destination);
+      const subject = 'Welcome to SokoAfrica';
+      const text = `${greeting}\n\nYour SokoAfrica account is ready.\n\n${action}: ${link}`;
+      const html = `<p>${htmlGreeting}</p><p>Your SokoAfrica account is ready.</p><p><a href="${link}">${action}</a></p>`;
+      return this.send({ to: user.email, subject, text, html });
     },
 
     async sendPasswordReset(to, token) {
@@ -76,7 +134,13 @@ export default fp(async (fastify) => {
   });
 
   fastify.log.info(
-    { mode: isConfigured() ? 'smtp' : 'jsonTransport (dev)' },
+    {
+      mode: process.env.RESEND_API_KEY
+        ? 'resend'
+        : hasSmtpConfig()
+          ? 'smtp'
+          : 'jsonTransport (dev)'
+    },
     'Mail plugin ready'
   );
 });

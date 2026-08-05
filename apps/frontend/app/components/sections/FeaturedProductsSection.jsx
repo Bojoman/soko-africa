@@ -6,42 +6,26 @@ import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { TrendingUp, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const FeaturedProductsSection = ({ 
-  title = "Trending This Week",
-  subtitle = "Most loved by our global community",
-  className = "" 
+const FeaturedProductsSection = ({
+  title = 'Trending This Week',
+  subtitle = 'Most loved by our global community',
+  className = '',
+  initialProducts = []
 }) => {
   const scrollContainerRef = useRef(null);
   const [showLeftButton, setShowLeftButton] = useState(false);
   const [showRightButton, setShowRightButton] = useState(true);
-  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState(initialProducts);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        // Same listing as hero (limit 12 covers hero's 10) — one network shape,
-        // shared CDN/BFF cache via /api/products revalidate.
-        const res = await fetch(
-          '/api/products?limit=12&sortBy=createdAt&sortOrder=desc'
-        );
-        const data = await res.json();
-        if (!cancelled) setFeaturedProducts(data?.products || []);
-      } catch {
-        if (!cancelled) setFeaturedProducts([]);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    setFeaturedProducts(initialProducts || []);
+  }, [initialProducts]);
 
   const scroll = (direction) => {
     const container = scrollContainerRef.current;
     if (container) {
       const scrollAmount = direction === 'left' ? -400 : 400;
       container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-      
       setTimeout(() => {
         checkScrollPosition();
       }, 300);
@@ -53,19 +37,24 @@ const FeaturedProductsSection = ({
     if (container) {
       setShowLeftButton(container.scrollLeft > 0);
       setShowRightButton(
-        container.scrollLeft < container.scrollWidth - container.clientWidth - 10
+        container.scrollLeft <
+          container.scrollWidth - container.clientWidth - 10
       );
     }
   };
 
   return (
-    <section className={`relative py-12 sm:py-16 bg-soko-cream/20 border-t border-soko-light-blue/40 ${className}`}>
+    <section
+      className={`relative py-12 sm:py-16 bg-soko-cream/20 border-t border-soko-light-blue/40 ${className}`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
         <div className="flex items-center justify-between mb-6 sm:mb-8">
           <div className="flex items-center gap-3">
             <div className="bg-soko-orange p-2.5 rounded-xl">
-              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-white" aria-hidden="true" />
+              <TrendingUp
+                className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                aria-hidden="true"
+              />
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-soko-dark-teal">
@@ -76,8 +65,7 @@ const FeaturedProductsSection = ({
               </p>
             </div>
           </div>
-          
-          {/* Navigation Buttons - Desktop */}
+
           <div className="hidden sm:flex items-center gap-2">
             <button
               onClick={() => scroll('left')}
@@ -106,26 +94,35 @@ const FeaturedProductsSection = ({
           </div>
         </div>
 
-        {/* Horizontal Scrolling Container */}
         <div className="relative">
-          <div
-            ref={scrollContainerRef}
-            onScroll={checkScrollPosition}
-            className="flex gap-4 sm:gap-5 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {featuredProducts.map((product) => (
-              <div key={product.id} className="flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px]">
-                <ProductCard
-                  product={product}
-                  showWishlist={true}
-                  showAddToCart={false}
-                />
-              </div>
-            ))}
-          </div>
+          {featuredProducts.length === 0 ? (
+            <p className="text-center text-soko-dark-brown/70 py-10 text-sm">
+              No trending products yet — check back soon.
+            </p>
+          ) : (
+            <div
+              ref={scrollContainerRef}
+              onScroll={checkScrollPosition}
+              className="flex gap-4 sm:gap-5 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {featuredProducts.map((product, index) => (
+                <div
+                  key={product.id}
+                  className="flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px]"
+                >
+                  <ProductCard
+                    product={product}
+                    showWishlist={true}
+                    showAddToCart={false}
+                    priority={index < 2}
+                    sizes="(max-width: 640px) 70vw, 360px"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
-          {/* Mobile Navigation Buttons */}
           <div className="flex sm:hidden items-center justify-center gap-3 mt-4">
             <button
               onClick={() => scroll('left')}
@@ -154,7 +151,6 @@ const FeaturedProductsSection = ({
           </div>
         </div>
 
-        {/* View All Button */}
         <div className="mt-8 sm:mt-10 text-center">
           <Link
             href="/products?filter=trending"
@@ -168,7 +164,6 @@ const FeaturedProductsSection = ({
           </Link>
         </div>
 
-        {/* Bottom CTA Section */}
         <div className="mt-12 sm:mt-16 bg-soko-dark-teal rounded-2xl p-6 sm:p-8 md:p-12 text-white text-center">
           <div
             className="flex items-center justify-center gap-1 mb-4"
@@ -186,7 +181,8 @@ const FeaturedProductsSection = ({
             Join 50,000+ Happy Customers Worldwide
           </h3>
           <p className="text-soko-cream/90 mb-6 max-w-2xl mx-auto text-sm sm:text-base">
-            Experience authentic African products with trusted quality and fast global shipping
+            Experience authentic African products with trusted quality and fast
+            global shipping
           </p>
           <Link
             href="/products"

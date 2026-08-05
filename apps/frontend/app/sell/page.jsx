@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import EnhancedFAQSection from '../components/ui/EnhancedFAQSection';
@@ -21,6 +21,10 @@ import {
 export default function SellPage() {
   const { faqs, loading, error } = useFAQ('seller');
   const [showApply, setShowApply] = useState(false);
+
+  useEffect(() => {
+    setShowApply(new URLSearchParams(window.location.search).get('apply') === 'true');
+  }, []);
 
   const benefits = [
     {

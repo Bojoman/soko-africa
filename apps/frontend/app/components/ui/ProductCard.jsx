@@ -23,7 +23,9 @@ const ProductCard = ({
   className = "text-orange-600",
   showWishlist = true,
   showAddToCart = true,
-  imageSize = { width: 300, height: 400 } 
+  imageSize = { width: 300, height: 400 },
+  priority = false,
+  sizes = '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 }) => {
   const { addToCart } = useCart();
   const { isWishlisted, toggleWishlist } = useWishlist();
@@ -126,7 +128,9 @@ const ProductCard = ({
             alt={product.name}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes={sizes}
+            quality={75}
+            priority={priority}
             unoptimized={typeof imageSrc === 'string' && imageSrc.startsWith('http')}
             onError={() => setImageSrc(PLACEHOLDER_PRODUCT_IMAGE)}
           />

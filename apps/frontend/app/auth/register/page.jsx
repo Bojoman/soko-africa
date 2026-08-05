@@ -17,6 +17,12 @@ import { FormAlert } from '../../components/forms/FormAlert';
 import { FormRadioGroup } from '../../components/forms/FormRadioGroup';
 import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, Store, ShoppingBag } from 'lucide-react';
 
+function registrationRoute(role) {
+  return String(role || '').toLowerCase() === USER_ROLES.SELLER
+    ? '/sell?apply=true'
+    : '/account?registered=true';
+}
+
 export default function RegisterPage() {
   const { register: registerUser, isAuthenticated, user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -46,7 +52,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (isAuthenticated && !authLoading && user) {
-      router.push('/');
+      router.push(registrationRoute(user.role));
     }
   }, [isAuthenticated, authLoading, user, router]);
 
@@ -54,7 +60,7 @@ export default function RegisterPage() {
     setServerError('');
     const result = await registerUser(data);
     if (result.success) {
-      router.push('/?registered=true');
+      router.push(registrationRoute(result.user?.role));
     } else {
       setServerError(result.error || 'Registration failed. Please try again.');
     }

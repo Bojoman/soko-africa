@@ -30,6 +30,10 @@ const registerSchema = {
         type: 'string',
         minLength: 1,
         maxLength: 100
+      },
+      role: {
+        type: 'string',
+        enum: ['customer', 'seller']
       }
     },
     additionalProperties: false
@@ -132,6 +136,7 @@ export default async function (fastify) {
   }, async (request, reply) => {
     const { password, firstName, lastName } = request.body;
     const email = String(request.body.email || '').trim().toLowerCase();
+    const role = request.body.role === 'seller' ? 'SELLER' : 'CUSTOMER';
 
     const existingUser = await fastify.prisma.user.findUnique({
       where: { email },
@@ -153,7 +158,8 @@ export default async function (fastify) {
         email,
         passwordHash,
         firstName,
-        lastName
+        lastName,
+        role
       },
       select: {
         id: true,
@@ -168,6 +174,12 @@ export default async function (fastify) {
     const refreshToken = await fastify.signRefreshToken(user.id);
 
     await logSecurityEvent(fastify, 'USER_REGISTERED', 'LOW', { userId: user.id, email });
+
+    try {
+      await fastify.mail.sendWelcome(user);
+    } catch (err) {
+      fastify.log.error({ err, userId: user.id }, 'Welcome email failed');
+    }
 
     return {
       user,
@@ -406,15 +418,21 @@ export default async function (fastify) {
     });
 
     if (user && user.isActive !== false) {
-      const token = randomBytes(32).toString('hex');
-      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-      await fastify.prisma.passwordResetToken.create({
-        data: { token, userId: user.id, expiresAt }
-      });
-      await fastify.mail.sendPasswordReset(user.email, token);
-      await logSecurityEvent(fastify, 'PASSWORD_RESET_REQUESTED', 'LOW', {
-        userId: user.id
-      });
+      // Failures here must not change the response: the generic message below
+      // is what keeps this endpoint from confirming which emails are registered.
+      try {
+        const token = randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+        await fastify.prisma.passwordResetToken.create({
+          data: { token, userId: user.id, expiresAt }
+        });
+        await fastify.mail.sendPasswordReset(user.email, token);
+        await logSecurityEvent(fastify, 'PASSWORD_RESET_REQUESTED', 'LOW', {
+          userId: user.id
+        });
+      } catch (err) {
+        fastify.log.error({ err, userId: user.id }, 'Password reset request failed');
+      }
     }
 
     return {

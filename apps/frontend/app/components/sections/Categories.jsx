@@ -15,34 +15,41 @@ const BG_ROTATION = [
   'bg-soko-bright-cyan/10'
 ];
 
-const Categories = () => {
-  const [categoryGroups, setCategoryGroups] = useState([]);
+function mapCategories(roots) {
+  return (roots || []).map((root, i) => ({
+    title: root.name,
+    slug: root.slug,
+    link: root.slug === 'nyamazone' ? '/nyamazone' : `/categories/${root.slug}`,
+    bgColor: BG_ROTATION[i % BG_ROTATION.length],
+    subcategories: (root.children || []).slice(0, 4).map((ch) => ({
+      name: ch.name,
+      slug: ch.slug,
+      image: getCategoryImage(ch.slug),
+      link:
+        root.slug === 'nyamazone'
+          ? `/nyamazone?sub=${ch.slug}`
+          : `/categories/${ch.slug}`
+    }))
+  }));
+}
+
+const Categories = ({ initialCategories = [] }) => {
+  const [categoryGroups, setCategoryGroups] = useState(() =>
+    mapCategories(initialCategories)
+  );
 
   useEffect(() => {
+    if (initialCategories?.length) {
+      setCategoryGroups(mapCategories(initialCategories));
+      return;
+    }
+
     let cancelled = false;
     (async () => {
       try {
         const res = await fetch('/api/categories');
         const data = await res.json();
-        const roots = data?.categories || [];
-        if (cancelled) return;
-
-        const groups = roots.map((root, i) => ({
-          title: root.name,
-          slug: root.slug,
-          link: root.slug === 'nyamazone' ? '/nyamazone' : `/categories/${root.slug}`,
-          bgColor: BG_ROTATION[i % BG_ROTATION.length],
-          subcategories: (root.children || []).slice(0, 4).map((ch) => ({
-            name: ch.name,
-            slug: ch.slug,
-            image: getCategoryImage(ch.slug),
-            link:
-              root.slug === 'nyamazone'
-                ? `/nyamazone?sub=${ch.slug}`
-                : `/categories/${ch.slug}`
-          }))
-        }));
-        setCategoryGroups(groups);
+        if (!cancelled) setCategoryGroups(mapCategories(data?.categories || []));
       } catch {
         if (!cancelled) setCategoryGroups([]);
       }
@@ -50,13 +57,13 @@ const Categories = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialCategories]);
 
   if (!categoryGroups.length) {
     return (
       <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
-          Loading categories…
+          No categories available yet.
         </div>
       </section>
     );
@@ -77,7 +84,7 @@ const Categories = () => {
                 </h2>
 
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4">
-                  {group.subcategories.map((subcat) => (
+                  {group.subcategories.map((subcat, subIdx) => (
                     <Link key={subcat.slug} href={subcat.link} className="group">
                       <div className="aspect-square relative bg-white rounded-md overflow-hidden mb-1.5 sm:mb-2 shadow-sm">
                         <Image
@@ -86,6 +93,7 @@ const Categories = () => {
                           fill
                           className="object-cover transition-opacity duration-300 group-hover:opacity-90"
                           sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 15vw"
+                          loading={groupIndex === 0 && subIdx < 2 ? 'eager' : 'lazy'}
                           unoptimized
                         />
                       </div>

@@ -91,7 +91,7 @@
 } */
 
 body {
-  font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+  font-family: var(--font-sans), "Inter", system-ui, sans-serif;
   font-weight: 400;
 }
 
@@ -263,8 +263,7 @@ button {
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: var(--font-sans);
-  /* Soko Africa brand tokens — exposed to Tailwind so slash opacities (e.g. bg-soko-orange/30) work */
+  /* --font-sans is injected by next/font (Inter) on <html> */
   --color-soko-dark-teal: var(--soko-dark-teal);
   --color-soko-light-blue: var(--soko-light-blue);
   --color-soko-cream: var(--soko-cream);

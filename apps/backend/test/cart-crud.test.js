@@ -8,7 +8,8 @@ const TEST_USER = {
 };
 
 async function api(path, { method = 'GET', token, body } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = {};
+  if (body != null) headers['Content-Type'] = 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${BASE}${path}`, {
     method,
@@ -53,7 +54,11 @@ test('cart CRUD lifecycle', async (t) => {
   // Clear existing cart
   let { data: cartData } = await api('/cart', { token });
   for (const it of cartItems(cartData)) {
-    await api(`/cart/items/${it.id}`, { method: 'DELETE', token });
+    const { res: deleteRes } = await api(`/cart/items/${it.id}`, {
+      method: 'DELETE',
+      token
+    });
+    assert.equal(deleteRes.status, 200, 'existing cart item cleanup should succeed');
   }
 
   const { data: productsData } = await api('/products?limit=2');

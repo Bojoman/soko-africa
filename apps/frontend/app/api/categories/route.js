@@ -28,7 +28,11 @@ export async function GET(request) {
       );
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600'
+      }
+    });
   } catch {
     return NextResponse.json({ categories: [] });
   }

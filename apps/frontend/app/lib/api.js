@@ -31,10 +31,10 @@ function clearClientAuthState() {
 export async function apiClient(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
 
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers
-  };
+  const headers = new Headers(options.headers);
+  if (options.body != null && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
 
   const config = {
     ...options,
@@ -128,7 +128,8 @@ export const authApi = {
       email: userData.email,
       password: userData.password,
       firstName: userData.firstName,
-      lastName: userData.lastName
+      lastName: userData.lastName,
+      role: userData.role
     }),
   logout: () => post('/auth/logout', {}),
   refresh: () => post('/auth/refresh', {}),

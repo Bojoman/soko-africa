@@ -1,12 +1,12 @@
 "use client";
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../hooks/useCart';
+import NavSearch from './NavSearch';
 import {
-  Search,
   Menu,
   ShoppingCart,
   User,
@@ -42,32 +42,19 @@ const Header = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [mobileSearchTerm, setMobileSearchTerm] = useState('');
 
-  const syncFromUrl = (q) => {
+  const syncFromUrl = useCallback((q) => {
     setSearchTerm(q);
     setMobileSearchTerm(q);
-  };
+  }, []);
 
-  const goToSearch = (term) => {
+  const goToSearch = useCallback((term) => {
     const q = String(term || '').trim();
     // Whitespace-only inputs are treated as a no-op — don't bounce the user
     // to /search with an empty query. They can still navigate via the
     // "All Categories" / "/products" link if they want to browse.
     if (q.length === 0) return;
     router.push(`/search?q=${encodeURIComponent(q)}`);
-  };
-
-  const handleDesktopSubmit = (e) => {
-    e.preventDefault();
-    goToSearch(searchTerm);
-  };
-
-  const handleMobileSubmit = (e) => {
-    e.preventDefault();
-    const q = String(mobileSearchTerm || '').trim();
-    if (q.length === 0) return;
-    if (isMenuOpen) setIsMenuOpen(false);
-    router.push(`/search?q=${encodeURIComponent(q)}`);
-  };
+  }, [router]);
 
   const categories = [
     { name: 'All Categories', href: '/categories' },
@@ -77,6 +64,11 @@ const Header = () => {
     { name: 'Become a Seller', href: '/sell' },
     { name: 'Browse Categories', href: '/categories' },
   ];
+
+  const desktopInputClass =
+    'w-full pl-4 pr-12 py-2 sm:py-3 text-sm text-black placeholder-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:border-soko-orange focus:ring-2 focus:ring-soko-orange/30 transition-all';
+  const mobileInputClass =
+    'w-full pl-4 pr-12 py-3 text-sm text-black placeholder-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:border-soko-orange focus:ring-2 focus:ring-soko-orange/30';
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -150,26 +142,13 @@ const Header = () => {
 
           {/* Search Bar (desktop) */}
           <div className="hidden md:flex flex-1 max-w-xl lg:max-w-2xl mx-4 lg:mx-8">
-            <form onSubmit={handleDesktopSubmit} className="relative w-full" role="search">
-              <label htmlFor="header-search" className="sr-only">
-                Search products
-              </label>
-              <input
-                id="header-search"
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search products, categories, sellers..."
-                className="w-full pl-4 pr-12 py-2 sm:py-3 text-sm text-black placeholder-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:border-soko-orange focus:ring-2 focus:ring-soko-orange/30 transition-all"
-              />
-              <button
-                type="submit"
-                aria-label="Search"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-soko-orange text-white p-1.5 sm:p-2 rounded-md hover:bg-soko-dark-red transition-colors"
-              >
-                <Search size={16} className="sm:w-5 sm:h-5" />
-              </button>
-            </form>
+            <NavSearch
+              id="header-search"
+              value={searchTerm}
+              onChange={setSearchTerm}
+              onSubmitSearch={goToSearch}
+              inputClassName={desktopInputClass}
+            />
           </div>
 
           {/* Right Icons */}
@@ -307,26 +286,18 @@ const Header = () => {
           <div className="md:hidden mt-4 py-4 border-t border-gray-200 bg-white">
             {/* Mobile Search */}
             <div className="px-4 mb-4">
-              <form onSubmit={handleMobileSubmit} className="relative" role="search">
-                <label htmlFor="header-search-mobile" className="sr-only">
-                  Search products
-                </label>
-                <input
-                  id="header-search-mobile"
-                  type="text"
-                  value={mobileSearchTerm}
-                  onChange={(e) => setMobileSearchTerm(e.target.value)}
-                  placeholder="Search products..."
-                  className="w-full pl-4 pr-12 py-3 text-sm text-black placeholder-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:border-soko-orange focus:ring-2 focus:ring-soko-orange/30"
-                />
-                <button
-                  type="submit"
-                  aria-label="Search"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-soko-orange text-white p-2 rounded-md hover:bg-soko-dark-red"
-                >
-                  <Search size={16} />
-                </button>
-              </form>
+              <NavSearch
+                id="header-search-mobile"
+                value={mobileSearchTerm}
+                onChange={setMobileSearchTerm}
+                onSubmitSearch={(term) => {
+                  setIsMenuOpen(false);
+                  goToSearch(term);
+                }}
+                onNavigate={() => setIsMenuOpen(false)}
+                placeholder="Search products..."
+                inputClassName={mobileInputClass}
+              />
             </div>
 
             {/* Mobile Navigation */}

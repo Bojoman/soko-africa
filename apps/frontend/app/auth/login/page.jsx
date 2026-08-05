@@ -36,11 +36,11 @@ function LoginForm() {
   const { handleSubmit, formState: { isSubmitting } } = methods;
 
   const getDefaultRedirect = React.useCallback((role) => {
-    switch (role) {
+    switch (String(role || '').toLowerCase()) {
       case 'admin': return '/admin/dashboard';
       case 'seller': return '/seller/dashboard';
       case 'moderator': return '/admin/dashboard';
-      default: return '/';
+      default: return '/account';
     }
   }, []);
 

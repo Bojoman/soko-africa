@@ -83,7 +83,10 @@ export function CartProvider({ children }) {
   const prevAuthenticatedRef = useRef(undefined);
   const reconcileGenRef = useRef(0);
   const cartRef = useRef(cart);
-  cartRef.current = cart;
+
+  useEffect(() => {
+    cartRef.current = cart;
+  }, [cart]);
 
   const refreshFromServer = useCallback(async () => {
     try {
