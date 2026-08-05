@@ -236,7 +236,7 @@ export default function EnhancedFAQSection({
         className="space-y-4"
         variants={containerVariants}
       >
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           {filteredFAQs.length > 0 ? (
             filteredFAQs.map((faq, index) => {
               const isOpen = openItems.has(index);

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import Header from '../../components/ui/Header';
 import Footer from '../../components/ui/Footer';
@@ -106,8 +107,8 @@ export default function AdminDashboard() {
         <Header />
 
         <main className="max-w-7xl mx-auto px-6 py-8">
-          <div className="mb-8">
-            <div className="flex items-center space-x-3 mb-4">
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center space-x-3">
               <div className="p-2 bg-red-100 rounded-lg">
                 <Shield className="text-red-600" size={24} />
               </div>
@@ -116,6 +117,13 @@ export default function AdminDashboard() {
                 <p className="text-gray-600">Welcome back, {user?.firstName}!</p>
               </div>
             </div>
+            <Link
+              href="/admin/products"
+              className="inline-flex items-center gap-2 rounded-lg bg-soko-orange px-4 py-2 font-semibold text-white hover:bg-soko-dark-red"
+            >
+              <Package size={18} />
+              Add product
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

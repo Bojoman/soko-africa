@@ -32,7 +32,9 @@ export async function apiClient(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
 
   const headers = new Headers(options.headers);
-  if (options.body != null && !headers.has('Content-Type')) {
+  const isFormData =
+    typeof FormData !== 'undefined' && options.body instanceof FormData;
+  if (options.body != null && !isFormData && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
 
@@ -170,12 +172,29 @@ export const productsApi = {
   listMine: () => get('/seller/products')
 };
 
+export const uploadsApi = {
+  productImage: async (file) => {
+    const body = new FormData();
+    body.append('file', file);
+    const response = await apiClient('/uploads/product-image', {
+      method: 'POST',
+      body
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw buildApiError(data, response.status);
+    return data;
+  }
+};
+
 export const ordersApi = {
   list: () => get('/orders')
 };
 
 export const sellersApi = {
-  list: () => get('/sellers'),
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return get(`/sellers${qs ? `?${qs}` : ''}`);
+  },
   getBySlug: (slug) => get(`/sellers/${slug}`),
   getProducts: (slug, params = {}) => {
     const qs = new URLSearchParams(params).toString();

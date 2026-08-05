@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { proxyAuthHeaders } from '../../lib/proxy-auth';
+import { applyAuthCookies } from '../../lib/auth-cookies';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -19,5 +20,13 @@ export async function POST(request) {
     body: JSON.stringify(body)
   });
   const data = await res.json().catch(() => ({}));
-  return NextResponse.json(data, { status: res.status });
+
+  // Becoming a seller changes the caller's role, so the backend hands back a
+  // re-issued session. Keep the tokens server-side in httpOnly cookies.
+  const { tokens, ...seller } = data;
+  const response = NextResponse.json(seller, { status: res.status });
+  if (res.ok && tokens) {
+    applyAuthCookies(response, tokens);
+  }
+  return response;
 }

@@ -80,7 +80,12 @@ const productUpdateSchema = {
       price: { type: 'number', exclusiveMinimum: 0, maximum: 999999999.99 },
       category: { type: 'string', minLength: 1, maxLength: 100 },
       status: { type: 'string', enum: ['DRAFT', 'PUBLISHED', 'ARCHIVED'] },
-      stock: { type: 'integer', minimum: 0, maximum: 999999 }
+      stock: { type: 'integer', minimum: 0, maximum: 999999 },
+      imageUrls: {
+        type: 'array',
+        maxItems: 12,
+        items: { type: 'string', minLength: 1, maxLength: 2000 }
+      }
     },
     additionalProperties: false
   },
@@ -573,6 +578,16 @@ export default async function (fastify) {
     if (body.price !== undefined) data.price = body.price;
     if (body.category !== undefined) data.category = body.category;
     if (body.status !== undefined) data.status = body.status;
+    if (body.imageUrls !== undefined) {
+      data.images = {
+        deleteMany: {},
+        create: body.imageUrls.map((url, position) => ({
+          url,
+          alt: body.name || existing.name,
+          position
+        }))
+      };
+    }
 
     const product = await fastify.prisma.product.update({
       where: { id: existing.id },
@@ -584,7 +599,11 @@ export default async function (fastify) {
         price: true,
         currency: true,
         category: true,
-        status: true
+        status: true,
+        images: {
+          orderBy: { position: 'asc' },
+          select: { id: true, url: true, alt: true, position: true }
+        }
       }
     });
 

@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useCallback, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -41,6 +41,27 @@ const Header = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [mobileSearchTerm, setMobileSearchTerm] = useState('');
+  const userMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!isUserMenuOpen) return undefined;
+
+    const onPointerDown = (event) => {
+      if (!userMenuRef.current?.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setIsUserMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isUserMenuOpen]);
 
   const syncFromUrl = useCallback((q) => {
     setSearchTerm(q);
@@ -154,9 +175,11 @@ const Header = () => {
           {/* Right Icons */}
           <div className="flex items-center space-x-3 sm:space-x-4 lg:space-x-6">
             {isAuthenticated ? (
-              <div className="relative">
+              <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  aria-expanded={isUserMenuOpen}
+                  aria-haspopup="menu"
                   className="flex items-center space-x-1 text-soko-dark-brown hover:text-soko-orange transition-colors"
                 >
                   <User size={20} className="sm:w-6 sm:h-6" />

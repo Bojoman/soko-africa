@@ -175,11 +175,10 @@ export default async function (fastify) {
 
     await logSecurityEvent(fastify, 'USER_REGISTERED', 'LOW', { userId: user.id, email });
 
-    try {
-      await fastify.mail.sendWelcome(user);
-    } catch (err) {
-      fastify.log.error({ err, userId: user.id }, 'Welcome email failed');
-    }
+    // Fire-and-forget: signup must not block on the mail provider's latency.
+    fastify.mail
+      .sendWelcome(user)
+      .catch((err) => fastify.log.error({ err, userId: user.id }, 'Welcome email failed'));
 
     return {
       user,

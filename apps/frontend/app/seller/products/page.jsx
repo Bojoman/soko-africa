@@ -7,6 +7,7 @@ import Footer from '../../components/ui/Footer';
 import { useAuth } from '../../contexts/AuthContext';
 import { productsApi } from '../../lib/api';
 import { FormAlert } from '../../components/forms/FormAlert';
+import ProductImageUploader from '../../components/products/ProductImageUploader';
 import { Plus, Search, Filter, Edit, Trash2, Eye, X } from 'lucide-react';
 
 const EMPTY_FORM = {
@@ -15,7 +16,8 @@ const EMPTY_FORM = {
   price: '',
   category: 'coffee',
   stock: '50',
-  status: 'PUBLISHED'
+  status: 'PUBLISHED',
+  imageUrls: []
 };
 
 function statusUi(status) {
@@ -36,6 +38,7 @@ export default function SellerProductsPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   const sellerId = user?.sellerProfile?.id;
 
@@ -77,7 +80,8 @@ export default function SellerProductsPage() {
       price: String(product.price),
       category: product.category || 'coffee',
       stock: String(product.stock ?? 0),
-      status: product.status || 'PUBLISHED'
+      status: product.status || 'PUBLISHED',
+      imageUrls: (product.images || []).map((image) => image.url).filter(Boolean)
     });
     setError('');
     setModalOpen(true);
@@ -89,6 +93,14 @@ export default function SellerProductsPage() {
       setError('Seller profile required');
       return;
     }
+    if (uploadingImages) {
+      setError('Please wait for the image upload to finish.');
+      return;
+    }
+    if (!form.imageUrls.length) {
+      setError('Add at least one product image.');
+      return;
+    }
     setSaving(true);
     setError('');
     try {
@@ -97,14 +109,16 @@ export default function SellerProductsPage() {
         description: form.description.trim(),
         price: parseFloat(form.price),
         category: form.category,
-        sellerId,
         stock: parseInt(form.stock, 10) || 0,
-        status: form.status
+        status: form.status,
+        imageUrls: form.imageUrls
       };
       if (editing) {
+        // An update must not carry sellerId: ownership is fixed at creation and
+        // the update schema rejects the field outright.
         await productsApi.update(editing.id, payload);
       } else {
-        await productsApi.create(payload);
+        await productsApi.create({ ...payload, sellerId });
       }
       setModalOpen(false);
       await loadProducts();
@@ -252,6 +266,12 @@ export default function SellerProductsPage() {
                     className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-soko-orange focus:outline-none"
                   />
                 </div>
+                <ProductImageUploader
+                  value={form.imageUrls}
+                  onChange={(imageUrls) => setForm((current) => ({ ...current, imageUrls }))}
+                  onUploadingChange={setUploadingImages}
+                  disabled={saving}
+                />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Price (USD) *</label>
@@ -309,10 +329,16 @@ export default function SellerProductsPage() {
                 </div>
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || uploadingImages}
                   className="w-full py-3 rounded-xl bg-soko-orange text-white font-bold hover:bg-soko-dark-red disabled:opacity-60"
                 >
-                  {saving ? 'Saving…' : editing ? 'Update product' : 'Create product'}
+                  {uploadingImages
+                    ? 'Uploading images…'
+                    : saving
+                      ? 'Saving…'
+                      : editing
+                        ? 'Update product'
+                        : 'Create product'}
                 </button>
               </form>
             </div>

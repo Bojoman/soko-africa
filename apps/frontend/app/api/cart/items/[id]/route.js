@@ -19,9 +19,11 @@ export async function PATCH(request, ctx) {
 
 export async function DELETE(request, ctx) {
   const { id } = await ctx.params;
+  // No Content-Type: this request has no body, and Fastify rejects
+  // `application/json` with an empty body as a 400.
   const res = await fetch(`${API_BASE}/cart/items/${encodeURIComponent(id)}`, {
     method: 'DELETE',
-    headers: await proxyAuthHeaders(request, { 'Content-Type': 'application/json' })
+    headers: await proxyAuthHeaders(request)
   });
   const data = await res.json().catch(() => ({}));
   return NextResponse.json(data, { status: res.status });

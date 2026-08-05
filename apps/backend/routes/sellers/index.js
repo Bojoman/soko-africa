@@ -343,7 +343,16 @@ export default async function (fastify) {
       }
     });
 
-    return reply.code(201).send(result);
+    // The caller's access token still carries their pre-upgrade role, so every
+    // role-gated route (product creation especially) would keep rejecting them
+    // until that token expired. Re-issue the session with the new SELLER role.
+    const tokens = {
+      accessToken: fastify.signAccessToken({ sub: userId, role: 'SELLER' }),
+      refreshToken: await fastify.signRefreshToken(userId),
+      expiresIn: 900
+    };
+
+    return reply.code(201).send({ ...result, tokens });
   });
 }
 

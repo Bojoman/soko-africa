@@ -60,13 +60,22 @@ export default async function (fastify) {
         return reply.code(401).send({ message: 'Unauthorized' });
       }
 
-      const seller = await fastify.prisma.sellerProfile.findUnique({
-        where: { userId: user.sub },
-        select: { id: true, verificationStatus: true }
-      });
-      if (!seller) {
+      const role = String(user.role || '').toUpperCase();
+      const isAdmin = role === 'ADMIN' || role === 'MODERATOR';
+      const seller = isAdmin
+        ? null
+        : await fastify.prisma.sellerProfile.findUnique({
+            where: { userId: user.sub },
+            select: { id: true, verificationStatus: true }
+          });
+      if (!isAdmin && !seller) {
         return reply.code(403).send({
           message: 'Seller profile required to upload product images'
+        });
+      }
+      if (!isAdmin && seller.verificationStatus !== 'APPROVED') {
+        return reply.code(403).send({
+          message: 'Seller profile must be approved to upload product images'
         });
       }
 

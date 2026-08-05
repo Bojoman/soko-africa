@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema } from '../../lib/validations';
@@ -15,7 +15,7 @@ import { FormCheckbox } from '../../components/forms/FormCheckbox';
 import { FormButton } from '../../components/forms/FormButton';
 import { FormAlert } from '../../components/forms/FormAlert';
 import { FormRadioGroup } from '../../components/forms/FormRadioGroup';
-import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, Store, ShoppingBag } from 'lucide-react';
+import { CheckCircle2, Eye, EyeOff, Mail, Lock, User, Phone, MapPin, Store, ShoppingBag } from 'lucide-react';
 
 function registrationRoute(role) {
   return String(role || '').toLowerCase() === USER_ROLES.SELLER
@@ -30,6 +30,9 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState('');
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [redirectTarget, setRedirectTarget] = useState('');
+  const registeringHereRef = useRef(false);
 
   const methods = useForm({
     resolver: zodResolver(registerSchema),
@@ -51,17 +54,26 @@ export default function RegisterPage() {
   const selectedRole = watch('role');
 
   useEffect(() => {
-    if (isAuthenticated && !authLoading && user) {
+    if (isAuthenticated && !authLoading && user && !registeringHereRef.current) {
       router.push(registrationRoute(user.role));
     }
   }, [isAuthenticated, authLoading, user, router]);
 
+  useEffect(() => {
+    if (!registrationSuccess || !redirectTarget) return undefined;
+    const timer = setTimeout(() => router.replace(redirectTarget), 1800);
+    return () => clearTimeout(timer);
+  }, [registrationSuccess, redirectTarget, router]);
+
   const onSubmit = async (data) => {
     setServerError('');
+    registeringHereRef.current = true;
     const result = await registerUser(data);
     if (result.success) {
-      router.push(registrationRoute(result.user?.role));
+      setRedirectTarget(registrationRoute(result.user?.role));
+      setRegistrationSuccess(true);
     } else {
+      registeringHereRef.current = false;
       setServerError(result.error || 'Registration failed. Please try again.');
     }
   };
@@ -80,6 +92,31 @@ export default function RegisterPage() {
       icon: Store,
     },
   ];
+
+  if (registrationSuccess) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="mx-auto flex min-h-[60vh] max-w-xl items-center px-6 py-16">
+          <div
+            role="status"
+            aria-live="polite"
+            className="w-full rounded-2xl bg-white p-10 text-center shadow-md"
+          >
+            <CheckCircle2 className="mx-auto mb-4 text-green-600" size={64} />
+            <h1 className="mb-2 text-3xl font-bold text-soko-dark-teal">
+              You&apos;ve successfully signed up!
+            </h1>
+            <p className="text-gray-600">
+              Welcome to Soko Africa. Your account is ready and we&apos;re taking you
+              to your next step.
+            </p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (authLoading || (isAuthenticated && user)) {
     return (

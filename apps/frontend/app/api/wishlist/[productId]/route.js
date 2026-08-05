@@ -17,7 +17,7 @@ export async function DELETE(request, ctx) {
   const { productId } = await ctx.params;
   const res = await fetch(`${API_BASE}/wishlist/${encodeURIComponent(productId)}`, {
     method: 'DELETE',
-    headers: await proxyAuthHeaders(request, { 'Content-Type': 'application/json' })
+    headers: await proxyAuthHeaders(request)
   });
   const data = await res.json().catch(() => ({}));
   return NextResponse.json(data, { status: res.status });

@@ -8,7 +8,7 @@ const nextConfig = {
   allowedDevOrigins: lanHosts,
   // Image optimization and security
   images: {
-    qualities: [75, 85, 90],
+    qualities: [60, 75, 85, 90],
     remotePatterns: [
       {
         protocol: 'https',
