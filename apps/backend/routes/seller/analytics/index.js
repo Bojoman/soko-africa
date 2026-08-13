@@ -1,3 +1,5 @@
+import { toNumber } from '@soko/units';
+
 import { rangeStart, isoDay } from '../../../lib/analytics-range.js';
 
 export default async function (fastify) {
@@ -37,7 +39,11 @@ export default async function (fastify) {
     const byProduct = new Map();
 
     for (const it of items) {
-      const line = Number(it.unitPrice) * it.quantity;
+      // `it.quantity` is a Prisma Decimal. `*` coerces numerically so this
+      // line was fine, but `+=` on one concatenates strings — see `prod.sales`
+      // below. Convert once, up front, and never touch the Decimal again.
+      const quantity = toNumber(it.quantity);
+      const line = Number(it.unitPrice) * quantity;
       totalRevenue += line;
       orderIds.add(it.orderId);
       const cust = it.order.userId || it.order.email;
@@ -56,9 +62,15 @@ export default async function (fastify) {
         productId: it.productId,
         name: it.productName || 'Product',
         sales: 0,
+        // "12 sold" means 12 kg for one listing and 12 crates for another, so
+        // the unit has to travel with the number.
+        saleUnit: it.saleUnit || 'PIECE',
         revenue: 0
       };
-      prod.sales += it.quantity;
+      // Was `prod.sales += it.quantity` — number += Decimal coerces the
+      // Decimal to a string, so `sales` silently became "01.52" and shipped
+      // as garbage in the API response. No exception, no type error.
+      prod.sales += quantity;
       prod.revenue += line;
       byProduct.set(key, prod);
     }

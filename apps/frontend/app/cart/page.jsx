@@ -5,19 +5,23 @@ import Link from 'next/link';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import { useCart } from '../hooks/useCart';
-import { PLACEHOLDER_PRODUCT_IMAGE, formatMoney } from '../lib/product-utils';
+import {
+  PLACEHOLDER_PRODUCT_IMAGE,
+  formatMoney,
+  formatUnitPrice
+} from '../lib/product-utils';
 import {
   computeOrderTotals,
   couponLabel,
+  lineTotal,
   normalizeCartLineItems,
   validateCouponCode
 } from '../lib/cart-totals';
+import QuantityStepper from '../components/products/QuantityStepper';
 import {
   ArrowRight,
   CheckCircle,
   ChevronRight,
-  Minus,
-  Plus,
   RefreshCcw,
   ShoppingBag,
   Shield,
@@ -57,6 +61,10 @@ export default function CartPage() {
       })),
     [cart]
   );
+
+  // The summary used to call formatMoney with no currency, so a KES cart's
+  // totals rendered as "$270.00" while each line above them read "KES".
+  const currency = cartItems[0]?.currency || 'USD';
 
   const totals = useMemo(
     () =>
@@ -169,7 +177,9 @@ export default function CartPage() {
             {/* Items list */}
             <section className="lg:col-span-2 space-y-4">
               {cartItems.map((item) => {
-                const lineTotal = item.price * item.quantity;
+                // Same per-line rounding as the server, so this figure and the
+                // amount charged can never disagree by a cent.
+                const itemTotal = lineTotal(item);
                 return (
                   <article
                     key={`${item.id}-${JSON.stringify(item.selectedVariant)}`}
@@ -218,45 +228,20 @@ export default function CartPage() {
                         </div>
 
                         <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
-                          <div className="inline-flex items-center border border-gray-200 rounded-xl overflow-hidden">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateQuantity(
-                                  item.id,
-                                  Math.max(1, item.quantity - 1),
-                                  item.selectedVariant
-                                )
-                              }
-                              className="p-2 hover:bg-soko-cream/40 text-soko-dark-teal"
-                              aria-label="Decrease quantity"
-                            >
-                              <Minus size={14} />
-                            </button>
-                            <span className="w-10 text-center text-sm font-bold text-soko-dark-teal">
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateQuantity(
-                                  item.id,
-                                  Math.min(99, item.quantity + 1),
-                                  item.selectedVariant
-                                )
-                              }
-                              className="p-2 hover:bg-soko-cream/40 text-soko-dark-teal"
-                              aria-label="Increase quantity"
-                            >
-                              <Plus size={14} />
-                            </button>
-                          </div>
+                          <QuantityStepper
+                            product={item}
+                            value={item.quantity}
+                            size="sm"
+                            onChange={(next) =>
+                              updateQuantity(item.id, next, item.selectedVariant)
+                            }
+                          />
                           <div className="text-right">
                             <p className="text-xs text-gray-400">
-                              {formatMoney(item.price, item.currency)} each
+                              {formatUnitPrice(item)}
                             </p>
                             <p className="text-lg font-extrabold text-soko-dark-teal">
-                              {formatMoney(lineTotal, item.currency)}
+                              {formatMoney(itemTotal, item.currency)}
                             </p>
                           </div>
                         </div>
@@ -295,13 +280,13 @@ export default function CartPage() {
                   <div className="flex justify-between">
                     <dt className="text-gray-500">Subtotal</dt>
                     <dd className="font-semibold text-soko-dark-teal">
-                      {formatMoney(subtotal)}
+                      {formatMoney(subtotal, currency)}
                     </dd>
                   </div>
                   {couponDiscount > 0 && (
                     <div className="flex justify-between text-emerald-700">
                       <dt>Coupon ({appliedCoupon.code})</dt>
-                      <dd>-{formatMoney(couponDiscount)}</dd>
+                      <dd>-{formatMoney(couponDiscount, currency)}</dd>
                     </div>
                   )}
                   <div className="flex justify-between">
@@ -310,14 +295,14 @@ export default function CartPage() {
                       {shipping === 0 ? (
                         <span className="text-emerald-600">Free</span>
                       ) : (
-                        formatMoney(shipping)
+                        formatMoney(shipping, currency)
                       )}
                     </dd>
                   </div>
                   <div className="flex justify-between pt-3 border-t border-gray-100">
                     <dt className="font-bold text-soko-dark-teal">Total</dt>
                     <dd className="text-2xl font-extrabold text-soko-orange">
-                      {formatMoney(total)}
+                      {formatMoney(total, currency)}
                     </dd>
                   </div>
                 </dl>

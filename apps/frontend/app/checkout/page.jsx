@@ -9,7 +9,13 @@ import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../contexts/AuthContext';
-import { PLACEHOLDER_PRODUCT_IMAGE, formatMoney } from '../lib/product-utils';
+import {
+  PLACEHOLDER_PRODUCT_IMAGE,
+  formatLineLabel,
+  formatMoney,
+  formatQuantity,
+  getQuantityBounds
+} from '../lib/product-utils';
 import {
   CHECKOUT_STEP_FIELDS,
   checkoutSchema
@@ -40,6 +46,7 @@ import {
 import {
   computeOrderTotals,
   couponLabel,
+  lineTotal,
   normalizeCartLineItems,
   SHIPPING_EXPRESS,
   SHIPPING_STANDARD
@@ -355,27 +362,31 @@ function MpesaSection({ orderId, total, currency, phoneDefault, onSuccess, onErr
   const [stkState, setStkState] = useState('idle'); // idle | initiating | waiting | success | failed
   const [checkoutRequestId, setCheckoutRequestId] = useState(null);
   const [message, setMessage] = useState('');
-  const pollingRef = useRef(false);
+  const inFlightRef = useRef(false);
 
-  async function trigger() {
+  async function trigger({ forceNew = false } = {}) {
+    if (inFlightRef.current || stkState === 'success') return;
     setMessage('');
     const phoneE164 = normalizeKenyanPhone(phone);
     if (!phoneE164) {
       setMessage('Enter a valid Kenyan phone (e.g. 2547XXXXXXXX)');
       return;
     }
+    inFlightRef.current = true;
     setStkState('initiating');
     try {
-      const res = await startMpesaStk(orderId, phoneE164);
+      const res = await startMpesaStk(orderId, phoneE164, { forceNew });
       setCheckoutRequestId(res.checkoutRequestId);
-      setMessage(res.customerMessage || 'Check your phone for the M-Pesa prompt');
+      setMessage(
+        res.reused
+          ? res.customerMessage || 'A payment prompt is already on your phone'
+          : res.customerMessage || 'Check your phone for the M-Pesa prompt'
+      );
       setStkState('waiting');
-      pollingRef.current = true;
       const final = await pollUntilTerminal(
         () => pollMpesaStatus(res.checkoutRequestId),
-        { intervalMs: 3000, timeoutMs: 60000 }
+        { intervalMs: 3000, timeoutMs: 120000 }
       );
-      pollingRef.current = false;
       if (final.status === 'SUCCESS') {
         setStkState('success');
         onSuccess?.({ checkoutRequestId: res.checkoutRequestId });
@@ -389,10 +400,17 @@ function MpesaSection({ orderId, total, currency, phoneDefault, onSuccess, onErr
         onError?.(`M-Pesa: ${final.status}`);
       }
     } catch (err) {
-      pollingRef.current = false;
       setStkState('failed');
-      setMessage(err.message || 'Could not start M-Pesa payment');
+      if (err.code === 'TIMEOUT') {
+        setMessage(
+          'Still waiting for confirmation. If you already paid on your phone, refresh your orders — do not send another prompt unless payment failed.'
+        );
+      } else {
+        setMessage(err.message || 'Could not start M-Pesa payment');
+      }
       onError?.(err.message);
+    } finally {
+      inFlightRef.current = false;
     }
   }
 
@@ -406,12 +424,12 @@ function MpesaSection({ orderId, total, currency, phoneDefault, onSuccess, onErr
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
         placeholder="2547XXXXXXXX"
-        disabled={stkState === 'initiating' || stkState === 'waiting'}
+        disabled={stkState === 'initiating' || stkState === 'waiting' || stkState === 'success'}
         className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-soko-dark-teal focus:outline-none focus:ring-2 focus:ring-soko-orange disabled:opacity-60"
       />
       <button
         type="button"
-        onClick={trigger}
+        onClick={() => trigger({ forceNew: stkState === 'failed' })}
         disabled={stkState === 'initiating' || stkState === 'waiting' || stkState === 'success'}
         className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-soko-orange hover:bg-soko-dark-red text-white font-bold transition-colors disabled:opacity-60"
       >
@@ -430,9 +448,14 @@ function MpesaSection({ orderId, total, currency, phoneDefault, onSuccess, onErr
             <Check size={16} /> Payment received
           </>
         )}
-        {(stkState === 'idle' || stkState === 'failed') && (
+        {stkState === 'idle' && (
           <>
             <Smartphone size={16} /> Pay {formatMoney(total, currency)} via M-Pesa
+          </>
+        )}
+        {stkState === 'failed' && (
+          <>
+            <Smartphone size={16} /> Retry M-Pesa payment
           </>
         )}
       </button>
@@ -464,6 +487,7 @@ export default function CheckoutPage() {
   const [creatingOrder, setCreatingOrder] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const idempotencyKeyRef = useRef(null);
+  const createOrderInFlightRef = useRef(null);
 
   if (!idempotencyKeyRef.current && typeof crypto !== 'undefined') {
     idempotencyKeyRef.current =
@@ -541,64 +565,72 @@ export default function CheckoutPage() {
 
   const ensureOrder = useCallback(async () => {
     if (orderId) return orderId;
+    if (createOrderInFlightRef.current) return createOrderInFlightRef.current;
+
     setCreatingOrder(true);
     setOrderError('');
-    try {
-      const values = getValues();
-      const payload = {
-        items: cartItems.map((it) => ({
-          id: it.id,
-          productId: it.id,
-          name: it.name,
-          price: it.price,
-          quantity: it.quantity,
-          image: it.image,
-          currency: it.currency
-        })),
-        contact: { email: values.email, phone: values.phone },
-        shippingAddress: {
-          firstName: values.firstName,
-          lastName: values.lastName,
-          name: `${values.firstName} ${values.lastName}`.trim(),
-          line1: values.address,
-          city: values.city,
-          region: values.state,
-          state: values.state,
-          postalCode: values.postalCode,
-          country: values.country
-        },
-        totals: {
-          subtotal,
-          shipping: shippingCost,
-          tax,
-          total
-        },
-        currency,
-        shippingMethod: values.shippingMethod,
-        couponCode: appliedCoupon?.code || undefined,
-        paymentMethod: values.paymentMethod
-      };
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Idempotency-Key': idempotencyKeyRef.current
-        },
-        credentials: 'include',
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data?.message || `Order failed (${res.status})`);
+    const run = (async () => {
+      try {
+        const values = getValues();
+        const payload = {
+          items: cartItems.map((it) => ({
+            id: it.id,
+            productId: it.id,
+            name: it.name,
+            price: it.price,
+            quantity: it.quantity,
+            image: it.image,
+            currency: it.currency
+          })),
+          contact: { email: values.email, phone: values.phone },
+          shippingAddress: {
+            firstName: values.firstName,
+            lastName: values.lastName,
+            name: `${values.firstName} ${values.lastName}`.trim(),
+            line1: values.address,
+            city: values.city,
+            region: values.state,
+            state: values.state,
+            postalCode: values.postalCode,
+            country: values.country
+          },
+          totals: {
+            subtotal,
+            shipping: shippingCost,
+            tax,
+            total
+          },
+          currency,
+          shippingMethod: values.shippingMethod,
+          couponCode: appliedCoupon?.code || undefined,
+          paymentMethod: values.paymentMethod
+        };
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Idempotency-Key': idempotencyKeyRef.current
+          },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data?.message || `Order failed (${res.status})`);
+        }
+        setOrderId(data.orderId);
+        return data.orderId;
+      } catch (err) {
+        setOrderError(err.message);
+        return null;
+      } finally {
+        setCreatingOrder(false);
+        createOrderInFlightRef.current = null;
       }
-      setOrderId(data.orderId);
-      return data.orderId;
-    } catch (err) {
-      setOrderError(err.message);
-      return null;
-    } finally {
-      setCreatingOrder(false);
-    }
+    })();
+
+    createOrderInFlightRef.current = run;
+    return run;
   }, [
     orderId,
     cartItems,
@@ -1000,20 +1032,28 @@ export default function CheckoutPage() {
                               sizes="56px"
                               unoptimized={isHttpUrl(item.image)}
                             />
-                            <span className="absolute -top-1 -right-1 bg-soko-dark-teal text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                              {item.quantity}
-                            </span>
+                            {/* A count fits the badge; "1.5 kg" does not, so
+                                measured goods carry their quantity on the
+                                text line below instead. */}
+                            {!getQuantityBounds(item).fractional && (
+                              <span className="absolute -top-1 -right-1 bg-soko-dark-teal text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                {formatQuantity(item.quantity, item)}
+                              </span>
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-soko-dark-teal truncate">
                               {item.name}
                             </p>
                             <p className="text-xs text-gray-500 truncate">
+                              {formatLineLabel(item)}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
                               by {item.seller}
                             </p>
                           </div>
                           <p className="text-sm font-bold text-soko-dark-teal whitespace-nowrap">
-                            {formatMoney(item.price * item.quantity, item.currency)}
+                            {formatMoney(lineTotal(item), item.currency)}
                           </p>
                         </li>
                       ))}

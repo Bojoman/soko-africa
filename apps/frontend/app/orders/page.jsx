@@ -4,6 +4,7 @@ import ProtectedRoute from '../components/auth/ProtectedRoute';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import { get } from '../lib/api';
+import { formatQuantity } from '../lib/product-utils';
 import {
   Package,
   Truck,
@@ -239,7 +240,7 @@ export default function OrdersPage() {
                                 {product.name}
                               </p>
                               <p className="text-sm text-gray-500">
-                                Qty: {product.quantity} × {formatMoneyAmount(product.price, order.currency)}
+                                Qty: {formatQuantity(product.quantity, product, { force: true })} × {formatMoneyAmount(product.price, order.currency)}
                               </p>
                             </div>
                           </div>
@@ -371,7 +372,9 @@ export default function OrdersPage() {
                         </div>
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900">{product.name}</h4>
-                          <p className="text-sm text-gray-600">Quantity: {product.quantity}</p>
+                          <p className="text-sm text-gray-600">
+                            Quantity: {formatQuantity(product.quantity, product, { force: true })}
+                          </p>
                         </div>
                         <div className="text-right">
                           <p className="font-semibold text-gray-900">{formatMoneyAmount(product.price, selectedOrder.currency)}</p>

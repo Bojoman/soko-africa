@@ -1,5 +1,6 @@
 import fp from 'fastify-plugin';
 import nodemailer from 'nodemailer';
+import { formatQuantity, toNumber } from '@soko/units';
 
 function hasSmtpConfig() {
   return Boolean(process.env.SMTP_HOST || process.env.SMTP_URL);
@@ -124,11 +125,57 @@ export default fp(async (fastify) => {
       const to = order.email;
       if (!to) return { skipped: true };
       const lines = (order.items || [])
-        .map((it) => `• ${it.productName || it.name} × ${it.quantity} — ${order.currency || 'USD'} ${Number(it.subtotal ?? it.price * it.quantity).toFixed(2)}`)
+        .map((it) => {
+          // Render from the line's own snapshot terms so a receipt reads
+          // "× 1.5 kg" rather than a bare "× 1.500".
+          const qty = formatQuantity(it.quantity, { saleUnit: it.saleUnit }, { force: true });
+          const amount = Number(
+            it.subtotal ?? Number(it.price ?? it.unitPrice) * toNumber(it.quantity)
+          );
+          return `• ${it.productName || it.name} × ${qty} — ${order.currency || 'USD'} ${amount.toFixed(2)}`;
+        })
         .join('\n');
       const subject = `Order confirmed — ${order.id.slice(0, 8).toUpperCase()}`;
       const text = `Thank you for your order!\n\nOrder: ${order.id}\nTotal: ${order.currency || 'USD'} ${Number(order.total).toFixed(2)}\n\nItems:\n${lines}\n\nTrack your order: ${appUrl(`/orders/${order.id}`)}`;
       const html = `<h2>Thank you for your order</h2><p><strong>Order:</strong> ${order.id}</p><p><strong>Total:</strong> ${order.currency || 'USD'} ${Number(order.total).toFixed(2)}</p><pre>${lines}</pre><p><a href="${appUrl(`/orders/${order.id}`)}">View order status</a></p>`;
+      return this.send({ to, subject, text, html });
+    },
+
+    /**
+     * Tells one seller they have lines to fulfil. Scoped to that seller's own
+     * items — never the whole order.
+     */
+    async sendSellerOrderNotification({ order, seller, items }) {
+      const to = seller?.user?.email;
+      if (!to) return { skipped: true };
+
+      const currency = order.currency || 'USD';
+      const lines = (items || [])
+        .map((it) => {
+          const qty = formatQuantity(
+            it.quantity,
+            { saleUnit: it.saleUnit },
+            { force: true }
+          );
+          const amount = Number(
+            it.subtotal ?? Number(it.unitPrice) * toNumber(it.quantity)
+          );
+          return `• ${it.productName || 'Item'} × ${qty} — ${currency} ${amount.toFixed(2)}`;
+        })
+        .join('\n');
+
+      const payout = (items || []).reduce(
+        (sum, it) =>
+          sum +
+          Number(it.subtotal ?? Number(it.unitPrice) * toNumber(it.quantity)),
+        0
+      );
+
+      const ref = order.id.slice(0, 8).toUpperCase();
+      const link = appUrl('/seller/orders');
+      const subject = `New order ${ref} — ${items.length} item${items.length === 1 ? '' : 's'} to fulfil`;
+      const text = `You have a new paid order.\n\nOrder: ${order.id}\nShop: ${seller.shopName}\nYour items:\n${lines}\n\nYour total: ${currency} ${payout.toFixed(2)}\n\nFulfil it here: ${link}`;
+      const html = `<h2>New order to fulfil</h2><p><strong>Order:</strong> ${ref}</p><p><strong>Shop:</strong> ${seller.shopName}</p><pre>${lines}</pre><p><strong>Your total:</strong> ${currency} ${payout.toFixed(2)}</p><p><a href="${link}">Open seller orders</a></p>`;
       return this.send({ to, subject, text, html });
     }
   });

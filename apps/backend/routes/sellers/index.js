@@ -252,6 +252,10 @@ export default async function (fastify) {
 
     const out = {
       ...seller,
+      // These rows were being spread raw, so Prisma Decimals reached the
+      // client as strings. Harmless-looking for `price`, but the unit columns
+      // are arithmetic inputs — route them through the shared mapper instead.
+      products: (seller.products || []).map(mapProductResponse),
       isFarmer: Boolean(seller.farmerExtension),
       farmerExtension: seller.farmerExtension
         ? { id: seller.farmerExtension.id }
@@ -401,7 +405,17 @@ function sellerDetailSelect() {
         currency: true,
         category: true,
         requiresColdChain: true,
+        saleUnit: true,
+        quantityStep: true,
+        minOrderQuantity: true,
+        maxOrderQuantity: true,
+        netContentValue: true,
+        netContentUnit: true,
         createdAt: true,
+        variants: {
+          orderBy: { createdAt: 'asc' },
+          select: { id: true, sku: true, stockQuantity: true }
+        },
         images: { orderBy: { position: 'asc' }, take: 1, select: { url: true, alt: true } }
       },
       orderBy: { createdAt: 'desc' },

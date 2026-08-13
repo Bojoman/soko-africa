@@ -11,20 +11,26 @@ import { useCart } from '../../hooks/useCart';
 import { useWishlist } from '../../hooks/useWishlist';
 import { get, post } from '../../lib/api';
 import {
+  formatComparisonPrice,
   formatMoney,
+  formatPackSummary,
+  formatQuantity,
+  formatStockLabel,
+  formatUnitPrice,
   getPrimaryCategoryLabel,
   getProductCardImage,
+  getQuantityBounds,
   getSellerLabel,
   PLACEHOLDER_PRODUCT_IMAGE,
   toProductPath
 } from '../../lib/product-utils';
+import { lineTotal } from '../../lib/cart-totals';
+import QuantityStepper from '../../components/products/QuantityStepper';
 import {
   CheckCircle,
   ChevronLeft,
   ChevronRight,
   Heart,
-  Minus,
-  Plus,
   RefreshCcw,
   Share2,
   Shield,
@@ -98,7 +104,10 @@ export default function ProductDetailPage({ params }) {
 
   const [product, setProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(1);
+  // Starts at the product's minimum order, not a bare 1 — for a listing sold
+  // by the kilogram with a 1 kg minimum those coincide, but for a 250 g
+  // minimum they very much do not.
+  const [quantity, setQuantity] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -125,9 +134,10 @@ export default function ProductDetailPage({ params }) {
         }
         const data = await res.json();
         if (cancelled) return;
-        setProduct(normalizeProduct(data));
+        const normalized = normalizeProduct(data);
+        setProduct(normalized);
         setSelectedImage(0);
-        setQuantity(1);
+        setQuantity(getQuantityBounds(normalized).min);
       } catch {
         if (!cancelled) {
           setProduct(null);
@@ -209,7 +219,16 @@ export default function ProductDetailPage({ params }) {
         slug: product.slug,
         seller: product.sellerName,
         category: product.primaryCategoryLabel,
-        currency: product.currency
+        currency: product.currency,
+        // Unit terms travel with the line so the cart's stepper enforces the
+        // same step and minimum this page did.
+        saleUnit: product.saleUnit,
+        quantityStep: product.quantityStep,
+        minOrderQuantity: product.minOrderQuantity,
+        maxOrderQuantity: product.maxOrderQuantity,
+        netContentValue: product.netContentValue,
+        netContentUnit: product.netContentUnit,
+        stockQuantity: product.stockQuantity
       },
       quantity,
       null
@@ -475,12 +494,29 @@ export default function ProductDetailPage({ params }) {
             )}
 
             <div>
+              {/* The currency code used to be repeated in a badge here.
+                  formatUnitPrice already renders it via Intl, and with a unit
+                  suffix appended it read as "KES 180.00 /kgKES". */}
               <span className="text-4xl font-extrabold text-soko-dark-teal">
-                {formatMoney(product.price, product.currency)}
+                {formatUnitPrice(product)}
               </span>
-              <span className="ml-2 text-sm text-gray-400 uppercase tracking-wider font-semibold">
-                {product.currency || 'USD'}
-              </span>
+
+              {/* Pack contents and the derived per-kg/per-litre price, so a
+                  2 kg crate can be compared against a loose per-kg listing.
+                  Both are null for a plain piece, and render nothing. */}
+              {(formatPackSummary(product) || formatComparisonPrice(product)) && (
+                <p className="mt-1 text-sm text-gray-500">
+                  {[formatPackSummary(product), formatComparisonPrice(product)]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </p>
+              )}
+
+              {formatStockLabel(product) && (
+                <p className="mt-1 text-sm font-semibold text-gray-500">
+                  {formatStockLabel(product)}
+                </p>
+              )}
             </div>
 
             {product.description && (
@@ -515,32 +551,30 @@ export default function ProductDetailPage({ params }) {
             )}
 
             {/* Quantity */}
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-bold text-soko-dark-teal uppercase tracking-wider">
+            <div className="flex items-start gap-4">
+              <span className="mt-2 text-sm font-bold text-soko-dark-teal uppercase tracking-wider">
                 Qty
               </span>
-              <div className="inline-flex items-center border border-gray-200 rounded-xl overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="p-2 hover:bg-soko-cream/40 text-soko-dark-teal"
-                  aria-label="Decrease quantity"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="w-12 text-center font-bold text-soko-dark-teal">
-                  {quantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => Math.min(99, q + 1))}
-                  className="p-2 hover:bg-soko-cream/40 text-soko-dark-teal"
-                  aria-label="Increase quantity"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
+              <QuantityStepper
+                product={product}
+                value={quantity ?? getQuantityBounds(product).min}
+                onChange={setQuantity}
+              />
             </div>
+
+            {/* Live line total, computed with the same per-line rounding the
+                server uses — so what is shown here is what gets charged. */}
+            {quantity != null && (
+              <p className="text-sm text-gray-600">
+                {formatQuantity(quantity, product, { force: true })} ·{' '}
+                <span className="font-bold text-soko-dark-teal">
+                  {formatMoney(
+                    lineTotal({ ...product, quantity }),
+                    product.currency
+                  )}
+                </span>
+              </p>
+            )}
 
             {/* CTA */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

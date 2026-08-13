@@ -1,3 +1,10 @@
+import {
+  productUnitProperties,
+  stockProperty,
+  unitSpec,
+  validateUnitSpec
+} from '@soko/units';
+
 import { mapProductResponse, productPublicSelect } from '../../lib/map-product.js';
 import mediaPlugin from './media.js';
 
@@ -11,7 +18,7 @@ const UUID_RE =
 const productSchema = {
   body: {
     type: 'object',
-    required: ['name', 'description', 'price', 'category', 'sellerId'],
+    required: ['name', 'description', 'price', 'category'],
     properties: {
       name: {
         type: 'string',
@@ -56,7 +63,10 @@ const productSchema = {
         maxItems: 20,
         items: { type: 'string', maxLength: 100 }
       },
-      stock: { type: 'integer', minimum: 0, maximum: 999999 },
+      // Stock is in the product's own sale unit, so it can be fractional
+      // ("12.5 kg"). Was an integer.
+      stock: stockProperty,
+      ...productUnitProperties,
       status: { type: 'string', enum: ['DRAFT', 'PUBLISHED', 'ARCHIVED'] }
     },
     additionalProperties: false
@@ -80,7 +90,8 @@ const productUpdateSchema = {
       price: { type: 'number', exclusiveMinimum: 0, maximum: 999999999.99 },
       category: { type: 'string', minLength: 1, maxLength: 100 },
       status: { type: 'string', enum: ['DRAFT', 'PUBLISHED', 'ARCHIVED'] },
-      stock: { type: 'integer', minimum: 0, maximum: 999999 },
+      stock: stockProperty,
+      ...productUnitProperties,
       imageUrls: {
         type: 'array',
         maxItems: 12,
@@ -389,10 +400,36 @@ export default async function (fastify) {
     }
 
     const body = request.body;
-    const seller = await fastify.prisma.sellerProfile.findUnique({
-      where: { id: body.sellerId },
-      select: { userId: true, verificationStatus: true, shopName: true }
-    });
+    const roleUpper = String(role || '').toUpperCase();
+
+    let seller;
+    if (roleUpper === 'SELLER') {
+      seller = await fastify.prisma.sellerProfile.findUnique({
+        where: { userId },
+        select: { id: true, userId: true, verificationStatus: true, shopName: true }
+      });
+      if (!seller) {
+        return reply.code(403).send({
+          statusCode: 403,
+          error: 'Forbidden',
+          message: 'Complete your seller shop setup before listing products'
+        });
+      }
+      // Sellers always list under their own shop — never trust client sellerId.
+      body.sellerId = seller.id;
+    } else {
+      if (!body.sellerId) {
+        return reply.code(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'sellerId is required'
+        });
+      }
+      seller = await fastify.prisma.sellerProfile.findUnique({
+        where: { id: body.sellerId },
+        select: { id: true, userId: true, verificationStatus: true, shopName: true }
+      });
+    }
 
     if (!seller) {
       return reply.code(404).send({
@@ -402,7 +439,7 @@ export default async function (fastify) {
       });
     }
 
-    if (role === 'SELLER' && seller.userId !== userId) {
+    if (roleUpper === 'SELLER' && seller.userId !== userId) {
       return reply.code(403).send({
         statusCode: 403,
         error: 'Forbidden',
@@ -415,6 +452,19 @@ export default async function (fastify) {
         statusCode: 403,
         error: 'Forbidden',
         message: 'Cannot create products for an unverified seller'
+      });
+    }
+
+    // Cross-field unit rules (step divides the minimum, net content is
+    // both-or-neither) can't be expressed in JSON Schema, so they run here —
+    // against the same validator the seller form uses.
+    const unitErrors = validateUnitSpec(body);
+    if (unitErrors.length) {
+      return reply.code(400).send({
+        statusCode: 400,
+        error: 'Bad Request',
+        message: unitErrors[0].message,
+        errors: unitErrors
       });
     }
 
@@ -470,6 +520,12 @@ export default async function (fastify) {
 
     const tagCreates = tags.map((t) => ({ tagId: t.id }));
 
+    // Normalised once so the defaults (PIECE / step 1 / minimum 1) are applied
+    // consistently whether or not the client sent unit fields at all.
+    const spec = unitSpec(body);
+    const stockQuantity =
+      body.stock === undefined ? 99 : Math.max(0, Number(body.stock) || 0);
+
     let product;
     let attempt = 0;
     while (attempt < 5) {
@@ -483,6 +539,12 @@ export default async function (fastify) {
             currency: body.currency || 'USD',
             category: categoryLabel,
             requiresColdChain: Boolean(body.requiresColdChain),
+            saleUnit: spec.saleUnit,
+            quantityStep: spec.quantityStep,
+            minOrderQuantity: spec.minOrderQuantity,
+            maxOrderQuantity: spec.maxOrderQuantity,
+            netContentValue: spec.netContentValue,
+            netContentUnit: spec.netContentUnit,
             sellerId: body.sellerId,
             ownerId: userId,
             status: body.status || 'PUBLISHED',
@@ -496,7 +558,10 @@ export default async function (fastify) {
             variants: {
               create: {
                 sku: 'DEFAULT',
-                stock: Math.max(0, parseInt(body.stock, 10) || 99)
+                // `stock` (Int) is written alongside for the one-release
+                // rollback window; `stockQuantity` is authoritative.
+                stock: Math.max(0, Math.round(stockQuantity)),
+                stockQuantity
               }
             }
           },
@@ -572,12 +637,52 @@ export default async function (fastify) {
       return reply.code(403).send({ message: 'Forbidden' });
     }
 
+    // A PATCH is partial, so the unit rules must be checked against the
+    // MERGED spec. Validating the body alone would default an unspecified
+    // saleUnit to PIECE and wrongly reject a 0.5 step on a per-kilogram
+    // listing.
+    const UNIT_FIELDS = [
+      'saleUnit',
+      'quantityStep',
+      'minOrderQuantity',
+      'maxOrderQuantity',
+      'netContentValue',
+      'netContentUnit'
+    ];
+    const touchesUnits = UNIT_FIELDS.some((f) => body[f] !== undefined);
+    const mergedSpec = unitSpec({
+      ...unitSpec(existing),
+      ...Object.fromEntries(
+        UNIT_FIELDS.filter((f) => body[f] !== undefined).map((f) => [f, body[f]])
+      )
+    });
+
+    if (touchesUnits) {
+      const unitErrors = validateUnitSpec(mergedSpec);
+      if (unitErrors.length) {
+        return reply.code(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: unitErrors[0].message,
+          errors: unitErrors
+        });
+      }
+    }
+
     const data = {};
     if (body.name !== undefined) data.name = body.name;
     if (body.description !== undefined) data.description = body.description;
     if (body.price !== undefined) data.price = body.price;
     if (body.category !== undefined) data.category = body.category;
     if (body.status !== undefined) data.status = body.status;
+    if (touchesUnits) {
+      data.saleUnit = mergedSpec.saleUnit;
+      data.quantityStep = mergedSpec.quantityStep;
+      data.minOrderQuantity = mergedSpec.minOrderQuantity;
+      data.maxOrderQuantity = mergedSpec.maxOrderQuantity;
+      data.netContentValue = mergedSpec.netContentValue;
+      data.netContentUnit = mergedSpec.netContentUnit;
+    }
     if (body.imageUrls !== undefined) {
       data.images = {
         deleteMany: {},
@@ -607,19 +712,23 @@ export default async function (fastify) {
       }
     });
 
-    if (body.stock !== undefined && existing.variants[0]) {
-      await fastify.prisma.productVariant.update({
-        where: { id: existing.variants[0].id },
-        data: { stock: Math.max(0, parseInt(body.stock, 10) || 0) }
-      });
-    } else if (body.stock !== undefined) {
-      await fastify.prisma.productVariant.create({
-        data: {
-          productId: existing.id,
-          sku: 'DEFAULT',
-          stock: Math.max(0, parseInt(body.stock, 10) || 0)
-        }
-      });
+    if (body.stock !== undefined) {
+      // parseInt here used to truncate 12.5 kg of stock to 12.
+      const stockQuantity = Math.max(0, Number(body.stock) || 0);
+      const stockData = {
+        stock: Math.max(0, Math.round(stockQuantity)),
+        stockQuantity
+      };
+      if (existing.variants[0]) {
+        await fastify.prisma.productVariant.update({
+          where: { id: existing.variants[0].id },
+          data: stockData
+        });
+      } else {
+        await fastify.prisma.productVariant.create({
+          data: { productId: existing.id, sku: 'DEFAULT', ...stockData }
+        });
+      }
     }
 
     fastify.cache.delete(`products:${product.id}`);

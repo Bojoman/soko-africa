@@ -1,5 +1,16 @@
 /** Shared select + JSON shape for public product APIs */
 
+import { comparisonPrice, toNumber, unitSpec, unitSuffix } from '@soko/units';
+
+/**
+ * The DEFAULT variant carries stock. Mirrors `resolveVariant()` in the cart
+ * route: prefer sku DEFAULT, else the oldest variant.
+ */
+function pickVariant(p) {
+  const variants = p.variants || [];
+  return variants.find((v) => v.sku === 'DEFAULT') || variants[0] || null;
+}
+
 export function productPublicSelect() {
   return {
     id: true,
@@ -11,8 +22,20 @@ export function productPublicSelect() {
     category: true,
     status: true,
     requiresColdChain: true,
+    saleUnit: true,
+    quantityStep: true,
+    minOrderQuantity: true,
+    maxOrderQuantity: true,
+    netContentValue: true,
+    netContentUnit: true,
     createdAt: true,
     updatedAt: true,
+    // Stock is needed storefront-side so the quantity stepper can cap at what
+    // is actually available instead of the old hardcoded 99.
+    variants: {
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, sku: true, stockQuantity: true }
+    },
     images: {
       orderBy: { position: 'asc' },
       select: { id: true, url: true, alt: true, position: true }
@@ -73,6 +96,15 @@ export function mapProductResponse(p) {
     ? [seller.firstName, seller.lastName].filter(Boolean).join(' ') || seller.shopName
     : undefined;
 
+  // Prisma Decimals must never reach the client — `toJSON` would emit strings
+  // and every arithmetic on them client-side would silently concatenate.
+  const spec = unitSpec(p);
+  const variant = pickVariant(p);
+  const stockQuantity =
+    variant?.stockQuantity != null ? toNumber(variant.stockQuantity) : null;
+
+  const comparison = comparisonPrice({ ...spec, price: priceNum, currency: p.currency });
+
   return {
     id: p.id,
     name: p.name,
@@ -83,6 +115,21 @@ export function mapProductResponse(p) {
     category: p.category,
     status: p.status,
     requiresColdChain: p.requiresColdChain ?? false,
+
+    // --- unit terms (numbers, never Decimals) ---
+    saleUnit: spec.saleUnit,
+    quantityStep: spec.quantityStep,
+    minOrderQuantity: spec.minOrderQuantity,
+    maxOrderQuantity: spec.maxOrderQuantity,
+    netContentValue: spec.netContentValue,
+    netContentUnit: spec.netContentUnit,
+    stockQuantity,
+
+    // --- derived, so every surface renders units identically ---
+    unitSuffix: unitSuffix(spec),
+    pricePerBaseUnit: comparison ? comparison.amount : null,
+    baseUnit: comparison ? comparison.unit : null,
+
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
     images,

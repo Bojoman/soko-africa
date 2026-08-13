@@ -1,5 +1,15 @@
 /** Helpers for API-shaped products on the storefront */
 
+import {
+  comparisonPrice,
+  formatQuantity as formatUnitQuantity,
+  getUnit,
+  packSummary,
+  quantityBounds,
+  unitSpec,
+  unitSuffix
+} from '@soko/units';
+
 export const PLACEHOLDER_PRODUCT_IMAGE =
   '/utility/why-choose-soko-africa.png';
 
@@ -30,6 +40,60 @@ export function formatProductPrice(product) {
   if (!product) return '—';
   if (typeof product.price === 'string') return product.price;
   return formatMoney(product.price, product.currency);
+}
+
+/* ------------------------------------------------------------------ */
+/* Units of measure                                                    */
+/*                                                                     */
+/* All of these are no-ops for a plain PIECE product with no declared  */
+/* pack contents — a jewellery listing renders exactly as it did before */
+/* units existed.                                                      */
+/* ------------------------------------------------------------------ */
+
+/** "KES 180 /kg" · "KES 360 /crate" · "$26" for a bare piece. */
+export function formatUnitPrice(product) {
+  const base = formatProductPrice(product);
+  const suffix = unitSuffix(product);
+  return suffix ? `${base} ${suffix}` : base;
+}
+
+/** "KES 180/kg" derived from a 2 kg crate at KES 360, else null. */
+export function formatComparisonPrice(product) {
+  const c = comparisonPrice(product);
+  if (!c) return null;
+  return `${formatMoney(c.amount, c.currency)}/${getUnit(c.unit).short}`;
+}
+
+/** "2 kg crate" · "500 ml pack" · null when nothing is declared. */
+export function formatPackSummary(product) {
+  const contents = packSummary(product);
+  if (!contents) return null;
+  const unit = getUnit(unitSpec(product).saleUnit);
+  return unit.omitLabel ? contents : `${contents} ${unit.singular}`;
+}
+
+/** "1.5 kg" · "2 crates" · "3" for a bare piece. */
+export function formatQuantity(quantity, product, options) {
+  return formatUnitQuantity(quantity, product, options);
+}
+
+/** "1.5 kg × KES 180/kg" — the label above a cart line total. */
+export function formatLineLabel(item) {
+  return `${formatQuantity(item?.quantity, item, { force: true })} × ${formatUnitPrice(
+    item
+  )}`;
+}
+
+/** `{ min, max, step, maxDecimals, fractional, unavailable }` for a stepper. */
+export function getQuantityBounds(product) {
+  return quantityBounds(product);
+}
+
+/** "12.5 kg available" · "3 crates available" · null when stock is unknown. */
+export function formatStockLabel(product) {
+  const stock = product?.stockQuantity;
+  if (stock == null) return null;
+  return `${formatQuantity(stock, product, { force: true })} available`;
 }
 
 export function getPrimaryCategoryLabel(product) {

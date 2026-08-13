@@ -7,18 +7,16 @@ import Footer from '../../components/ui/Footer';
 import { useAuth } from '../../contexts/AuthContext';
 import { productsApi } from '../../lib/api';
 import { FormAlert } from '../../components/forms/FormAlert';
-import ProductImageUploader from '../../components/products/ProductImageUploader';
+import ProductForm, {
+  EMPTY_PRODUCT_FORM,
+  toProductForm,
+  toProductPayload
+} from '../../components/products/ProductForm';
+import {
+  formatQuantity,
+  formatUnitPrice
+} from '../../lib/product-utils';
 import { Plus, Search, Filter, Edit, Trash2, Eye, X } from 'lucide-react';
-
-const EMPTY_FORM = {
-  name: '',
-  description: '',
-  price: '',
-  category: 'coffee',
-  stock: '50',
-  status: 'PUBLISHED',
-  imageUrls: []
-};
 
 function statusUi(status) {
   const s = String(status || '').toUpperCase();
@@ -28,19 +26,24 @@ function statusUi(status) {
 }
 
 export default function SellerProductsPage() {
-  const { user } = useAuth();
+  const { user, hasRole, refreshUser } = useAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(EMPTY_PRODUCT_FORM);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
 
   const sellerId = user?.sellerProfile?.id;
+  const needsShopSetup = hasRole('seller') && !sellerId;
+
+  useEffect(() => {
+    refreshUser();
+  }, []);
 
   const loadProducts = useCallback(async () => {
     setLoading(true);
@@ -67,58 +70,41 @@ export default function SellerProductsPage() {
 
   function openCreate() {
     setEditing(null);
-    setForm(EMPTY_FORM);
+    setForm(EMPTY_PRODUCT_FORM);
     setError('');
     setModalOpen(true);
   }
 
   function openEdit(product) {
     setEditing(product);
-    setForm({
-      name: product.name,
-      description: product.description || product.name,
-      price: String(product.price),
-      category: product.category || 'coffee',
-      stock: String(product.stock ?? 0),
-      status: product.status || 'PUBLISHED',
-      imageUrls: (product.images || []).map((image) => image.url).filter(Boolean)
-    });
+    setForm(toProductForm(product));
     setError('');
     setModalOpen(true);
   }
 
   async function handleSave(e) {
     e.preventDefault();
-    if (!sellerId) {
-      setError('Seller profile required');
+    if (needsShopSetup) {
+      setError('Complete your seller shop setup before listing products.');
       return;
     }
     if (uploadingImages) {
       setError('Please wait for the image upload to finish.');
       return;
     }
-    if (!form.imageUrls.length) {
+    if (!editing && !form.imageUrls.length) {
       setError('Add at least one product image.');
       return;
     }
     setSaving(true);
     setError('');
     try {
-      const payload = {
-        name: form.name.trim(),
-        description: form.description.trim(),
-        price: parseFloat(form.price),
-        category: form.category,
-        stock: parseInt(form.stock, 10) || 0,
-        status: form.status,
-        imageUrls: form.imageUrls
-      };
+      const payload = toProductPayload(form);
       if (editing) {
-        // An update must not carry sellerId: ownership is fixed at creation and
-        // the update schema rejects the field outright.
         await productsApi.update(editing.id, payload);
       } else {
-        await productsApi.create({ ...payload, sellerId });
+        // sellerId is resolved server-side from the authenticated seller profile.
+        await productsApi.create(payload);
       }
       setModalOpen(false);
       await loadProducts();
@@ -152,12 +138,23 @@ export default function SellerProductsPage() {
             <button
               type="button"
               onClick={openCreate}
-              className="bg-soko-orange text-white px-4 py-2 rounded-lg flex items-center font-semibold hover:bg-soko-dark-red"
+              disabled={needsShopSetup}
+              className="bg-soko-orange text-white px-4 py-2 rounded-lg flex items-center font-semibold hover:bg-soko-dark-red disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Plus size={20} className="mr-2" />
               Add Product
             </button>
           </div>
+
+          {needsShopSetup && (
+            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              Your account shows as a seller, but your shop profile is not set up yet.{' '}
+              <Link href="/sell?apply=true" className="font-semibold text-soko-orange hover:underline">
+                Complete seller setup
+              </Link>{' '}
+              to list products and upload images.
+            </div>
+          )}
 
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <div className="flex flex-col md:flex-row gap-4">
@@ -198,6 +195,7 @@ export default function SellerProductsPage() {
                     <th className="p-4 text-left text-soko-dark-teal">Product</th>
                     <th className="p-4 text-left text-soko-dark-teal">Price</th>
                     <th className="p-4 text-left text-soko-dark-teal">Stock</th>
+                    <th className="p-4 text-left text-soko-dark-teal">Sold by</th>
                     <th className="p-4 text-left text-soko-dark-teal">Status</th>
                     <th className="p-4 text-left text-soko-dark-teal">Actions</th>
                   </tr>
@@ -208,8 +206,16 @@ export default function SellerProductsPage() {
                     return (
                       <tr key={product.id} className="border-b hover:bg-gray-50">
                         <td className="p-4 font-medium text-soko-dark-teal">{product.name}</td>
-                        <td className="p-4">${Number(product.price).toFixed(2)}</td>
-                        <td className="p-4">{product.stock}</td>
+                        {/* Was a hardcoded "$" on a marketplace that also
+                            trades in KES; formatUnitPrice uses the listing's
+                            own currency and adds the unit suffix. */}
+                        <td className="p-4">{formatUnitPrice(product)}</td>
+                        <td className="p-4">
+                          {formatQuantity(product.stock, product, { force: true })}
+                        </td>
+                        <td className="p-4 capitalize text-gray-600">
+                          {String(product.saleUnit || 'PIECE').toLowerCase()}
+                        </td>
                         <td className="p-4">
                           <span className={`px-2 py-1 text-xs rounded-full ${st.className}`}>{st.label}</span>
                         </td>
@@ -246,101 +252,15 @@ export default function SellerProductsPage() {
                 </button>
               </div>
               <FormAlert message={error} type="error" />
-              <form onSubmit={handleSave} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Name *</label>
-                  <input
-                    required
-                    value={form.name}
-                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                    className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-soko-orange focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Description *</label>
-                  <textarea
-                    required
-                    rows={3}
-                    value={form.description}
-                    onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                    className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-soko-orange focus:outline-none"
-                  />
-                </div>
-                <ProductImageUploader
-                  value={form.imageUrls}
-                  onChange={(imageUrls) => setForm((current) => ({ ...current, imageUrls }))}
-                  onUploadingChange={setUploadingImages}
-                  disabled={saving}
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Price (USD) *</label>
-                    <input
-                      required
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={form.price}
-                      onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                      className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-soko-orange focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Stock</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={form.stock}
-                      onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))}
-                      className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-soko-orange focus:outline-none"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Category</label>
-                    <select
-                      value={form.category}
-                      onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                      className="w-full rounded-lg border px-3 py-2"
-                    >
-                      <option value="coffee">Coffee</option>
-                      <option value="tea">Tea</option>
-                      <option value="spices">Spices</option>
-                      <option value="textiles">Textiles</option>
-                      <option value="jewelry">Jewelry</option>
-                      <option value="pears">Pears</option>
-                      <option value="plums">Plums</option>
-                      <option value="macadamia">Macadamia</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Status</label>
-                    <select
-                      value={form.status}
-                      onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-                      className="w-full rounded-lg border px-3 py-2"
-                    >
-                      <option value="PUBLISHED">Published</option>
-                      <option value="DRAFT">Draft</option>
-                      <option value="ARCHIVED">Archived</option>
-                    </select>
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={saving || uploadingImages}
-                  className="w-full py-3 rounded-xl bg-soko-orange text-white font-bold hover:bg-soko-dark-red disabled:opacity-60"
-                >
-                  {uploadingImages
-                    ? 'Uploading images…'
-                    : saving
-                      ? 'Saving…'
-                      : editing
-                        ? 'Update product'
-                        : 'Create product'}
-                </button>
-              </form>
+              <ProductForm
+                form={form}
+                setForm={setForm}
+                onSubmit={handleSave}
+                saving={saving}
+                uploadingImages={uploadingImages}
+                setUploadingImages={setUploadingImages}
+                editing={editing}
+              />
             </div>
           </div>
         )}

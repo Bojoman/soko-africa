@@ -27,6 +27,41 @@ enum ProductStatus {
   ARCHIVED
 }
 
+/// The unit a product is SOLD in — what the buyer's `quantity` counts.
+/// Count units (PIECE..PUNNET) must be ordered in whole numbers; measure
+/// units (GRAM..METRE) may be ordered fractionally. Kept deliberately
+/// generous up front: adding a value later needs its own migration that
+/// cannot be batched with others.
+enum SaleUnit {
+  PIECE
+  BUNCH
+  DOZEN
+  TRAY
+  CRATE
+  SACK
+  PACK
+  BUNDLE
+  PUNNET
+  GRAM
+  KILOGRAM
+  MILLILITRE
+  LITRE
+  CENTIMETRE
+  METRE
+}
+
+/// Units that may express NET CONTENT (how much is inside one sale unit).
+/// A strict subset of SaleUnit — measure units only — so "a crate containing
+/// 2 crates" is unrepresentable at the database level.
+enum MeasureUnit {
+  GRAM
+  KILOGRAM
+  MILLILITRE
+  LITRE
+  CENTIMETRE
+  METRE
+}
+
 enum OrderStatus {
   DRAFT
   PENDING_PAYMENT
@@ -140,6 +175,7 @@ model SellerProfile {
   farmerExtension    FarmerProfile?
   products           Product[]
   orderItems         OrderItem[]
+  shipments          Shipment[]
   coupons            Coupon[]
 
   @@index([userId])
@@ -199,6 +235,21 @@ model Product {
   /// Denormalized primary category label for legacy filters / search
   category          String
   requiresColdChain Boolean           @default(false)
+  /// How this product is sold. `price` is ALWAYS per one sale unit, so
+  /// lineTotal = price * quantity holds for every product with no branching.
+  /// Defaults keep every pre-existing listing behaving exactly as before.
+  saleUnit          SaleUnit          @default(PIECE)
+  /// Increment the buyer's quantity moves in, in saleUnit.
+  quantityStep      Decimal           @default(1) @db.Decimal(12, 3)
+  /// Minimum order, in saleUnit. Must be a multiple of quantityStep.
+  minOrderQuantity  Decimal           @default(1) @db.Decimal(12, 3)
+  /// Optional per-order cap, in saleUnit. Replaces the old hardcoded 99.
+  maxOrderQuantity  Decimal?          @db.Decimal(12, 3)
+  /// Measured contents of ONE sale unit ("a 2 kg crate"). Both null or both
+  /// set; only meaningful on count sale units. Presentation only — it powers
+  /// the derived comparison price ("KES 180/kg"), never the line total.
+  netContentValue   Decimal?          @db.Decimal(12, 3)
+  netContentUnit    MeasureUnit?
   sellerId          String
   seller            SellerProfile     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   ownerId           String
@@ -268,6 +319,11 @@ model ProductVariant {
   sku        String?
   attributes Json?
   price      Decimal?    @db.Decimal(10, 2)
+  /// Stock in the product's own saleUnit — "12.5 kg" and "12 crates" are the
+  /// same column with different meaning.
+  stockQuantity Decimal  @default(0) @db.Decimal(12, 3)
+  /// Superseded by stockQuantity. Retained for one release so a rollback can
+  /// still read inventory; drop once nothing reads it.
   stock      Int         @default(0)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
@@ -370,7 +426,8 @@ model CartItem {
   cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
   variantId String
   variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  quantity  Int            @default(1)
+  /// In the product's saleUnit — 1.5 means 1.5 kg for a weight-priced listing.
+  quantity  Decimal        @default(1) @db.Decimal(12, 3)
 
   @@unique([cartId, variantId])
   @@index([variantId])
@@ -394,6 +451,9 @@ model Order {
   shippingAddress     Address?        @relation(fields: [shippingAddressId], references: [id], onDelete: SetNull)
   /// Snapshot of the address used at checkout (JSON), for guests or audit.
   shippingAddressJson Json?
+  /// Client-supplied Idempotency-Key so retries of Place Order do not
+  /// create duplicate PENDING_PAYMENT rows.
+  idempotencyKey      String?         @unique
   couponCode          String?
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
@@ -423,7 +483,14 @@ model OrderItem {
   productId         String?
   productName       String?
   productImage      String?
-  quantity          Int
+  quantity          Decimal           @db.Decimal(12, 3)
+  /// Unit terms snapshotted at purchase time. A seller who later switches a
+  /// listing from PIECE to KILOGRAM must not silently rewrite old receipts,
+  /// so order history renders from these columns and never from Product.
+  saleUnit          SaleUnit?
+  quantityStep      Decimal?          @db.Decimal(12, 3)
+  netContentValue   Decimal?          @db.Decimal(12, 3)
+  netContentUnit    MeasureUnit?
   unitPrice         Decimal           @db.Decimal(10, 2)
   subtotal          Decimal?          @db.Decimal(12, 2)
   fulfillmentStatus FulfillmentStatus @default(UNFULFILLED)
@@ -503,12 +570,20 @@ model Payment {
   @@index([orderId])
   @@index([providerRef])
   @@index([provider, status])
+  /// One provider reference maps to at most one payment row so duplicate
+  /// Daraja callbacks / retries cannot insert a second charge record.
+  @@unique([provider, providerRef])
 }
 
 model Shipment {
   id                String         @id @default(uuid())
   orderId           String
   order             Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /// Which seller's portion of the order this covers. Null on legacy rows
+  /// created before orders could be fulfilled seller-by-seller. Without it a
+  /// multi-seller order cannot express "seller A shipped, seller B hasn't".
+  sellerId          String?
+  seller            SellerProfile? @relation(fields: [sellerId], references: [id], onDelete: SetNull)
   method            ShipmentMethod @default(STANDARD)
   status            ShipmentStatus @default(PENDING)
   carrier           String?
@@ -517,7 +592,9 @@ model Shipment {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
+  @@unique([orderId, sellerId])
   @@index([orderId])
+  @@index([sellerId])
 }
 
 model ReturnRequest {

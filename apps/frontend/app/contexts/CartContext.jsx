@@ -13,6 +13,8 @@ import { storage } from '../lib/utils';
 import { get, apiClient } from '../lib/api';
 import { useAuth } from './AuthContext';
 import { getProductCardImage } from '../lib/product-utils';
+import { normalizeQuantity, toNumber, unitSpec } from '@soko/units';
+import { computeOrderTotals, normalizeCartLineItems } from '../lib/cart-totals';
 import {
   COUPON_STORAGE_KEY,
   clearGuestCart,
@@ -45,7 +47,16 @@ function normalizeServerItem(entry) {
     image: product.images?.[0]?.url || getProductCardImage(product),
     seller: product.seller?.shopName || '',
     category: product.category || 'Marketplace',
-    quantity: entry.quantity,
+    saleUnit: product.saleUnit || 'PIECE',
+    quantityStep: product.quantityStep ?? 1,
+    minOrderQuantity: product.minOrderQuantity ?? 1,
+    maxOrderQuantity: product.maxOrderQuantity ?? null,
+    netContentValue: product.netContentValue ?? null,
+    netContentUnit: product.netContentUnit ?? null,
+    stockQuantity: variant.stockQuantity ?? null,
+    // The cart route serializes this to a number; guard anyway so a stale
+    // deployment sending a Decimal string cannot poison the steppers.
+    quantity: toNumber(entry.quantity, 1),
     selectedVariant: null,
     addedAt: entry.createdAt || new Date().toISOString()
   };
@@ -105,7 +116,7 @@ export function CartProvider({ children }) {
     const payload = {
       items: localItems.map((item) => ({
         productId: item.id,
-        quantity: Math.max(1, Math.min(99, Number(item.quantity) || 1))
+        quantity: normalizeQuantity(item, item.quantity)
       }))
     };
 
@@ -217,10 +228,16 @@ export function CartProvider({ children }) {
   }, []);
 
   const addToCart = useCallback(
-    async (product, quantity = 1, selectedVariant = null) => {
+    async (product, quantity = null, selectedVariant = null) => {
       if (!isValidProductId(product?.id)) return;
 
-      const qty = Math.max(1, Math.min(99, Number(quantity) || 1));
+      // "Add to cart" with no quantity means ONE MINIMUM ORDER, which for a
+      // per-kilogram listing with a 1 kg minimum is 1 kg — not a bare 1.
+      const spec = unitSpec(product);
+      const qty = normalizeQuantity(
+        product,
+        quantity == null ? spec.minOrderQuantity : quantity
+      );
       const line = sanitizeGuestCartItem({
         id: product.id,
         name: product.name,
@@ -230,6 +247,15 @@ export function CartProvider({ children }) {
         seller: product.seller,
         category: product.category,
         currency: product.currency,
+        // Carried so the cart page's stepper knows this line's rules even
+        // before the buyer signs in.
+        saleUnit: product.saleUnit,
+        quantityStep: product.quantityStep,
+        minOrderQuantity: product.minOrderQuantity,
+        maxOrderQuantity: product.maxOrderQuantity,
+        netContentValue: product.netContentValue,
+        netContentUnit: product.netContentUnit,
+        stockQuantity: product.stockQuantity,
         quantity: qty,
         selectedVariant,
         addedAt: new Date().toISOString()
@@ -263,7 +289,7 @@ export function CartProvider({ children }) {
           return current.map((item) =>
             item.id === line.id &&
             variantKey(item.selectedVariant) === variantKey(selectedVariant)
-              ? { ...item, quantity: Math.min(99, item.quantity + qty) }
+              ? { ...item, quantity: normalizeQuantity(item, item.quantity + qty) }
               : item
           );
         }
@@ -315,11 +341,18 @@ export function CartProvider({ children }) {
 
   const updateQuantity = useCallback(
     async (productId, quantity, selectedVariant = null) => {
-      const qty = Math.max(0, Math.min(99, Number(quantity) || 0));
-      if (qty <= 0) {
+      const line = findCartLine(cartRef.current, productId, selectedVariant);
+      const requested = Number(quantity);
+
+      // Below the line's own minimum means "remove", not "clamp to 1" — a
+      // 0.5 kg request on a 1 kg-minimum listing should not silently become
+      // a 1 kg line the buyer never asked for.
+      if (!Number.isFinite(requested) || requested <= 0) {
         await removeFromCart(productId, selectedVariant);
         return;
       }
+
+      const qty = normalizeQuantity(line || {}, requested);
 
       if (isAuthenticated) {
         const item = findCartLine(cartRef.current, productId, selectedVariant);
@@ -379,20 +412,14 @@ export function CartProvider({ children }) {
     if (!isAuthenticated) clearGuestCart();
   }, [isAuthenticated]);
 
-  const getItemCount = useCallback(
-    () => cart.reduce((total, item) => total + item.quantity, 0),
-    [cart]
-  );
+  // Counts LINES, not summed quantities. Once units are mixed, adding 1.5 kg
+  // of plums to 2 crates of mangoes to get "3.5 items" in the header badge is
+  // meaningless; "2 items" is what the buyer actually has.
+  const getItemCount = useCallback(() => cart.length, [cart]);
 
+  // Rounds per line then sums the rounded lines, matching the server exactly.
   const getCartTotal = useCallback(
-    () =>
-      cart.reduce((total, item) => {
-        const price =
-          typeof item.price === 'string'
-            ? parseFloat(item.price.replace('$', ''))
-            : item.price;
-        return total + (price || 0) * item.quantity;
-      }, 0),
+    () => computeOrderTotals(normalizeCartLineItems(cart)).subtotal,
     [cart]
   );
 

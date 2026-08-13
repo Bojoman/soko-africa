@@ -10,7 +10,10 @@ import { useCart } from '@/hooks/useCart';
 import { useWishlist } from '@/hooks/useWishlist';
 import {
   getProductCardImage,
+  formatComparisonPrice,
+  formatPackSummary,
   formatProductPrice,
+  formatUnitPrice,
   getPrimaryCategoryLabel,
   getSellerLabel,
   toProductPath,
@@ -67,9 +70,18 @@ const ProductCard = ({
           slug: product.slug,
           seller: getSellerLabel(product),
           category: getPrimaryCategoryLabel(product),
-          currency: product.currency
+          currency: product.currency,
+          saleUnit: product.saleUnit,
+          quantityStep: product.quantityStep,
+          minOrderQuantity: product.minOrderQuantity,
+          maxOrderQuantity: product.maxOrderQuantity,
+          netContentValue: product.netContentValue,
+          netContentUnit: product.netContentUnit,
+          stockQuantity: product.stockQuantity
         },
-        1,
+        // null, not 1 — adds one MINIMUM ORDER, which for a per-kilogram
+        // listing is 1 kg rather than a meaningless single unit.
+        null,
         null
       );
     } finally {
@@ -193,11 +205,18 @@ const ProductCard = ({
           <div className="flex items-center justify-between mt-auto">
             <div className="flex flex-col">
               <span className="text-lg font-bold text-soko-dark-teal">
-                {formatPrice(product.price)}
+                {formatUnitPrice(product)}
               </span>
               {product.originalPrice && (
                 <span className="text-xs text-gray-400 line-through">
                   {formatPrice(product.originalPrice)}
+                </span>
+              )}
+              {/* Comparison price for a pack, else its contents. Both are
+                  null for a plain piece, so the card is unchanged. */}
+              {(formatComparisonPrice(product) || formatPackSummary(product)) && (
+                <span className="text-xs text-gray-500">
+                  {formatComparisonPrice(product) || formatPackSummary(product)}
                 </span>
               )}
             </div>

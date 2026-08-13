@@ -13,7 +13,7 @@
     "dev": "cross-env NODE_OPTIONS=\"--experimental-strip-types --no-warnings=ExperimentalWarning\" fastify start -l info -P --plugin-timeout=30000 app.js",
     "start": "cross-env NODE_OPTIONS=\"--experimental-strip-types --no-warnings=ExperimentalWarning\" node server.js",
     "start:cli": "cross-env NODE_OPTIONS=\"--experimental-strip-types --no-warnings=ExperimentalWarning\" fastify start -l info -a 0.0.0.0 --plugin-timeout=30000 app.js",
-    "test": "node --experimental-strip-types --test",
+    "test": "node --experimental-strip-types --test --test-concurrency=1",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:migrate:prod": "prisma migrate deploy",
@@ -21,6 +21,7 @@
     "db:seed": "node --experimental-strip-types --no-warnings=ExperimentalWarning prisma/seed.js"
   },
   "dependencies": {
+    "@soko/units": "workspace:*",
     "@fastify/autoload": "^6.3.1",
     "@fastify/compress": "^8.3.1",
     "@fastify/cors": "^11.2.0",

@@ -35,6 +35,10 @@ const nextConfig = {
     dangerouslyAllowSVG: false,
   },
   
+  // Workspace package shared with the backend — ships as plain ESM source,
+  // so Next has to compile it rather than treat it as a prebuilt dependency.
+  transpilePackages: ['@soko/units'],
+
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['lucide-react'],

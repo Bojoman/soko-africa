@@ -1,4 +1,22 @@
+import {
+  checkQuantity,
+  formatQuantity,
+  hasSufficientStock,
+  quantityProperty,
+  toNumber,
+  unitSpec
+} from '@soko/units';
+
 import { validateCheckout } from '../../lib/checkout-validation.js';
+import {
+  clampMinor,
+  fromMinor,
+  lineTotalMinor,
+  minorToDecimalString,
+  pctOfMinor,
+  sumMinor,
+  toMinor
+} from '../../lib/money.js';
 
 /**
  * Buyer orders endpoints.
@@ -18,6 +36,25 @@ import { validateCheckout } from '../../lib/checkout-validation.js';
  * Both flows are guarded by Fastify schema validation. GET endpoints still
  * require auth.
  */
+
+/**
+ * One shipment row per distinct seller in the order. A seller's parcel needs
+ * cold-chain handling if ANY of their lines does.
+ */
+function sellerShipmentData(lines) {
+  const bySeller = new Map();
+  for (const l of lines) {
+    if (!l.sellerId) continue;
+    const cold = Boolean(l.product?.requiresColdChain);
+    bySeller.set(l.sellerId, (bySeller.get(l.sellerId) || false) || cold);
+  }
+  return [...bySeller].map(([sellerId, requiresColdChain]) => ({
+    sellerId,
+    method: requiresColdChain ? 'COLD_CHAIN' : 'STANDARD',
+    status: 'PENDING',
+    requiresColdChain
+  }));
+}
 
 function orderUiStatus(status) {
   if (status === 'SHIPPED') return 'shipped';
@@ -51,6 +88,16 @@ function serializeOrder(order) {
     currency: order.currency,
     couponCode: order.couponCode,
     tracking,
+    // A multi-seller order ships in several parcels, so the buyer needs each
+    // seller's own tracking rather than just the first one found.
+    shipments: (order.shipments || []).map((s) => ({
+      id: s.id,
+      status: s.status,
+      method: s.method,
+      carrier: s.carrier,
+      trackingNumber: s.trackingNumber,
+      sellerShop: s.seller?.shopName || null
+    })),
     shippingAddress: addr
       ? {
           name: name || 'Customer',
@@ -71,8 +118,21 @@ function serializeOrder(order) {
       return {
         id: it.productId || p?.id,
         name: it.productName || p?.name || 'Item',
-        quantity: it.quantity,
+        // Prisma Decimal `toJSON` emits a string, which would silently change
+        // this field from 1 to "1.5" and break arithmetic client-side.
+        quantity: toNumber(it.quantity),
         price: Number(it.unitPrice),
+        // Unit terms as they were AT PURCHASE TIME. A seller who later
+        // switches this listing from PIECE to KILOGRAM must not rewrite an
+        // old receipt, so this never reads from the live product.
+        saleUnit: it.saleUnit || 'PIECE',
+        quantityStep: toNumber(it.quantityStep, 1),
+        netContentValue:
+          it.netContentValue == null ? null : toNumber(it.netContentValue),
+        netContentUnit: it.netContentUnit || null,
+        // Per-line fulfillment, so a partially-shipped order reads honestly
+        // instead of collapsing to one order-wide status.
+        fulfillmentStatus: it.fulfillmentStatus,
         image: img,
         sellerShop: it.seller?.shopName
       };
@@ -83,7 +143,7 @@ function serializeOrder(order) {
 const orderInclude = {
   user: { select: { firstName: true, lastName: true } },
   shippingAddress: true,
-  shipments: true,
+  shipments: { include: { seller: { select: { shopName: true } } } },
   items: {
     include: {
       seller: { select: { shopName: true } },
@@ -115,7 +175,8 @@ const checkoutItemSchema = {
     variantId: { type: 'string', maxLength: 100 },
     name: { type: 'string', minLength: 1, maxLength: 200 },
     price: { type: 'number', minimum: 0 },
-    quantity: { type: 'integer', minimum: 1, maximum: 1000 },
+    // In the product's own sale unit, so fractional for weight/volume goods.
+    quantity: quantityProperty,
     image: { type: 'string', maxLength: 2000 },
     sellerId: { type: 'string', maxLength: 100 },
     currency: { type: 'string', maxLength: 10 }
@@ -268,18 +329,15 @@ export default async function (fastify) {
       } = priced;
 
       try {
-        const idempotencyKey = request.headers['idempotency-key'];
-        if (idempotencyKey && typeof idempotencyKey === 'string') {
-          // Best-effort idempotency: look for a recently created order with
-          // the same key embedded as the couponCode? We don't have a key column
-          // so we store it on the shippingAddressJson under a private key.
-          // (Avoids a schema migration just for this nice-to-have.)
-          const existing = await fastify.prisma.order.findFirst({
-            where: {
-              userId,
-              shippingAddressJson: { path: ['__idempotencyKey'], equals: idempotencyKey }
-            },
-            orderBy: { createdAt: 'desc' }
+        const rawIdem = request.headers['idempotency-key'];
+        const idempotencyKey =
+          typeof rawIdem === 'string' && rawIdem.trim().length >= 8
+            ? rawIdem.trim().slice(0, 128)
+            : null;
+
+        if (idempotencyKey) {
+          const existing = await fastify.prisma.order.findUnique({
+            where: { idempotencyKey }
           });
           if (existing) {
             return reply.code(200).send({
@@ -298,12 +356,7 @@ export default async function (fastify) {
         }
 
         const shippingAddressJson = body.shippingAddress
-          ? {
-              ...body.shippingAddress,
-              ...(idempotencyKey ? { __idempotencyKey: idempotencyKey } : {})
-            }
-          : idempotencyKey
-          ? { __idempotencyKey: idempotencyKey }
+          ? { ...body.shippingAddress }
           : null;
 
         const order = await fastify.prisma.order.create({
@@ -319,6 +372,7 @@ export default async function (fastify) {
             currency,
             couponCode: couponCode || null,
             shippingAddressJson,
+            idempotencyKey,
             items: {
               create: lines.map((line) => ({
                 productId: line.productId,
@@ -327,8 +381,14 @@ export default async function (fastify) {
                 productName: line.name,
                 productImage: line.image,
                 quantity: line.quantity,
+                // Snapshot so this receipt keeps rendering in the terms it
+                // was bought under, whatever the seller changes later.
+                saleUnit: line.saleUnit,
+                quantityStep: line.quantityStep,
+                netContentValue: line.netContentValue,
+                netContentUnit: line.netContentUnit,
                 unitPrice: line.unitPrice.toFixed(2),
-                subtotal: line.subtotal.toFixed(2)
+                subtotal: minorToDecimalString(line.subtotalMinor, line.currency)
               }))
             }
           }
@@ -354,6 +414,31 @@ export default async function (fastify) {
           currency: order.currency
         });
       } catch (e) {
+        // Concurrent Place Order with the same Idempotency-Key: return the
+        // winner instead of 500ing the loser.
+        if (e?.code === 'P2002' && e?.meta?.target?.includes?.('idempotencyKey')) {
+          const rawIdem = request.headers['idempotency-key'];
+          const key = typeof rawIdem === 'string' ? rawIdem.trim().slice(0, 128) : null;
+          if (key) {
+            const existing = await fastify.prisma.order.findUnique({
+              where: { idempotencyKey: key }
+            });
+            if (existing) {
+              return reply.code(200).send({
+                orderId: existing.id,
+                status: existing.status,
+                totals: {
+                  subtotal: Number(existing.subtotal || 0),
+                  shipping: Number(existing.shipping || 0),
+                  tax: Number(existing.tax || 0),
+                  total: Number(existing.total)
+                },
+                currency: existing.currency,
+                idempotent: true
+              });
+            }
+          }
+        }
         fastify.log.error({ err: e }, 'Order creation failed (payment-driven)');
         return reply
           .code(500)
@@ -413,33 +498,60 @@ export default async function (fastify) {
         }
 
         const lines = [];
-        let requiresCold = false;
         for (const ci of cart.items) {
-          const { variant, quantity } = ci;
+          const { variant } = ci;
           const product = variant.product;
           if (!product || product.deletedAt || product.status !== 'PUBLISHED') {
             const err = new Error('Invalid cart line');
             err.statusCode = 400;
             throw err;
           }
-          if (product.requiresColdChain) requiresCold = true;
+
+          // `ci.quantity` is a Prisma Decimal from here on — convert before
+          // any arithmetic, since `+` on a Decimal concatenates strings.
+          const spec = unitSpec({ ...product, stockQuantity: variant.stockQuantity });
+          const quantity = toNumber(ci.quantity);
           const up = unitPrice(variant, product);
-          if (variant.stock < quantity) {
-            const err = new Error(`Insufficient stock for ${product.name}`);
+
+          const invalid = checkQuantity(spec, quantity, product.name);
+          if (invalid) {
+            const err = new Error(invalid.message);
             err.statusCode = 400;
             throw err;
           }
+
+          if (!hasSufficientStock(variant.stockQuantity, quantity)) {
+            const err = new Error(
+              `Insufficient stock for ${product.name} — only ${formatQuantity(
+                variant.stockQuantity,
+                spec,
+                { force: true }
+              )} left`
+            );
+            err.statusCode = 400;
+            throw err;
+          }
+
           lines.push({
             variant,
             product,
+            spec,
             quantity,
             unitPrice: up,
             sellerId: product.sellerId
           });
         }
 
-        let subtotal = lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0);
-        let discount = 0;
+        const currency = lines[0]?.product.currency || 'USD';
+
+        // Round once per line, then sum the rounded lines, so the order total
+        // always equals the sum of the line totals the buyer was shown.
+        for (const l of lines) {
+          l.subtotalMinor = lineTotalMinor(toMinor(l.unitPrice, currency), l.quantity);
+        }
+        const subtotalMinor = sumMinor(lines.map((l) => l.subtotalMinor));
+
+        let discountMinor = 0;
         let appliedCoupon = null;
 
         const code = String(couponCodeRaw || '')
@@ -455,23 +567,24 @@ export default async function (fastify) {
             coupon.scope === 'CART'
           ) {
             if (coupon.percentOff != null) {
-              discount += (subtotal * coupon.percentOff) / 100;
+              discountMinor += pctOfMinor(subtotalMinor, coupon.percentOff);
             } else if (coupon.amountOff != null) {
-              discount += Number(coupon.amountOff);
+              discountMinor += toMinor(coupon.amountOff, currency);
             }
             appliedCoupon = coupon;
           }
         }
 
-        discount = Math.min(discount, subtotal);
-        const total = Math.max(0, subtotal - discount);
-        const currency = lines[0]?.product.currency || 'USD';
+        discountMinor = clampMinor(discountMinor, { max: subtotalMinor });
+        const totalMinor = Math.max(0, subtotalMinor - discountMinor);
+        const total = fromMinor(totalMinor, currency);
+        const discount = fromMinor(discountMinor, currency);
 
         const order = await tx.order.create({
           data: {
             userId,
             status: 'PAID',
-            total: total.toFixed(2),
+            total: minorToDecimalString(totalMinor, currency),
             currency,
             shippingAddressId,
             couponCode: appliedCoupon?.code || null,
@@ -479,26 +592,36 @@ export default async function (fastify) {
               create: lines.map((l) => ({
                 variantId: l.variant.id,
                 sellerId: l.sellerId,
+                productId: l.product.id,
+                productName: l.product.name,
                 quantity: l.quantity,
-                unitPrice: l.unitPrice.toFixed(2)
+                saleUnit: l.spec.saleUnit,
+                quantityStep: l.spec.quantityStep,
+                netContentValue: l.spec.netContentValue,
+                netContentUnit: l.spec.netContentUnit,
+                unitPrice: l.unitPrice.toFixed(2),
+                subtotal: minorToDecimalString(l.subtotalMinor, currency)
               }))
             },
             payments: {
               create: {
                 provider: 'stub',
-                providerRef: 'offline-checkout',
+                // The checkout-idempotency migration added a UNIQUE index on
+                // (provider, providerRef), so the hardcoded 'offline-checkout'
+                // that used to sit here meant only the FIRST cart-flow order
+                // ever succeeded — every later one died on a constraint
+                // violation. A provider reference has to be per-transaction.
+                providerRef: `offline-checkout:${crypto.randomUUID()}`,
                 status: 'CAPTURED',
-                amount: total.toFixed(2),
+                amount: minorToDecimalString(totalMinor, currency),
                 currency
               }
             },
-            shipments: {
-              create: {
-                method: requiresCold ? 'COLD_CHAIN' : 'STANDARD',
-                status: 'PENDING',
-                requiresColdChain: requiresCold
-              }
-            }
+            // One shipment PER SELLER, not one for the whole order. An
+            // order-level shipment cannot express "seller A shipped, seller B
+            // hasn't", and left every multi-seller order with a single parcel
+            // nobody owned.
+            shipments: { create: sellerShipmentData(lines) }
           },
           include: orderInclude
         });
@@ -506,7 +629,12 @@ export default async function (fastify) {
         for (const l of lines) {
           await tx.productVariant.update({
             where: { id: l.variant.id },
-            data: { stock: { decrement: l.quantity } }
+            data: {
+              stockQuantity: { decrement: l.quantity },
+              // Keep the legacy Int column roughly in step during the
+              // rollback window; stockQuantity is authoritative.
+              stock: { decrement: Math.round(l.quantity) }
+            }
           });
         }
 

@@ -4,21 +4,21 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, PackagePlus } from 'lucide-react';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
-import ProductImageUploader from '../../components/products/ProductImageUploader';
+import ProductForm, {
+  EMPTY_PRODUCT_FORM,
+  toProductPayload
+} from '../../components/products/ProductForm';
 import Header from '../../components/ui/Header';
 import Footer from '../../components/ui/Footer';
 import { FormAlert } from '../../components/forms/FormAlert';
 import { productsApi, sellersApi } from '../../lib/api';
 
+// Shares the seller form's shape (including the unit fields) and adds the
+// admin-only seller picker.
 const INITIAL_FORM = {
-  name: '',
-  description: '',
-  price: '',
-  category: 'coffee',
+  ...EMPTY_PRODUCT_FORM,
   stock: '0',
-  status: 'PUBLISHED',
-  sellerId: '',
-  imageUrls: []
+  sellerId: ''
 };
 
 export default function AdminProductsPage() {
@@ -79,14 +79,8 @@ export default function AdminProductsPage() {
     setSaving(true);
     try {
       const product = await productsApi.create({
-        name: form.name.trim(),
-        description: form.description.trim(),
-        price: Number(form.price),
-        category: form.category,
-        stock: parseInt(form.stock, 10) || 0,
-        status: form.status,
-        sellerId: form.sellerId,
-        imageUrls: form.imageUrls
+        ...toProductPayload(form),
+        sellerId: form.sellerId
       });
       setSuccess(`“${product.name}” was created successfully.`);
       setForm((current) => ({
@@ -129,125 +123,36 @@ export default function AdminProductsPage() {
             <FormAlert message={error} type="error" />
             <FormAlert message={success} type="success" />
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="mb-1 block text-sm font-medium">Seller *</label>
-                <select
-                  required
-                  disabled={loadingSellers}
-                  value={form.sellerId}
-                  onChange={(event) => update('sellerId', event.target.value)}
-                  className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soko-orange"
-                >
-                  <option value="">
-                    {loadingSellers ? 'Loading sellers…' : 'Choose an approved seller'}
-                  </option>
-                  {sellers.map((seller) => (
-                    <option key={seller.id} value={seller.id}>
-                      {seller.shopName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium">Name *</label>
-                <input
-                  required
-                  maxLength={200}
-                  value={form.name}
-                  onChange={(event) => update('name', event.target.value)}
-                  className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soko-orange"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium">Description *</label>
-                <textarea
-                  required
-                  maxLength={5000}
-                  rows={4}
-                  value={form.description}
-                  onChange={(event) => update('description', event.target.value)}
-                  className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soko-orange"
-                />
-              </div>
-
-              <ProductImageUploader
-                value={form.imageUrls}
-                onChange={(imageUrls) => update('imageUrls', imageUrls)}
-                onUploadingChange={setUploadingImages}
-                disabled={saving}
-              />
-
-              <div className="grid gap-4 sm:grid-cols-2">
+            <ProductForm
+              form={form}
+              setForm={setForm}
+              onSubmit={handleSubmit}
+              saving={saving}
+              uploadingImages={uploadingImages}
+              setUploadingImages={setUploadingImages}
+              submitLabel="Create product"
+              leadingFields={
                 <div>
-                  <label className="mb-1 block text-sm font-medium">Price (USD) *</label>
-                  <input
+                  <label className="mb-1 block text-sm font-medium">Seller *</label>
+                  <select
                     required
-                    type="number"
-                    min="0.01"
-                    max="999999999.99"
-                    step="0.01"
-                    value={form.price}
-                    onChange={(event) => update('price', event.target.value)}
+                    disabled={loadingSellers}
+                    value={form.sellerId}
+                    onChange={(event) => update('sellerId', event.target.value)}
                     className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soko-orange"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Stock</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="999999"
-                    value={form.stock}
-                    onChange={(event) => update('stock', event.target.value)}
-                    className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-soko-orange"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Category</label>
-                  <select
-                    value={form.category}
-                    onChange={(event) => update('category', event.target.value)}
-                    className="w-full rounded-lg border px-3 py-2"
                   >
-                    <option value="coffee">Coffee</option>
-                    <option value="tea">Tea</option>
-                    <option value="spices">Spices</option>
-                    <option value="textiles">Textiles</option>
-                    <option value="jewelry">Jewelry</option>
-                    <option value="pears">Pears</option>
-                    <option value="plums">Plums</option>
-                    <option value="macadamia">Macadamia</option>
+                    <option value="">
+                      {loadingSellers ? 'Loading sellers…' : 'Choose an approved seller'}
+                    </option>
+                    {sellers.map((seller) => (
+                      <option key={seller.id} value={seller.id}>
+                        {seller.shopName}
+                      </option>
+                    ))}
                   </select>
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Status</label>
-                  <select
-                    value={form.status}
-                    onChange={(event) => update('status', event.target.value)}
-                    className="w-full rounded-lg border px-3 py-2"
-                  >
-                    <option value="PUBLISHED">Published</option>
-                    <option value="DRAFT">Draft</option>
-                    <option value="ARCHIVED">Archived</option>
-                  </select>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={saving || uploadingImages || loadingSellers || !sellers.length}
-                className="w-full rounded-xl bg-soko-orange py-3 font-bold text-white hover:bg-soko-dark-red disabled:opacity-60"
-              >
-                {uploadingImages
-                  ? 'Uploading images…'
-                  : saving
-                    ? 'Creating…'
-                    : 'Create product'}
-              </button>
-            </form>
+              }
+            />
           </div>
         </main>
         <Footer />

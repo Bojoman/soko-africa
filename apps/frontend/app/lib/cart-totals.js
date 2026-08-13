@@ -1,4 +1,14 @@
 /** Shared cart / checkout pricing rules (single source of truth). */
+import {
+  clampMinor,
+  fromMinor,
+  lineTotalMinor,
+  normalizeQuantity,
+  pctOfMinor,
+  sumMinor,
+  toMinor
+} from '@soko/units';
+
 export const SHIPPING_STANDARD = 9.99;
 export const SHIPPING_EXPRESS = 24.99;
 export const FREE_SHIPPING_THRESHOLD = 75;
@@ -14,8 +24,23 @@ export function normalizeCartLineItems(cart) {
   return (cart || []).map((item) => ({
     ...item,
     price: parseItemPrice(item),
-    quantity: Math.max(1, Number(item.quantity) || 1)
+    // Snapped to the product's own step/minimum rather than floored at 1,
+    // which would round a legitimate 1.5 kg line down to 1 kg.
+    quantity: normalizeQuantity(item, item.quantity)
   }));
+}
+
+/**
+ * One line's total, in the same integer minor units the server uses.
+ * Every surface that shows a line total must go through this — a raw
+ * `price * quantity` diverges from the server by a cent on values like 1.005.
+ */
+export function lineTotal(item) {
+  const currency = item?.currency || 'USD';
+  return fromMinor(
+    lineTotalMinor(toMinor(parseItemPrice(item), currency), item?.quantity ?? 0),
+    currency
+  );
 }
 
 /**
@@ -25,45 +50,57 @@ export function normalizeCartLineItems(cart) {
 export function computeOrderTotals(cartItems, opts = {}) {
   const { shippingMethod = 'standard', appliedCoupon = null } = opts;
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
+  const currency = cartItems[0]?.currency || 'USD';
+
+  // Mirrors `validateCheckout` on the server exactly: round each line to whole
+  // minor units, then sum the rounded lines. Summing first and rounding once
+  // at the end would disagree with the server (and with the per-line totals
+  // shown right next to this) by a cent on fractional quantities.
+  const subtotalMinor = sumMinor(
+    cartItems.map((item) =>
+      lineTotalMinor(toMinor(item.price, currency), item.quantity)
+    )
   );
 
-  let couponDiscount = 0;
+  let discountMinor = 0;
   let freeShipping = false;
 
   if (appliedCoupon) {
     if (appliedCoupon.freeShipping) {
       freeShipping = true;
     } else if (appliedCoupon.percentOff != null) {
-      couponDiscount = (subtotal * Number(appliedCoupon.percentOff)) / 100;
+      discountMinor = pctOfMinor(subtotalMinor, Number(appliedCoupon.percentOff));
     } else if (appliedCoupon.amountOff != null) {
-      couponDiscount = Number(appliedCoupon.amountOff);
+      discountMinor = toMinor(appliedCoupon.amountOff, currency);
     } else if (appliedCoupon.discountPct != null) {
-      couponDiscount = (subtotal * Number(appliedCoupon.discountPct)) / 100;
+      discountMinor = pctOfMinor(subtotalMinor, Number(appliedCoupon.discountPct));
     }
   }
 
-  couponDiscount = Math.min(couponDiscount, subtotal);
-  const subtotalAfterCoupon = Math.max(0, subtotal - couponDiscount);
+  discountMinor = clampMinor(discountMinor, { max: subtotalMinor });
+  const subtotalAfterCouponMinor = subtotalMinor - discountMinor;
 
-  let shipping =
-    shippingMethod === 'express' ? SHIPPING_EXPRESS : SHIPPING_STANDARD;
-  if (freeShipping || subtotalAfterCoupon >= FREE_SHIPPING_THRESHOLD) {
-    shipping = 0;
+  let shippingMinor = toMinor(
+    shippingMethod === 'express' ? SHIPPING_EXPRESS : SHIPPING_STANDARD,
+    currency
+  );
+  if (
+    freeShipping ||
+    subtotalAfterCouponMinor >= toMinor(FREE_SHIPPING_THRESHOLD, currency)
+  ) {
+    shippingMinor = 0;
   }
 
-  const tax = 0;
-  const total = subtotalAfterCoupon + shipping + tax;
+  const taxMinor = 0;
+  const totalMinor = subtotalAfterCouponMinor + shippingMinor + taxMinor;
 
   return {
-    subtotal,
-    couponDiscount,
-    subtotalAfterCoupon,
-    shipping,
-    tax,
-    total
+    subtotal: fromMinor(subtotalMinor, currency),
+    couponDiscount: fromMinor(discountMinor, currency),
+    subtotalAfterCoupon: fromMinor(subtotalAfterCouponMinor, currency),
+    shipping: fromMinor(shippingMinor, currency),
+    tax: fromMinor(taxMinor, currency),
+    total: fromMinor(totalMinor, currency)
   };
 }
 

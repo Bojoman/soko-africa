@@ -247,28 +247,44 @@ async function main() {
       slug: 'highland-black-tea-250g',
       categorySlug: 'tea',
       price: 14.5,
+      // Packaged: priced per pack, but declares its contents so the storefront
+      // can show a comparison price per kg.
+      unit: { saleUnit: 'PACK', netContentValue: 250, netContentUnit: 'GRAM' },
       tags: ['organic', 'bestseller', 'seasonal'],
       images: [productImg('highland-black-tea-250g.png')]
     },
     {
       sellerId: sellerFarm.id,
       ownerId: userFarmer.id,
-      name: 'Sweet African Pears (1kg)',
+      // Priced per kg, so the old "(1kg)" in the name — a workaround for
+      // having no unit model — is now carried by the data instead.
+      name: 'Sweet African Pears',
       slug: 'african-pears-1kg',
       categorySlug: 'pears',
       price: 7.25,
       cold: true,
+      unit: {
+        saleUnit: 'KILOGRAM',
+        quantityStep: 0.5,
+        minOrderQuantity: 1
+      },
       tags: ['organic', 'seasonal'],
       images: [productImg('african-pears-1kg.png')]
     },
     {
       sellerId: sellerFarm.id,
       ownerId: userFarmer.id,
-      name: 'Highland Plums (1kg)',
+      name: 'Highland Plums',
       slug: 'highland-plums-1kg',
       categorySlug: 'plums',
       price: 6.5,
       cold: true,
+      unit: {
+        saleUnit: 'KILOGRAM',
+        quantityStep: 0.5,
+        minOrderQuantity: 1,
+        maxOrderQuantity: 25
+      },
       tags: ['organic', 'seasonal', 'new-arrival'],
       images: [productImg('highland-plums-1kg.png')]
     },
@@ -279,6 +295,7 @@ async function main() {
       slug: 'macadamia-nuts-500g',
       categorySlug: 'macadamia',
       price: 19.99,
+      unit: { saleUnit: 'PACK', netContentValue: 500, netContentUnit: 'GRAM' },
       tags: ['organic', 'premium', 'seasonal'],
       images: [productImg('macadamia-nuts-500g.png')]
     },
@@ -580,6 +597,9 @@ async function main() {
         currency: 'USD',
         category: cat.name,
         requiresColdChain: Boolean(row.cold),
+        // Rows without `unit` fall through to the schema defaults (PIECE,
+        // step 1, minimum 1) and behave exactly as they did before units.
+        ...(row.unit || {}),
         status: 'PUBLISHED',
         sellerId: row.sellerId,
         ownerId: row.ownerId,
@@ -597,7 +617,9 @@ async function main() {
           create: tags.map((t) => ({ tagId: t.id }))
         },
         variants: {
-          create: [{ sku: 'DEFAULT', stock: 999 }]
+          // Stock is expressed in the product's own sale unit: 999 kg of
+          // pears, 999 packs of tea.
+          create: [{ sku: 'DEFAULT', stock: 999, stockQuantity: 999 }]
         }
       }
     });

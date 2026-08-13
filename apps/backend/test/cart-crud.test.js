@@ -1,33 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const BASE = process.env.API_URL || 'http://127.0.0.1:3001';
+import { BASE, api, backendUp, login } from './helpers/auth.js';
+
 const TEST_USER = {
   email: 'seed.farmer@soko-africa.test',
   password: 'Seller123!@'
 };
-
-async function api(path, { method = 'GET', token, body } = {}) {
-  const headers = {};
-  if (body != null) headers['Content-Type'] = 'application/json';
-  if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers,
-    body: body != null ? JSON.stringify(body) : undefined
-  });
-  const data = await res.json().catch(() => ({}));
-  return { res, data };
-}
-
-async function backendUp() {
-  try {
-    const { res } = await api('/health/live');
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
 
 function cartItems(data) {
   return data?.cart?.items || [];
@@ -43,12 +22,7 @@ test('cart CRUD lifecycle', async (t) => {
     return;
   }
 
-  const { res: loginRes, data: loginData } = await api('/auth/login', {
-    method: 'POST',
-    body: TEST_USER
-  });
-  assert.equal(loginRes.status, 200, 'login should succeed');
-  const token = loginData.tokens?.accessToken;
+  const token = await login(TEST_USER);
   assert.ok(token, 'access token required');
 
   // Clear existing cart

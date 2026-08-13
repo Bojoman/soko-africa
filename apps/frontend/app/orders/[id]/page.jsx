@@ -4,7 +4,13 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../../components/ui/Header';
 import Footer from '../../components/ui/Footer';
-import { formatMoney, PLACEHOLDER_PRODUCT_IMAGE } from '../../lib/product-utils';
+import {
+  formatMoney,
+  formatQuantity,
+  formatUnitPrice,
+  PLACEHOLDER_PRODUCT_IMAGE
+} from '../../lib/product-utils';
+import { lineTotal } from '../../lib/cart-totals';
 import { getOrder, pollMpesaStatus } from '../../lib/payments';
 import {
   CheckCircle2,
@@ -14,6 +20,7 @@ import {
   Package,
   ArrowLeft,
   CreditCard,
+  Truck,
   Wallet,
   Smartphone
 } from 'lucide-react';
@@ -22,6 +29,14 @@ const PROVIDER_ICON = {
   STRIPE: CreditCard,
   PAYPAL: Wallet,
   MPESA: Smartphone
+};
+
+const ITEM_STATUS_STYLE = {
+  UNFULFILLED: 'bg-gray-100 text-gray-600',
+  PROCESSING: 'bg-amber-100 text-amber-800',
+  SHIPPED: 'bg-blue-100 text-blue-800',
+  DELIVERED: 'bg-green-100 text-green-800',
+  CANCELLED: 'bg-red-100 text-red-700'
 };
 
 function statusStyle(status) {
@@ -220,16 +235,59 @@ export default function OrderStatusPage() {
                     {p.name}
                   </p>
                   <p className="text-xs text-gray-500">
-                    Qty {p.quantity} · {formatMoney(p.price, order.currency)} each
+                    {/* Renders from the line's own snapshot units, so an old
+                        receipt is unaffected by later listing changes. */}
+                    Qty {formatQuantity(p.quantity, p, { force: true })} ·{' '}
+                    {formatUnitPrice({ ...p, currency: order.currency })}
                   </p>
+                  {/* Per-line state, so a partly-shipped multi-seller order
+                      reads honestly instead of one order-wide status. */}
+                  {p.fulfillmentStatus && (
+                    <span
+                      className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                        ITEM_STATUS_STYLE[p.fulfillmentStatus] ||
+                        ITEM_STATUS_STYLE.UNFULFILLED
+                      }`}
+                    >
+                      {String(p.fulfillmentStatus).toLowerCase()}
+                    </span>
+                  )}
                 </div>
                 <p className="font-bold text-soko-dark-teal whitespace-nowrap">
-                  {formatMoney(p.price * p.quantity, order.currency)}
+                  {formatMoney(lineTotal({ ...p, currency: order.currency }), order.currency)}
                 </p>
               </li>
             ))}
           </ul>
         </section>
+
+        {/* A multi-seller order ships in several parcels, so each seller's
+            tracking is listed separately rather than just the first found. */}
+        {(order.shipments || []).some((s) => s.trackingNumber || s.carrier) && (
+          <section className="bg-white rounded-2xl border border-gray-100 p-6">
+            <h2 className="text-lg font-bold text-soko-dark-teal mb-4">Shipping</h2>
+            <ul className="space-y-3">
+              {(order.shipments || [])
+                .filter((s) => s.trackingNumber || s.carrier)
+                .map((s) => (
+                  <li key={s.id} className="flex items-start gap-3">
+                    <Truck size={18} className="text-gray-400 mt-0.5 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-soko-dark-teal">
+                        {s.sellerShop || 'Your parcel'}
+                        <span className="ml-2 text-xs font-normal text-gray-500 capitalize">
+                          {String(s.status || '').toLowerCase().replace(/_/g, ' ')}
+                        </span>
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {[s.carrier, s.trackingNumber].filter(Boolean).join(' · ')}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+            </ul>
+          </section>
+        )}
 
         <section className="bg-white rounded-2xl border border-gray-100 p-6">
           <h2 className="text-lg font-bold text-soko-dark-teal mb-4">
