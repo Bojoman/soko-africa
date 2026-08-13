@@ -2,6 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Star, Quote, ArrowLeft, ArrowRight } from 'lucide-react';
+import {
+  SOKO_TESTIMONIALS,
+  SOKO_TESTIMONIAL_STATS
+} from '../../lib/testimonials';
 
 // Animated Counter Component with Infinite Animation
 const AnimatedCounter = ({ end, duration = 2000, suffix = "", prefix = "" }) => {
@@ -43,7 +47,6 @@ const AnimatedCounter = ({ end, duration = 2000, suffix = "", prefix = "" }) => 
         if (entry.isIntersecting) {
           startAnimation();
         } else {
-          // Cancel animation if element goes out of view
           if (animationRef.current) {
             cancelAnimationFrame(animationRef.current);
             setIsAnimating(false);
@@ -72,75 +75,25 @@ const AnimatedCounter = ({ end, duration = 2000, suffix = "", prefix = "" }) => 
   );
 };
 
-const FALLBACK_TESTIMONIALS = [
-    {
-      id: 1,
-      rating: 5,
-      text: "The quality of the Kenyan coffee beans exceeded my expectations. Authentic taste delivered right to my doorstep! The packaging was beautiful and the story behind each product made it even more special.",
-      author: {
-        name: "James Mitchell",
-        location: "London, UK",
-        role: "Coffee Enthusiast",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop&ixlib=rb-4.0.3"
-      }
-    },
-    {
-      id: 2,
-      rating: 5,
-      text: "Beautiful handcrafted jewelry that tells a story. The craftsmanship is incredible and shipping was fast! I love knowing that my purchase directly supports African artisans.",
-      author: {
-        name: "Sarah Chen",
-        location: "Toronto, Canada",
-        role: "Fashion Designer",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200&auto=format&fit=crop"
-      }
-    },
-    {
-      id: 3,
-      rating: 5,
-      text: "Supporting African artisans while getting amazing products. SokoAfrica makes it easy to shop ethically! The quality is outstanding and the customer service is exceptional.",
-      author: {
-        name: "Marcus Johnson",
-        location: "New York, USA",
-        role: "Sustainable Living Advocate",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop&ixlib=rb-4.0.3"
-      }
-    },
-    {
-      id: 4,
-      rating: 5,
-      text: "The Ankara fabrics I ordered are absolutely stunning! The colors are vibrant and the quality is top-notch. Will definitely be ordering more for my upcoming projects.",
-      author: {
-        name: "Amara Okafor",
-        location: "Lagos, Nigeria",
-        role: "Fashion Entrepreneur",
-        avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=100&auto=format&fit=crop&ixlib=rb-4.0.3"
-      }
-    },
-    {
-      id: 5,
-      rating: 5,
-      text: "The shea butter products have transformed my skincare routine. Pure, natural, and ethically sourced. This is exactly what I was looking for!",
-      author: {
-        name: "Emma Rodriguez",
-        location: "Barcelona, Spain",
-        role: "Wellness Coach",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop&ixlib=rb-4.0.3"
-      }
-    }
-];
+function authorInitials(name) {
+  const parts = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return 'SA';
+  return parts
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() || '')
+    .join('');
+}
 
 const TestimonialsSection = ({
-  title = "What Our Customers Say",
-  className = "text-orange-600"
+  title = "Stories from the Soko",
+  className = ""
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [testimonials, setTestimonials] = useState(FALLBACK_TESTIMONIALS);
-  const [trustStats, setTrustStats] = useState({
-    happyCustomers: 50000,
-    averageRating: 4.8,
-    countriesServed: 150
-  });
+  const [testimonials, setTestimonials] = useState(SOKO_TESTIMONIALS);
+  const [trustStats, setTrustStats] = useState(SOKO_TESTIMONIAL_STATS);
 
   useEffect(() => {
     fetch('/api/stats/testimonials')
@@ -148,21 +101,27 @@ const TestimonialsSection = ({
       .then((data) => {
         if (data?.testimonials?.length) {
           setTestimonials(data.testimonials);
+          setCurrentSlide(0);
         }
         if (data?.stats) {
           setTrustStats({
-            happyCustomers: data.stats.happyCustomers || 50000,
-            averageRating: data.stats.averageRating || 4.8,
-            countriesServed: data.stats.countriesServed || 150
+            happyCustomers:
+              data.stats.happyCustomers || SOKO_TESTIMONIAL_STATS.happyCustomers,
+            averageRating:
+              data.stats.averageRating || SOKO_TESTIMONIAL_STATS.averageRating,
+            countriesServed:
+              data.stats.countriesServed || SOKO_TESTIMONIAL_STATS.countriesServed
           });
         }
       })
       .catch(() => {});
   }, []);
+
   useEffect(() => {
+    if (!testimonials.length) return undefined;
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
+    }, 5500);
     return () => clearInterval(interval);
   }, [testimonials.length]);
 
@@ -174,116 +133,110 @@ const TestimonialsSection = ({
     setCurrentSlide((prev) => (prev - 1 + testimonials.length) % testimonials.length);
   };
 
+  const active = testimonials[currentSlide] || SOKO_TESTIMONIALS[0];
+
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
       <Star
         key={i}
         size={18}
-        className={`${
-          i < rating 
-            ? "text-yellow-400 fill-current" 
-            : "text-gray-300"
-        }`}
+        className={
+          i < rating ? 'text-soko-orange fill-current' : 'text-gray-300'
+        }
       />
     ));
   };
 
   return (
     <section className={`py-20 bg-gradient-to-br from-soko-cream/30 via-white to-soko-orange/10 relative overflow-hidden ${className}`}>
-      {/* Background decorative elements */}
       <div className="absolute top-20 right-10 w-72 h-72 bg-soko-orange/5 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-soko-bright-cyan/5 rounded-full blur-3xl"></div>
-      
+
       <div className="max-w-7xl mx-auto px-6 relative">
-        {/* Section Header */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 bg-soko-orange/10 text-soko-orange px-4 py-2 rounded-full text-sm font-semibold mb-4">
             <Quote size={16} />
-            <span>Customer Stories</span>
+            <span>Customer &amp; seller voices</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{title}</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-soko-dark-teal mb-4">{title}</h2>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Hear from our global community of customers who trust SokoAfrica for authentic African products
+            Real notes from buyers and makers across Africa and the diaspora —
+            coffee, crafts, textiles, spices, and cold-chain specialties.
           </p>
         </div>
 
-        {/* Modern Testimonial Slider */}
         <div className="relative mb-16">
           <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 max-w-4xl mx-auto relative overflow-hidden">
-            {/* Background pattern */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-soko-orange/10 to-soko-bright-cyan/10 rounded-full blur-2xl"></div>
-            
-            {/* Quote icon */}
+
             <div className="absolute top-8 left-8 w-16 h-16 bg-soko-orange/10 rounded-full flex items-center justify-center">
               <Quote className="text-soko-orange" size={24} />
             </div>
 
-            {/* Testimonial Content */}
-            <div className="relative z-10 pt-8">
-              {/* Star Rating */}
+            <div className="relative z-10 pt-8" aria-live="polite">
               <div className="flex justify-center mb-6">
-                {renderStars(testimonials[currentSlide].rating)}
+                {renderStars(active.rating)}
               </div>
-              
-              {/* Testimonial Text */}
+
               <blockquote className="text-xl md:text-2xl text-gray-800 text-center mb-8 leading-relaxed font-medium">
-                "{testimonials[currentSlide].text}"
+                &ldquo;{active.text}&rdquo;
               </blockquote>
-              
-              {/* Author Info */}
+
               <div className="flex items-center justify-center">
                 <div className="relative">
-                  {testimonials[currentSlide].author?.avatar ? (
+                  {active.author?.avatar ? (
                     <Image
-                      src={testimonials[currentSlide].author.avatar}
-                      alt={testimonials[currentSlide].author.name}
+                      src={active.author.avatar}
+                      alt={active.author.name}
                       width={80}
                       height={80}
                       className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
-                      placeholder="blur"
-                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                     />
                   ) : (
-                    <div className="w-20 h-20 rounded-full bg-soko-orange/20 border-4 border-white shadow-lg flex items-center justify-center text-xl font-bold text-soko-orange">
-                      {testimonials[currentSlide].author?.name?.charAt(0) || 'C'}
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-soko-orange to-soko-dark-red border-4 border-white shadow-lg flex items-center justify-center text-lg font-bold text-white tracking-wide">
+                      {authorInitials(active.author?.name)}
                     </div>
                   )}
                 </div>
                 <div className="ml-6 text-left">
-                  <h4 className="font-bold text-lg text-gray-900">
-                    {testimonials[currentSlide].author.name}
+                  <h4 className="font-bold text-lg text-soko-dark-teal">
+                    {active.author.name}
                   </h4>
                   <p className="text-soko-orange font-medium">
-                    {testimonials[currentSlide].author.role}
+                    {active.author.role}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {testimonials[currentSlide].author.location}
+                    {active.author.location}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Navigation Arrows */}
             <button
+              type="button"
               onClick={prevSlide}
+              aria-label="Previous testimonial"
               className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-soko-orange hover:text-white transition-all duration-300 group"
             >
               <ArrowLeft size={20} className="group-hover:scale-110 transition-transform" />
             </button>
-            
+
             <button
+              type="button"
               onClick={nextSlide}
+              aria-label="Next testimonial"
               className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-soko-orange hover:text-white transition-all duration-300 group"
             >
               <ArrowRight size={20} className="group-hover:scale-110 transition-transform" />
             </button>
           </div>
 
-          {/* Slide Indicators */}
           <div className="flex justify-center mt-8 gap-3">
-            {testimonials.map((_, index) => (
+            {testimonials.map((item, index) => (
               <button
-                key={index}
+                key={item.id || index}
+                type="button"
+                aria-label={`Show testimonial ${index + 1}`}
                 onClick={() => setCurrentSlide(index)}
                 className={`h-3 rounded-full transition-all duration-300 ${
                   index === currentSlide
@@ -294,8 +247,7 @@ const TestimonialsSection = ({
             ))}
           </div>
         </div>
-        
-        {/* Animated Trust Stats */}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 group">
             <div className="w-16 h-16 bg-soko-orange/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-soko-orange/20 transition-colors">
@@ -304,9 +256,9 @@ const TestimonialsSection = ({
             <div className="text-4xl font-bold text-soko-orange mb-2">
               <AnimatedCounter end={trustStats.happyCustomers} suffix="+" />
             </div>
-            <p className="text-gray-600 font-medium">Happy Customers</p>
+            <p className="text-gray-600 font-medium">Community members</p>
           </div>
-          
+
           <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 group">
             <div className="w-16 h-16 bg-soko-bright-cyan/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-soko-bright-cyan/20 transition-colors">
               <Star className="text-soko-bright-cyan fill-current" size={28} />
@@ -314,9 +266,9 @@ const TestimonialsSection = ({
             <div className="text-4xl font-bold text-soko-bright-cyan mb-2">
               <AnimatedCounter end={trustStats.averageRating} suffix="/5" />
             </div>
-            <p className="text-gray-600 font-medium">Average Rating</p>
+            <p className="text-gray-600 font-medium">Average rating</p>
           </div>
-          
+
           <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 group">
             <div className="w-16 h-16 bg-soko-dark-teal/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-soko-dark-teal/20 transition-colors">
               <ArrowRight className="text-soko-dark-teal" size={28} />
@@ -324,7 +276,7 @@ const TestimonialsSection = ({
             <div className="text-4xl font-bold text-soko-dark-teal mb-2">
               <AnimatedCounter end={trustStats.countriesServed} suffix="+" />
             </div>
-            <p className="text-gray-600 font-medium">Countries Served</p>
+            <p className="text-gray-600 font-medium">Countries reached</p>
           </div>
         </div>
       </div>

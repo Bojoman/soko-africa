@@ -35,18 +35,20 @@ export const FormInput = ({
           placeholder={placeholder}
           className={cn(
             'w-full py-3 text-black placeholder-gray-500 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500',
-            Icon ? 'pl-10 pr-4' : 'px-4',
+            Icon ? 'pl-10' : 'px-4',
+            togglePassword && EyeIcon && EyeOffIcon ? 'pr-10' : Icon ? 'pr-4' : 'px-4',
             error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300',
             className
           )}
           {...register(name)}
           {...props}
         />
-        {type === 'password' && togglePassword && (
+        {togglePassword && EyeIcon && EyeOffIcon && (
           <button
             type="button"
             onClick={togglePassword}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
             {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
           </button>

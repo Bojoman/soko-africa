@@ -77,10 +77,14 @@ export async function getOrder(orderId) {
 // No `amount` param — the backend always charges the server-side order
 // total and rejects a client-supplied amount (see H2 in the security
 // review). Passing one here would just be misleading dead weight.
-export async function startMpesaStk(orderId, phone) {
+export async function startMpesaStk(orderId, phone, opts = {}) {
   return jsonFetch('/api/payments/mpesa/stk', {
     method: 'POST',
-    body: JSON.stringify({ orderId, phone })
+    body: JSON.stringify({
+      orderId,
+      phone,
+      ...(opts.forceNew ? { forceNew: true } : {})
+    })
   });
 }
 

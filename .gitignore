@@ -62,3 +62,11 @@ apps/backend/prisma/generated/
 soko-local.dump
 *.dump
 
+.vercel
+
+# Product images uploaded at runtime. The seeded catalog images in this
+# directory are already tracked; use `git add -f` for any new seed asset.
+apps/backend/public/products/*-????????.png
+apps/backend/public/products/*-????????.jpg
+apps/backend/public/products/*-????????.jpeg
+apps/backend/public/products/*-????????.webp

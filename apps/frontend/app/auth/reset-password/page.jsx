@@ -11,7 +11,7 @@ import { FormButton } from '../../components/forms/FormButton';
 import { FormAlert } from '../../components/forms/FormAlert';
 import { resetPasswordSchema } from '../../lib/validations';
 import { authApi } from '../../lib/api';
-import { Lock, ArrowLeft } from 'lucide-react';
+import { Lock, ArrowLeft, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -19,6 +19,8 @@ function ResetPasswordForm() {
   const token = searchParams.get('token') || '';
   const [serverError, setServerError] = React.useState('');
   const [done, setDone] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   const methods = useForm({
     resolver: zodResolver(resetPasswordSchema),
@@ -53,9 +55,16 @@ function ResetPasswordForm() {
 
   if (done) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+      <div
+        role="status"
+        aria-live="polite"
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center"
+      >
+        <CheckCircle2 className="mx-auto mb-4 text-green-600" size={56} />
         <h1 className="text-2xl font-bold text-soko-dark-teal mb-2">Password updated</h1>
-        <p className="text-gray-600">Redirecting you to sign in…</p>
+        <p className="text-gray-600">
+          Your Soko Africa password has been changed. Redirecting you to sign in…
+        </p>
       </div>
     );
   }
@@ -70,8 +79,32 @@ function ResetPasswordForm() {
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
           <input type="hidden" {...methods.register('token')} />
           <FormAlert message={serverError} type="error" />
-          <FormInput name="password" label="New password" type="password" icon={Lock} />
-          <FormInput name="confirmPassword" label="Confirm password" type="password" icon={Lock} />
+          <FormInput
+            name="password"
+            label="New password"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Enter a new password"
+            icon={Lock}
+            showPassword={showPassword}
+            togglePassword={() => setShowPassword((prev) => !prev)}
+            EyeIcon={Eye}
+            EyeOffIcon={EyeOff}
+          />
+          <FormInput
+            name="confirmPassword"
+            label="Confirm password"
+            type={showConfirmPassword ? 'text' : 'password'}
+            placeholder="Re-enter your new password"
+            icon={Lock}
+            showPassword={showConfirmPassword}
+            togglePassword={() => setShowConfirmPassword((prev) => !prev)}
+            EyeIcon={Eye}
+            EyeOffIcon={EyeOff}
+          />
+          <p className="text-xs text-gray-500">
+            At least 8 characters with uppercase, lowercase, a number, and a special
+            character (@$!%*?&amp;).
+          </p>
           <FormButton isLoading={methods.formState.isSubmitting}>Update password</FormButton>
         </form>
       </FormProvider>

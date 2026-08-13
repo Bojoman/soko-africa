@@ -4,6 +4,22 @@ import { logSecurityEvent } from '../../lib/security-events.js';
 
 const SALT_ROUNDS = 12;
 
+const authUserSelect = {
+  id: true,
+  email: true,
+  role: true,
+  firstName: true,
+  lastName: true,
+  sellerProfile: {
+    select: {
+      id: true,
+      shopName: true,
+      slug: true,
+      verificationStatus: true
+    }
+  }
+};
+
 const registerSchema = {
   body: {
     type: 'object',
@@ -136,8 +152,8 @@ export default async function (fastify) {
   }, async (request, reply) => {
     const { password, firstName, lastName } = request.body;
     const email = String(request.body.email || '').trim().toLowerCase();
-    const role = request.body.role === 'seller' ? 'SELLER' : 'CUSTOMER';
-
+    // Seller role is granted only after POST /sellers creates a shop profile.
+    // The register form's "seller" option only controls the post-signup redirect.
     const existingUser = await fastify.prisma.user.findUnique({
       where: { email },
       select: { id: true }
@@ -159,15 +175,9 @@ export default async function (fastify) {
         passwordHash,
         firstName,
         lastName,
-        role
+        role: 'CUSTOMER'
       },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        firstName: true,
-        lastName: true
-      }
+      select: authUserSelect
     });
 
     const accessToken = fastify.signAccessToken({ sub: user.id, role: user.role });
@@ -210,11 +220,7 @@ export default async function (fastify) {
     const user = await fastify.prisma.user.findUnique({
       where: { email },
       select: {
-        id: true,
-        email: true,
-        role: true,
-        firstName: true,
-        lastName: true,
+        ...authUserSelect,
         passwordHash: true,
         isActive: true
       }
@@ -257,14 +263,10 @@ export default async function (fastify) {
 
     await logSecurityEvent(fastify, 'LOGIN_SUCCESS', 'LOW', { userId: user.id, email });
 
+    const { passwordHash: _pw, isActive: _active, ...safeUser } = user;
+
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        firstName: user.firstName,
-        lastName: user.lastName
-      },
+      user: safeUser,
       tokens: {
         accessToken,
         refreshToken,

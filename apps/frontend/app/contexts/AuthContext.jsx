@@ -121,10 +121,11 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setLoading(true);
-      const data = await authApi.login(email, password);
-      setUser(data.user);
+      await authApi.login(email, password);
+      const profile = await authApi.me();
+      setUser(profile);
       setIsAuthenticated(true);
-      return { success: true, user: data.user };
+      return { success: true, user: profile };
     } catch (error) {
       return { success: false, error: error.message || 'Login failed' };
     } finally {
@@ -135,10 +136,11 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
-      const data = await authApi.register(userData);
-      setUser(data.user);
+      await authApi.register(userData);
+      const profile = await authApi.me();
+      setUser(profile);
       setIsAuthenticated(true);
-      return { success: true, user: data.user };
+      return { success: true, user: profile };
     } catch (error) {
       return { success: false, error: error.message || 'Registration failed' };
     } finally {
