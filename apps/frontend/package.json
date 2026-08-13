@@ -12,7 +12,7 @@
   "dependencies": {
     "@soko/units": "workspace:*",
     "@base-ui/react": "^1.4.1",
-    "@hookform/resolvers": "^5.2.2",
+    "@hookform/resolvers": "^5.7.1",
     "@paypal/react-paypal-js": "^9.2.0",
     "@sentry/nextjs": "^10.60.0",
     "@stripe/react-stripe-js": "^6.4.0",
