@@ -42,7 +42,7 @@
     "fastify-plugin": "^5.1.0",
     "fastify-raw-body": "^5.0.0",
     "nodemailer": "^9.0.1",
-    "pg": "^8.13.1",
+    "pg": "^8.22.0",
     "pino": "^10.3.1",
     "stripe": "^22.2.0"
   },
