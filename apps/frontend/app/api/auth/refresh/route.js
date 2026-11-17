@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import {
   applyAuthCookies,
-  getRefreshTokenFromCookies
+  getRefreshTokenFromCookies,
+  hasRememberMeCookie
 } from '@/lib/auth-cookies';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -38,7 +39,7 @@ export async function POST() {
 
     const res = NextResponse.json({ ok: true });
     if (data.tokens) {
-      applyAuthCookies(res, data.tokens);
+      applyAuthCookies(res, data.tokens, { rememberMe: await hasRememberMeCookie() });
     }
     return res;
   } catch {

@@ -6,8 +6,9 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 export async function GET(request, ctx) {
   const { id } = await ctx.params;
   const res = await fetch(`${API_BASE}/orders/${encodeURIComponent(id)}`, {
-    headers: await proxyAuthHeaders(request, { 'Content-Type': 'application/json' })
+    headers: await proxyAuthHeaders(request, { 'Content-Type': 'application/json' }),
+    cache: 'no-store'
   });
   const data = await res.json().catch(() => ({}));
-  return NextResponse.json(data, { status: res.status });
+  return NextResponse.json(data, { status: res.status, headers: { 'Cache-Control': 'private, no-store' } });
 }

@@ -10,6 +10,7 @@ const authUserSelect = {
   role: true,
   firstName: true,
   lastName: true,
+  sellerIntent: true,
   sellerProfile: {
     select: {
       id: true,
@@ -20,10 +21,13 @@ const authUserSelect = {
   }
 };
 
+const SIGNUP_COUNTRIES = ['Kenya', 'Nigeria', 'South Africa', 'Ghana', 'Tanzania', 'Uganda'];
+const PHONE_PATTERN = '^\\s*\\+?[0-9][0-9\\s().-]{6,28}\\s*$';
+
 const registerSchema = {
   body: {
     type: 'object',
-    required: ['email', 'password'],
+    required: ['email', 'password', 'phone', 'country'],
     properties: {
       email: {
         type: 'string',
@@ -46,6 +50,19 @@ const registerSchema = {
         type: 'string',
         minLength: 1,
         maxLength: 100
+      },
+      phone: {
+        type: 'string',
+        minLength: 7,
+        maxLength: 30,
+        pattern: PHONE_PATTERN
+      },
+      country: {
+        type: 'string',
+        enum: SIGNUP_COUNTRIES
+      },
+      newsletterOptIn: {
+        type: 'boolean'
       },
       role: {
         type: 'string',
@@ -152,8 +169,14 @@ export default async function (fastify) {
   }, async (request, reply) => {
     const { password, firstName, lastName } = request.body;
     const email = String(request.body.email || '').trim().toLowerCase();
-    // Seller role is granted only after POST /sellers creates a shop profile.
-    // The register form's "seller" option only controls the post-signup redirect.
+    const phone = String(request.body.phone || '').trim();
+    const country = String(request.body.country || '').trim();
+    // Only customer vs seller-intent is accepted (schema enum). ADMIN, MODERATOR,
+    // and an approved SELLER role are never taken from the registrant. Seller
+    // intent is stored so the welcome email and the client can continue into
+    // /sell?apply=true; the SELLER role still comes from an approved shop.
+    const sellerIntent = request.body.role === 'seller';
+    const newsletterOptIn = request.body.newsletterOptIn === true;
     const existingUser = await fastify.prisma.user.findUnique({
       where: { email },
       select: { id: true }
@@ -175,6 +198,10 @@ export default async function (fastify) {
         passwordHash,
         firstName,
         lastName,
+        phone,
+        country,
+        newsletterOptIn,
+        sellerIntent,
         role: 'CUSTOMER'
       },
       select: authUserSelect
@@ -332,6 +359,8 @@ export default async function (fastify) {
         phone: true,
         country: true,
         bio: true,
+        sellerIntent: true,
+        newsletterOptIn: true,
         createdAt: true,
         sellerProfile: {
           select: {
@@ -419,21 +448,26 @@ export default async function (fastify) {
     });
 
     if (user && user.isActive !== false) {
-      // Failures here must not change the response: the generic message below
-      // is what keeps this endpoint from confirming which emails are registered.
+      // Unknown and inactive addresses never reach this branch, so they stay
+      // on the generic 200 below and are not told whether an account exists.
+      const token = randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+      await fastify.prisma.passwordResetToken.create({
+        data: { token, userId: user.id, expiresAt }
+      });
       try {
-        const token = randomBytes(32).toString('hex');
-        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-        await fastify.prisma.passwordResetToken.create({
-          data: { token, userId: user.id, expiresAt }
-        });
         await fastify.mail.sendPasswordReset(user.email, token);
-        await logSecurityEvent(fastify, 'PASSWORD_RESET_REQUESTED', 'LOW', {
-          userId: user.id
+      } catch {
+        fastify.log.error({ userId: user.id }, 'Password reset email failed');
+        return reply.code(503).send({
+          statusCode: 503,
+          error: 'Service Unavailable',
+          message: 'Could not send the reset email. Please try again.'
         });
-      } catch (err) {
-        fastify.log.error({ err, userId: user.id }, 'Password reset request failed');
       }
+      await logSecurityEvent(fastify, 'PASSWORD_RESET_REQUESTED', 'LOW', {
+        userId: user.id
+      });
     }
 
     return {

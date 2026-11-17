@@ -118,10 +118,10 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email, password, rememberMe = false) => {
     try {
       setLoading(true);
-      await authApi.login(email, password);
+      await authApi.login(email, password, rememberMe);
       const profile = await authApi.me();
       setUser(profile);
       setIsAuthenticated(true);

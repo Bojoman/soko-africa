@@ -12,8 +12,12 @@ import { FormButton } from '../../components/forms/FormButton';
 import { FormAlert } from '../../components/forms/FormAlert';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 
+const GENERIC_RESET_MESSAGE =
+  'If an account exists for that email, a password reset link has been sent.';
+
 export default function ForgotPasswordPage() {
   const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const [successMessage, setSuccessMessage] = React.useState('');
   const [serverError, setServerError] = React.useState('');
   
   const methods = useForm({
@@ -23,12 +27,13 @@ export default function ForgotPasswordPage() {
     },
   });
 
-  const { handleSubmit, reset, formState: { isSubmitting }, getValues } = methods;
+  const { handleSubmit, formState: { isSubmitting } } = methods;
 
   const onSubmit = async (data) => {
     setServerError('');
     try {
-      await authApi.forgotPassword(data.email);
+      const result = await authApi.forgotPassword(data.email);
+      setSuccessMessage(result?.message || GENERIC_RESET_MESSAGE);
       setIsSubmitted(true);
     } catch (error) {
       setServerError(error.message || 'An unexpected error occurred. Please try again.');
@@ -44,9 +49,9 @@ export default function ForgotPasswordPage() {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="text-green-600" size={32} />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Check Your Email</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Password reset</h1>
             <p className="text-gray-600 mb-6">
-              We've sent a password reset link to <strong>{getValues('email')}</strong>.
+              {successMessage || GENERIC_RESET_MESSAGE}
             </p>
             <Link
               href="/auth/login"
@@ -82,7 +87,7 @@ export default function ForgotPasswordPage() {
                 placeholder="Enter your email address"
                 icon={Mail}
               />
-              <FormButton isLoading={isSubmitting}>Send Reset Link</FormButton>
+              <FormButton isLoading={isSubmitting} loadingLabel="Sending…">Send Reset Link</FormButton>
             </form>
           </FormProvider>
 

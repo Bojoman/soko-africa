@@ -74,7 +74,7 @@ function LoginForm() {
   const onSubmit = async (data) => {
     setServerError('');
     setSuccessMessage('');
-    const result = await login(data.email, data.password);
+    const result = await login(data.email, data.password, data.rememberMe === true);
     if (!result.success) {
       setServerError(result.error || 'Login failed. Please check your credentials.');
     }
@@ -124,14 +124,21 @@ function LoginForm() {
                     EyeOffIcon={EyeOff}
                   />
 
-                  <div className="flex items-center justify-between">
-                    <FormCheckbox name="rememberMe" label="Remember me" />
-                    <Link href="/auth/forgot-password" className="text-sm text-orange-600 hover:text-orange-700">
+                  <div className="flex items-center justify-between gap-4">
+                    <FormCheckbox
+                      name="rememberMe"
+                      label="Remember me"
+                      containerClassName="w-auto shrink-0"
+                    />
+                    <Link
+                      href="/auth/forgot-password"
+                      className="shrink-0 whitespace-nowrap text-sm text-orange-600 hover:text-orange-700"
+                    >
                       Forgot password?
                     </Link>
                   </div>
 
-                  <FormButton isLoading={isSubmitting}>Sign In</FormButton>
+                  <FormButton isLoading={isSubmitting} loadingLabel="Signing in…">Sign In</FormButton>
                 </form>
               </FormProvider>
 

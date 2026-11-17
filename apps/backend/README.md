@@ -253,10 +253,19 @@ pnpm --filter backend test # Run tests
 1. Set `NODE_ENV=production`
 2. Generate strong `JWT_SECRET` (64+ chars recommended)
 3. Configure `ALLOWED_ORIGINS` with your frontend domains
-4. Set up proper `DATABASE_URL` with connection pooling
+4. Set `DATABASE_URL` to a direct Postgres URL. The process pools with `DB_POOL_SIZE` (see Render / Neon below).
 5. Enable `TRUST_PROXY=true` if behind a reverse proxy
 6. Run migrations: `pnpm --filter backend exec prisma migrate deploy`
 7. Review and adjust rate limiting settings
+
+### Render and Neon
+`render.yaml` at the repo root is the free-host blueprint: one Node web service, no Dockerfile, no Render Postgres.
+
+`schema.prisma` has no `url` or `directUrl`. `prisma.config.ts` and `plugins/prisma.js` both use `DATABASE_URL` only. On Neon, paste the **direct** connection string (host without `-pooler`, `sslmode=require`). The pooled host is PgBouncer in transaction mode and breaks `prisma migrate deploy`, and there is no second env var to point migrations at.
+
+`preDeployCommand` runs `pnpm --filter backend exec prisma migrate deploy`. Start is `pnpm --filter backend start` (port from `PORT`, bind `0.0.0.0`). Health check is `GET /health/ready`.
+
+Uploads and product image reads use `apps/backend/public/products` on the instance disk. That disk is ephemeral on Render: files written after deploy are lost on restart or redeploy. Images already committed in git stay. No object storage is configured.
 
 ### Health Checks
 Configure your load balancer or orchestrator to use:

@@ -36,6 +36,9 @@ async function getSession(token) {
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
+  // The receipt shell is public. Its API checks account ownership or the
+  // private guest credential before returning any order data.
+  if (/^\/orders\/[^/]+\/?$/.test(pathname)) return NextResponse.next();
 
   const protectedPrefix = Object.keys(protectedRoutes).find((route) =>
     pathname.startsWith(route)

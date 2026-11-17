@@ -22,8 +22,10 @@
  * @property {string} [paymentMethod]
  */
 
+import { apiClient } from './api';
+
 async function jsonFetch(url, init = {}) {
-  const res = await fetch(url, {
+  const res = await apiClient(url.replace(/^\/api/, ''), {
     ...init,
     headers: {
       'Content-Type': 'application/json',

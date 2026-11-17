@@ -205,6 +205,28 @@ test('sale units end to end', async (t) => {
   });
 
   // ---- cleanup ----
+  await t.test('concurrent guest retries create one private unpaid order', async () => {
+    const headers = { 'Idempotency-Key': `concurrent-${Date.now()}-${Math.random()}` };
+    const body = {
+      items: [{ productId: plums.id, name: PLUMS.name, price: 180, quantity: 1.5 }],
+      contact: { email: 'private-buyer@example.test' }
+    };
+    const responses = await Promise.all(Array.from({ length: 4 }, () => api('/orders', {
+      method: 'POST', headers, body
+    })));
+    for (const { res, data } of responses) {
+      assert.ok([200, 201].includes(res.status), JSON.stringify(data));
+      assert.equal(data.status, 'PENDING_PAYMENT');
+    }
+    const ids = new Set(responses.map(r => r.data.orderId));
+    assert.equal(ids.size, 1);
+    const [id] = ids;
+    assert.equal((await api(`/orders/${id}`)).res.status, 200);
+    const stranger = await api(`/orders/${id}`, { headers: { 'X-Guest-Order-Token': 'a'.repeat(64) } });
+    assert.equal(stranger.res.status, 404);
+    assert.ok(!JSON.stringify(stranger.data).includes('private-buyer@example.test'));
+  });
+
   await api(`/products/${plums.id}`, { method: 'DELETE', token });
   await api(`/products/${crate.id}`, { method: 'DELETE', token });
 });

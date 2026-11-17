@@ -7,14 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
-    "type-check": "tsc --noEmit -p jsconfig.json"
+    "type-check": "tsc --noEmit -p jsconfig.json",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@soko/units": "workspace:*",
     "@base-ui/react": "^1.4.1",
     "@hookform/resolvers": "^5.2.2",
     "@paypal/react-paypal-js": "^9.2.0",
     "@sentry/nextjs": "^10.60.0",
+    "@soko/units": "workspace:*",
     "@stripe/react-stripe-js": "^6.4.0",
     "@stripe/stripe-js": "^9.7.0",
     "@tailwindcss/typography": "^0.5.16",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4.2.4",
     "@types/node": "^22.15.12",
     "@types/react": "^19.2.0",

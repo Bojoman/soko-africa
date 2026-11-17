@@ -76,12 +76,20 @@ export default function SellerDashboard() {
                 </p>
               </div>
             </div>
-            <Link
-              href="/seller/products"
-              className="bg-soko-orange text-white px-4 py-2 rounded-lg hover:bg-soko-dark-red font-semibold"
-            >
-              Manage products
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/sell/register"
+                className="border border-soko-dark-teal text-soko-dark-teal px-4 py-2 rounded-lg hover:bg-soko-cream font-semibold"
+              >
+                Register an orchard
+              </Link>
+              <Link
+                href="/seller/products"
+                className="bg-soko-orange text-white px-4 py-2 rounded-lg hover:bg-soko-dark-red font-semibold"
+              >
+                Manage products
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

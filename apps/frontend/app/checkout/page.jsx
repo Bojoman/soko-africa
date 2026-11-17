@@ -9,6 +9,7 @@ import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../contexts/AuthContext';
+import { apiClient } from '../lib/api';
 import {
   PLACEHOLDER_PRODUCT_IMAGE,
   formatLineLabel,
@@ -550,6 +551,8 @@ export default function CheckoutPage() {
     total
   } = orderTotals;
   const currency = cartItems[0]?.currency || 'USD';
+  const mixedCurrencies = cartItems.some(item => (item.currency || 'USD') !== currency);
+  const paymentOptions = PAYMENT_METHODS.filter(method => method.value !== 'mpesa' || currency === 'KES');
 
   const canSubmit = cartItems.length > 0;
 
@@ -571,6 +574,12 @@ export default function CheckoutPage() {
     setOrderError('');
     const run = (async () => {
       try {
+        if (mixedCurrencies) throw new Error('Please check out items in one currency at a time.');
+        if (getValues().paymentMethod === 'mpesa' && currency !== 'KES') {
+          throw new Error('M-Pesa is available only for orders priced in KES.');
+        }
+        const session = await fetch('/api/checkout/session', { method: 'POST' });
+        if (!session.ok) throw new Error('Could not start checkout. Please try again.');
         const values = getValues();
         const payload = {
           items: cartItems.map((it) => ({
@@ -605,7 +614,7 @@ export default function CheckoutPage() {
           couponCode: appliedCoupon?.code || undefined,
           paymentMethod: values.paymentMethod
         };
-        const res = await fetch('/api/orders', {
+        const res = await apiClient('/orders', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -640,6 +649,7 @@ export default function CheckoutPage() {
     tax,
     total,
     currency,
+    mixedCurrencies,
     appliedCoupon
   ]);
 
@@ -853,7 +863,7 @@ export default function CheckoutPage() {
                       </header>
                       <FormRadioGroup
                         name="paymentMethod"
-                        options={PAYMENT_METHODS}
+                        options={paymentOptions}
                         selectedValue={paymentMethod}
                       />
                       {paymentMethod === 'mpesa' && (

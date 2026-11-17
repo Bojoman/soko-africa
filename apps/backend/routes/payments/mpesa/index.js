@@ -11,6 +11,8 @@ import { finalizePaidOrder } from '../../../lib/finalize-paid-order.js';
 import { logSecurityEvent } from '../../../lib/security-events.js';
 import {
   assertOrderPaymentAccess,
+  assertOrderPayable,
+  orderAccessSelect,
   resolveAuthedUserId
 } from '../../../lib/order-access.js';
 import {
@@ -103,9 +105,13 @@ export default async function (fastify) {
       const authedUserId = await resolveAuthedUserId(request);
       const orderPreview = await fastify.prisma.order.findUnique({
         where: { id: orderId },
-        select: { id: true, status: true, total: true, currency: true, userId: true }
+        select: { ...orderAccessSelect, status: true, total: true, currency: true }
       });
-      if (!assertOrderPaymentAccess(orderPreview, authedUserId, reply)) return;
+      if (!assertOrderPaymentAccess(orderPreview, authedUserId, reply, request)) return;
+      if (!assertOrderPayable(orderPreview, reply)) return;
+      if (orderPreview.currency !== 'KES') {
+        return reply.code(400).send({ message: 'M-Pesa is available only for orders priced in KES' });
+      }
 
       // Serialize STK starts per order so two parallel clicks cannot both
       // call Daraja and create two chargeable prompts.
@@ -122,7 +128,7 @@ export default async function (fastify) {
         if (order.status === 'PAID') {
           return { kind: 'already_paid' };
         }
-        if (['CANCELLED', 'REFUNDED'].includes(order.status)) {
+        if (!['PENDING_PAYMENT', 'FAILED'].includes(order.status)) {
           return { kind: 'not_payable', status: order.status };
         }
 
@@ -486,7 +492,7 @@ export default async function (fastify) {
 
       const payment = await fastify.prisma.payment.findFirst({
         where: { providerRef: checkoutRequestId, provider: 'MPESA' },
-        include: { order: { select: { id: true, status: true, userId: true } } }
+        include: { order: { select: { ...orderAccessSelect, status: true } } }
       });
       if (!payment) {
         return reply.code(404).send({
@@ -497,7 +503,7 @@ export default async function (fastify) {
       }
 
       const authedUserId = await resolveAuthedUserId(request);
-      if (!assertOrderPaymentAccess(payment.order, authedUserId, reply)) return;
+      if (!assertOrderPaymentAccess(payment.order, authedUserId, reply, request)) return;
 
       return {
         checkoutRequestId,

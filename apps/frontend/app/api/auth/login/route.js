@@ -8,11 +8,15 @@ export const dynamic = 'force-dynamic';
 export async function POST(request) {
   try {
     const body = await request.json();
+    const rememberMe = body?.rememberMe === true;
 
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        email: body?.email,
+        password: body?.password
+      }),
       cache: 'no-store'
     });
 
@@ -27,7 +31,7 @@ export async function POST(request) {
 
     const res = NextResponse.json({ user: data.user });
     if (data.tokens) {
-      applyAuthCookies(res, data.tokens);
+      applyAuthCookies(res, data.tokens, { rememberMe });
     }
     return res;
   } catch {

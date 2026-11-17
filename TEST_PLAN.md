@@ -1,5 +1,10 @@
 # Soko Africa — Test Plan (Pre-Deploy)
 
+> Checkout and CI update (2026-11-17): see [CHECKOUT_SAFETY.md](CHECKOUT_SAFETY.md)
+> for the current guest-access migration, isolated integration-test setup and
+> browser regression commands. Cart-only stub payments have been removed.
+> The historical results and checklists below are not current test sign-off.
+
 **Version:** 1.0  
 **Date:** 2026-06-24  
 **Stack:** Next.js 16 (frontend) · Fastify 5 + Prisma 7 + PostgreSQL (backend)

@@ -1,6 +1,7 @@
 import fp from 'fastify-plugin';
 import fastifyJwt from '@fastify/jwt';
 import { randomUUID } from 'crypto';
+import { resolveAccessSession } from '../lib/access-session.js';
 
 export default fp(async (fastify) => {
   const jwtSecret = process.env.JWT_SECRET;
@@ -54,25 +55,13 @@ export default fp(async (fastify) => {
 
   fastify.decorate('authenticate', async (request, reply) => {
     try {
-      await request.jwtVerify();
-
-      // The `role` claim is a snapshot from whenever the token was signed, so a
-      // customer who upgrades to seller keeps failing role-gated routes until
-      // their access token expires. Authorize against the live role instead.
-      const account = await fastify.prisma.user.findUnique({
-        where: { id: request.user.sub },
-        select: { role: true, isActive: true }
-      });
-
-      if (!account || account.isActive === false) {
+      if (!(await resolveAccessSession(request))) {
         return reply.code(401).send({
           statusCode: 401,
           error: 'Unauthorized',
-          message: 'Account is no longer active'
+          message: 'An access token is required'
         });
       }
-
-      request.user.role = account.role;
     } catch (err) {
       // Handle specific JWT errors from @fastify/jwt v10
       const errorCode = err.code || err.message;

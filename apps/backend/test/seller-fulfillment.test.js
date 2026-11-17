@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { BASE, api, backendUp, login } from './helpers/auth.js';
+import { settleTestOrder } from './helpers/paid-fixture.js';
 
 const SELLER = {
   email: 'seed.farmer@soko-africa.test',
@@ -41,28 +42,15 @@ test('seller fulfillment workflow', async (t) => {
   });
   assert.equal(createRes.status, 201, JSON.stringify(product));
 
-  // Place a PAID order via the cart flow, which settles immediately with a
-  // stub payment — the shortest real path to an order a seller can fulfil.
-  const { data: cartData } = await api('/cart', { token });
-  for (const it of cartData?.cart?.items || []) {
-    await api(`/cart/items/${it.id}`, { method: 'DELETE', token });
-  }
-
-  const { res: addRes, data: addData } = await api('/cart/items', {
-    method: 'POST',
-    token,
-    body: { productId: product.id }
-  });
-  assert.equal(addRes.status, 201, JSON.stringify(addData));
-
   const { res: orderRes, data: orderBody } = await api('/orders', {
     method: 'POST',
     token,
-    body: {}
+    body: { items: [{ productId: product.id, name: product.name, price: 100, quantity: 1 }] }
   });
   assert.equal(orderRes.status, 201, JSON.stringify(orderBody));
-  const orderId = orderBody.order.id;
-  assert.equal(orderBody.order.status, 'PAID');
+  const orderId = orderBody.orderId;
+  assert.equal(orderBody.status, 'PENDING_PAYMENT');
+  await settleTestOrder(orderId);
 
   let sellerOrder;
   let line;

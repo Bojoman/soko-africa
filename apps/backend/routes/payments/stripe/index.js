@@ -7,6 +7,8 @@ import { finalizePaidOrder } from '../../../lib/finalize-paid-order.js';
 import { logSecurityEvent } from '../../../lib/security-events.js';
 import {
   assertOrderPaymentAccess,
+  assertOrderPayable,
+  orderAccessSelect,
   resolveAuthedUserId
 } from '../../../lib/order-access.js';
 
@@ -57,7 +59,7 @@ export default async function (fastify) {
       const order = await fastify.prisma.order.findUnique({
         where: { id: orderId },
         select: {
-          id: true,
+          ...orderAccessSelect,
           total: true,
           currency: true,
           status: true,
@@ -65,14 +67,8 @@ export default async function (fastify) {
           userId: true
         }
       });
-      if (!assertOrderPaymentAccess(order, authedUserId, reply)) return;
-      if (order.status === 'PAID') {
-        return reply.code(409).send({
-          statusCode: 409,
-          error: 'Conflict',
-          message: 'Order already paid'
-        });
-      }
+      if (!assertOrderPaymentAccess(order, authedUserId, reply, request)) return;
+      if (!assertOrderPayable(order, reply)) return;
 
       const amount = toMinorUnits(order.total, order.currency);
       const currency = (order.currency || 'USD').toLowerCase();

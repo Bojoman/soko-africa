@@ -1,0 +1,114 @@
+# Render Blueprint — Fastify API only. The storefront is hosted elsewhere.
+# Database is Neon, not Render Postgres. Do not add a databases: block.
+#
+# Prisma 7 stores no URL in schema.prisma. prisma migrate deploy
+# (apps/backend/prisma.config.ts) and the running server
+# (apps/backend/plugins/prisma.js, node-postgres) both read one
+# variable: DATABASE_URL. This repo has no DIRECT_URL and no directUrl.
+#
+# Neon shows two connection strings:
+#   direct (use this):  postgresql://…@ep-xxxx.<region>.aws.neon.tech/neondb?sslmode=require
+#   pooled (do not):    postgresql://…@ep-xxxx-pooler.<region>.aws.neon.tech/neondb?sslmode=require
+# Put the direct string in DATABASE_URL. The hostname must not contain
+# "-pooler". Prisma Migrate takes a session advisory lock; Neon's pooler
+# runs PgBouncer in transaction mode and rejects that lock. The API pools
+# in-process (DB_POOL_SIZE below), so a single web process does not need
+# the pooler host.
+#
+# Disk: seller uploads land in apps/backend/public/products (see
+# routes/uploads and routes/products/media.js). Render's filesystem is
+# ephemeral. Files written after deploy are deleted on restart or the
+# next deploy. Images committed in git are part of the slug and stay.
+# This file does not add object storage.
+#
+# Seed is intentionally not a release step. prisma/seed.js deletes
+# catalog rows and inserts demo users.
+
+services:
+  - type: web
+    name: soko-africa-api
+    runtime: node
+    plan: free
+    # Match the Neon project region (AWS eu-central-1) when you create it.
+    region: frankfurt
+    branch: master
+    # Install only the API workspace so the free builder does not also
+    # install the Next.js app. prisma and cross-env are devDependencies;
+    # do not pass --prod. Generated client is gitignored, so generate here.
+    buildCommand: pnpm install --frozen-lockfile --filter backend... && pnpm --filter backend exec prisma generate
+    # Release command. Runs after the build, with env vars, before traffic.
+    preDeployCommand: pnpm --filter backend exec prisma migrate deploy
+    startCommand: pnpm --filter backend start
+    healthCheckPath: /health/ready
+    envVars:
+      - key: NODE_VERSION
+        value: "24.0.0"
+      - key: NODE_ENV
+        value: production
+      # Render terminates TLS in front of the process.
+      - key: TRUST_PROXY
+        value: "true"
+      # Neon free direct connections are capped. One instance, small pool.
+      - key: DB_POOL_SIZE
+        value: "5"
+      # Required. Neon direct URL, sslmode=require, host without -pooler.
+      - key: DATABASE_URL
+        sync: false
+      # Required. 32+ random characters. The .env.example placeholder is rejected.
+      - key: JWT_SECRET
+        sync: false
+      # Required. Comma-separated frontend origins, no paths. Empty refuses to boot.
+      - key: ALLOWED_ORIGINS
+        sync: false
+      # Public storefront origin used in email links.
+      - key: FRONTEND_URL
+        sync: false
+      # Set to this service's https URL after the first deploy (Swagger only).
+      - key: API_URL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_SECURE
+        value: "false"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      # If STRIPE_SECRET_KEY is set, STRIPE_WEBHOOK_SECRET is also required or boot fails.
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: PAYPAL_ENV
+        value: sandbox
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: MPESA_ENV
+        value: sandbox
+      - key: MPESA_CONSUMER_KEY
+        sync: false
+      - key: MPESA_CONSUMER_SECRET
+        sync: false
+      - key: MPESA_SHORTCODE
+        sync: false
+      - key: MPESA_PASSKEY
+        sync: false
+      # After the first deploy: https://<this-service>.onrender.com/payments/mpesa/callback
+      - key: MPESA_CALLBACK_URL
+        sync: false
+      - key: MPESA_CALLBACK_SECRET
+        sync: false
+      - key: SENTRY_DSN
+        sync: false

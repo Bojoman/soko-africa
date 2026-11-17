@@ -35,6 +35,20 @@ function fromAddress() {
   return process.env.MAIL_FROM || 'SokoAfrica Support <support@sokoafrica.com>';
 }
 
+export function welcomeMessage(user) {
+  const name = String(user.firstName || '').trim();
+  const greeting = name ? `Hi ${name},` : 'Hi,';
+  const htmlGreeting = name ? `Hi ${escapeHtml(name)},` : 'Hi,';
+  const sellerWelcome = user.sellerIntent === true || user.role === 'SELLER';
+  const destination = sellerWelcome ? '/sell?apply=true' : '/account';
+  const action = sellerWelcome ? 'Complete your seller profile' : 'View your account';
+  const link = appUrl(destination);
+  const subject = 'Welcome to SokoAfrica';
+  const text = `${greeting}\n\nYour SokoAfrica account is ready.\n\n${action}: ${link}`;
+  const html = `<p>${htmlGreeting}</p><p>Your SokoAfrica account is ready.</p><p><a href="${link}">${action}</a></p>`;
+  return { to: user.email, subject, text, html };
+}
+
 function appUrl(path = '') {
   const base = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
   return `${base}${path.startsWith('/') ? path : `/${path}`}`;
@@ -43,14 +57,37 @@ function appUrl(path = '') {
 function escapeHtml(value) {
   return String(value).replace(
     /[&<>"']/g,
-    (char) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[char]
+    (char) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char] ?? char)
   );
+}
+
+export function usesLiveMailProvider() {
+  return Boolean(process.env.RESEND_API_KEY) || hasSmtpConfig();
+}
+
+/** Confirmation copy. Deliberately has no national-ID argument so it cannot be mailed. */
+export function farmerRegistrationMessage({ to, farmerName, orchards }) {
+  const recorded = (orchards || [])
+    .map((orchard) => {
+      const crops = (orchard.crops || [])
+        .map((crop) => (crop.variety ? `${crop.crop} (${crop.variety})` : crop.crop))
+        .filter(Boolean)
+        .join(', ');
+      return `${orchard.name}: ${crops || 'crop recorded'}`;
+    })
+    .join('\n');
+  const name = String(farmerName || '').trim() || 'there';
+  const subject = 'Farmer registration received';
+  const text = `Hello ${name},\n\nWe received your orchard registration.\n\nRecorded:\n${recorded}\n\nNo payment is due for this registration.\n`;
+  const html = `<p>Hello ${escapeHtml(name)},</p><p>We received your orchard registration.</p><p>Recorded:</p><pre>${escapeHtml(recorded)}</pre><p>No payment is due for this registration.</p>`;
+  return { to, subject, text, html };
 }
 
 export default fp(async (fastify) => {
@@ -99,18 +136,7 @@ export default fp(async (fastify) => {
     },
 
     async sendWelcome(user) {
-      const name = String(user.firstName || '').trim();
-      const greeting = name ? `Hi ${name},` : 'Hi,';
-      const htmlGreeting = name ? `Hi ${escapeHtml(name)},` : 'Hi,';
-      const destination = user.role === 'SELLER' ? '/sell?apply=true' : '/account';
-      const action = user.role === 'SELLER'
-        ? 'Complete your seller profile'
-        : 'View your account';
-      const link = appUrl(destination);
-      const subject = 'Welcome to SokoAfrica';
-      const text = `${greeting}\n\nYour SokoAfrica account is ready.\n\n${action}: ${link}`;
-      const html = `<p>${htmlGreeting}</p><p>Your SokoAfrica account is ready.</p><p><a href="${link}">${action}</a></p>`;
-      return this.send({ to: user.email, subject, text, html });
+      return this.send(welcomeMessage(user));
     },
 
     async sendPasswordReset(to, token) {

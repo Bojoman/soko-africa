@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { proxyAuthHeaders } from '../../lib/proxy-auth';
-import { applyAuthCookies } from '../../lib/auth-cookies';
+import { applyAuthCookies, hasRememberMeCookie } from '../../lib/auth-cookies';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -26,7 +26,7 @@ export async function POST(request) {
   const { tokens, ...seller } = data;
   const response = NextResponse.json(seller, { status: res.status });
   if (res.ok && tokens) {
-    applyAuthCookies(response, tokens);
+    applyAuthCookies(response, tokens, { rememberMe: await hasRememberMeCookie() });
   }
   return response;
 }

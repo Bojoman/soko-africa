@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { randomBytes } from 'node:crypto';
 
 /**
  * Shared login for the integration tests.
@@ -13,6 +14,7 @@ import { join } from 'node:path';
  */
 
 export const BASE = process.env.API_URL || 'http://127.0.0.1:3001';
+const guestToken = randomBytes(32).toString('hex');
 
 const CACHE_DIR = join(tmpdir(), 'soko-africa-tests');
 const CACHE_FILE = join(CACHE_DIR, 'tokens.json');
@@ -68,17 +70,22 @@ export async function login({ email, password }) {
 }
 
 export async function backendUp() {
+  let ready = false;
   try {
-    const res = await fetch(`${BASE}/health/live`);
-    return res.ok;
+    const res = await fetch(`${BASE}/health/ready`, { signal: AbortSignal.timeout(5000) });
+    ready = res.ok;
   } catch {
-    return false;
+    // A developer may explicitly run only the offline checks.
   }
+  if (!ready && process.env.REQUIRE_INTEGRATION_TESTS === '1') {
+    throw new Error(`Required integration API/database unavailable at ${BASE}`);
+  }
+  return ready;
 }
 
 /** Thin JSON fetch wrapper shared by the integration tests. */
 export async function api(path, { method = 'GET', token, body, headers = {} } = {}) {
-  const h = { ...headers };
+  const h = { 'X-Guest-Order-Token': guestToken, ...headers };
   if (body != null) h['Content-Type'] = 'application/json';
   if (token) h.Authorization = `Bearer ${token}`;
   const res = await fetch(`${BASE}${path}`, {

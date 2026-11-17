@@ -6,19 +6,40 @@ import Header from '../../components/ui/Header';
 import Footer from '../../components/ui/Footer';
 import { useAuth } from '../../contexts/AuthContext';
 import { adminApi } from '../../lib/api';
-import { Shield, Users, Store, Package, DollarSign, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Shield, Users, Store, Package, DollarSign, AlertTriangle, CheckCircle, Sprout, ShoppingBag } from 'lucide-react';
+import FarmerProgress from '../../components/admin/FarmerProgress';
 
 const STAT_META = [
   { key: 'totalUsers', name: 'Total Users', icon: Users, color: 'blue' },
   { key: 'activeSellers', name: 'Active Sellers', icon: Store, color: 'green' },
   { key: 'totalProducts', name: 'Total Products', icon: Package, color: 'purple' },
-  { key: 'platformRevenue', name: 'Platform Revenue', icon: DollarSign, color: 'orange' }
+  { key: 'orderItems', name: 'Order items', icon: Package, color: 'purple' },
+  { key: 'totalOrders', name: 'Orders', icon: ShoppingBag, color: 'blue' },
+  { key: 'paidSales', name: 'Paid sales', icon: DollarSign, color: 'orange' },
+  { key: 'platformRevenue', name: 'Captured payments', icon: DollarSign, color: 'orange' },
+  { key: 'farmerRegistrations', name: 'Farmer registrations', icon: Sprout, color: 'green' },
+  { key: 'orchards', name: 'Orchards', icon: Sprout, color: 'green' }
 ];
+
+function formatMoney(amount, currency) {
+  const value = Number(amount || 0);
+  if (!currency) return value.toLocaleString();
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 0 }).format(value);
+  } catch {
+    return `${currency} ${value.toLocaleString()}`;
+  }
+}
 
 function formatStatValue(key, stat) {
   if (!stat) return '—';
+  if (key === 'paidSales') {
+    const rows = stat.byCurrency || [];
+    if (!rows.length) return 'None';
+    return rows.map((row) => formatMoney(row.total, row.currency)).join(' · ');
+  }
   if (key === 'platformRevenue') {
-    return `$${Number(stat.value || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+    return formatMoney(stat.value, stat.currency || 'USD');
   }
   return Number(stat.value || 0).toLocaleString();
 }
@@ -125,6 +146,15 @@ export default function AdminDashboard() {
               Add product
             </Link>
           </div>
+
+          {loading ? (
+            <section className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <h2 className="text-lg font-semibold text-gray-900">Farmer sourcing progress</h2>
+              <p className="text-sm text-gray-500">Loading figures from the database…</p>
+            </section>
+          ) : (
+            <FarmerProgress report={data?.farmerReport} />
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {STAT_META.map((meta) => (

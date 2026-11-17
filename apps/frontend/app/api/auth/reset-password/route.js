@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { clearAuthCookies } from '@/lib/auth-cookies';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -14,7 +15,9 @@ export async function POST(request) {
       cache: 'no-store'
     });
     const data = await response.json().catch(() => ({}));
-    return NextResponse.json(data, { status: response.status });
+    const res = NextResponse.json(data, { status: response.status });
+    if (response.ok) clearAuthCookies(res);
+    return res;
   } catch {
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }

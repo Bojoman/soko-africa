@@ -17,8 +17,12 @@ import { FormAlert } from '../../components/forms/FormAlert';
 import { FormRadioGroup } from '../../components/forms/FormRadioGroup';
 import { CheckCircle2, Eye, EyeOff, Mail, Lock, User, Phone, MapPin, Store, ShoppingBag } from 'lucide-react';
 
-function registrationRoute(role) {
-  return String(role || '').toLowerCase() === USER_ROLES.SELLER
+function registrationRoute(userOrRole) {
+  if (userOrRole && typeof userOrRole === 'object') {
+    if (userOrRole.sellerIntent === true) return '/sell?apply=true';
+    return registrationRoute(userOrRole.role);
+  }
+  return String(userOrRole || '').toLowerCase() === USER_ROLES.SELLER
     ? '/sell?apply=true'
     : '/account?registered=true';
 }
@@ -55,7 +59,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (isAuthenticated && !authLoading && user && !registeringHereRef.current) {
-      router.push(registrationRoute(user.role));
+      router.push(registrationRoute(user));
     }
   }, [isAuthenticated, authLoading, user, router]);
 
@@ -70,7 +74,7 @@ export default function RegisterPage() {
     registeringHereRef.current = true;
     const result = await registerUser(data);
     if (result.success) {
-      setRedirectTarget(registrationRoute(result.user?.role));
+      setRedirectTarget(registrationRoute(result.user));
       setRegistrationSuccess(true);
     } else {
       registeringHereRef.current = false;
@@ -212,7 +216,7 @@ export default function RegisterPage() {
                     />
                   </div>
 
-                  <FormButton isLoading={isSubmitting}>Create Account</FormButton>
+                  <FormButton isLoading={isSubmitting} loadingLabel="Creating account…">Create Account</FormButton>
                 </form>
               </FormProvider>
 

@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Header from '../components/ui/Header';
 import Footer from '../components/ui/Footer';
 import EnhancedFAQSection from '../components/ui/EnhancedFAQSection';
@@ -114,10 +115,16 @@ export default function SellPage() {
                 >
                   Apply to Sell
                 </button>
-                <button className="border-2 border-soko-cream text-soko-cream hover:bg-soko-cream hover:text-soko-dark-teal font-semibold px-8 py-4 rounded-lg text-lg transition-colors">
-                  See Success Stories
-                </button>
+                <Link
+                  href="/sell/register"
+                  className="border-2 border-soko-cream text-soko-cream hover:bg-soko-cream hover:text-soko-dark-teal font-semibold px-8 py-4 rounded-lg text-lg transition-colors text-center"
+                >
+                  Register an orchard
+                </Link>
               </div>
+              <p className="mt-4 text-sm text-soko-light-blue/80">
+                Orchard registration is a sourcing record for producers. No payment is taken and no seller licence is issued at this step.
+              </p>
             </div>
           </div>
         </section>

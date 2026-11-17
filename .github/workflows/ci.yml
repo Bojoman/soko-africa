@@ -10,7 +10,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/soko_africa?schema=public
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/soko_africa_test?schema=public
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/soko_africa_test?schema=public
+      REQUIRE_INTEGRATION_TESTS: '1'
+      API_URL: http://127.0.0.1:3001
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:3001
       JWT_SECRET: ci-jwt-secret-minimum-32-characters-long-for-tests
       NODE_ENV: test
 
@@ -20,7 +24,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: soko_africa
+          POSTGRES_DB: soko_africa_test
         ports:
           - 5432:5432
         options: >-
@@ -34,11 +38,11 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10.15.1
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -57,13 +61,21 @@ jobs:
       - name: Apply database migrations
         run: pnpm --filter backend exec prisma migrate deploy
 
+      - name: Seed isolated test database
+        run: pnpm --filter backend run db:seed
+
+      - name: Start test API and wait for database readiness
+        run: |
+          pnpm --filter backend start > backend-test.log 2>&1 &
+          node scripts/wait-for-api.mjs
+
       - name: Lint frontend
         run: pnpm --filter frontend lint
 
       - name: Build frontend
         run: pnpm --filter frontend build
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:3001
+          NODE_ENV: production
 
       - name: Backend syntax check
         run: |
@@ -73,6 +85,25 @@ jobs:
 
       - name: Backend tests
         run: pnpm --filter backend test
+
+      - name: Shared units tests
+        run: pnpm --filter @soko/units test
+
+      - name: Install browser
+        run: pnpm --filter frontend exec playwright install --with-deps chromium
+
+      - name: Browser regression tests
+        run: pnpm --filter frontend test:e2e
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-diagnostics
+          path: |
+            backend-test.log
+            apps/frontend/test-results/
+          retention-days: 7
 
   secret-scan:
     runs-on: ubuntu-latest

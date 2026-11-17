@@ -124,13 +124,17 @@ export async function del(endpoint) {
 }
 
 export const authApi = {
-  login: (email, password) => post('/auth/login', { email, password }),
+  login: (email, password, rememberMe = false) =>
+    post('/auth/login', { email, password, rememberMe: rememberMe === true }),
   register: (userData) =>
     post('/auth/register', {
       email: userData.email,
       password: userData.password,
       firstName: userData.firstName,
       lastName: userData.lastName,
+      phone: userData.phone,
+      country: userData.country,
+      newsletterOptIn: userData.subscribeNewsletter === true,
       role: userData.role
     }),
   logout: () => post('/auth/logout', {}),
@@ -216,7 +220,16 @@ export const adminApi = {
   dashboard: () => get('/admin/dashboard'),
   approveSeller: (id) => post(`/admin/sellers/${id}/approve`, {}),
   rejectSeller: (id) => post(`/admin/sellers/${id}/reject`, {}),
-  publishProduct: (id) => post(`/admin/products/${id}/publish`, {})
+  publishProduct: (id) => post(`/admin/products/${id}/publish`, {}),
+  farmers: () => get('/admin/farmers'),
+  farmer: (id) => get(`/admin/farmers/${id}`),
+  reviewFarmer: (id) => patch(`/admin/farmers/${id}`, { status: 'REVIEWED' })
+};
+
+export const farmersApi = {
+  create: (data) => post('/farmers/registrations', data),
+  mine: () => get('/farmers/registrations'),
+  get: (id) => get(`/farmers/registrations/${id}`)
 };
 
 export const paymentMethodsApi = {

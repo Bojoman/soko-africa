@@ -2,7 +2,7 @@
 import React, { Suspense } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../../components/ui/Header';
 import Footer from '../../components/ui/Footer';
@@ -15,7 +15,6 @@ import { Lock, ArrowLeft, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const token = searchParams.get('token') || '';
   const [serverError, setServerError] = React.useState('');
   const [done, setDone] = React.useState(false);
@@ -36,7 +35,9 @@ function ResetPasswordForm() {
     try {
       await authApi.resetPassword(data.token, data.password);
       setDone(true);
-      setTimeout(() => router.push('/auth/login'), 2500);
+      setTimeout(() => {
+        window.location.assign('/auth/login');
+      }, 2500);
     } catch (error) {
       setServerError(error.message || 'Could not reset password');
     }
@@ -105,7 +106,9 @@ function ResetPasswordForm() {
             At least 8 characters with uppercase, lowercase, a number, and a special
             character (@$!%*?&amp;).
           </p>
-          <FormButton isLoading={methods.formState.isSubmitting}>Update password</FormButton>
+          <FormButton isLoading={methods.formState.isSubmitting} loadingLabel="Updating password…">
+            Update password
+          </FormButton>
         </form>
       </FormProvider>
       <div className="mt-6 text-center">

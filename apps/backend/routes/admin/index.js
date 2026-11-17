@@ -1,5 +1,7 @@
 import { computePlatformStats } from '../../lib/platform-stats.js';
 import { relativeTime } from '../../lib/analytics-range.js';
+import { loadFarmerReport } from '../../lib/farmer-registration.js';
+import { mountAdminFarmerRoutes } from '../farmers/index.js';
 
 function requireAdmin(request, reply) {
   if (String(request.user.role || '').toUpperCase() !== 'ADMIN') {
@@ -10,6 +12,8 @@ function requireAdmin(request, reply) {
 }
 
 export default async function (fastify) {
+  mountAdminFarmerRoutes(fastify);
+
   fastify.get('/cache/stats', { onRequest: [fastify.authenticate] }, async (request, reply) => {
     if (!requireAdmin(request, reply)) return;
     return fastify.cache.getStats();
@@ -105,6 +109,23 @@ export default async function (fastify) {
       .slice(0, 10);
 
     const mailConfigured = Boolean(process.env.SMTP_HOST || process.env.SMTP_URL);
+    const paidStatuses = ['PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+    const [orderCount, salesGroups, itemCount, farmerReport] = await Promise.all([
+      fastify.prisma.order.count(),
+      fastify.prisma.order.groupBy({
+        by: ['currency'],
+        where: { status: { in: paidStatuses } },
+        _sum: { total: true },
+        _count: { _all: true }
+      }),
+      fastify.prisma.orderItem.count(),
+      loadFarmerReport(fastify.prisma)
+    ]);
+    const paidSales = salesGroups.map((group) => ({
+      currency: group.currency,
+      total: Number(group._sum.total || 0),
+      orders: group._count?._all ?? group._count ?? 0
+    }));
 
     return {
       stats: {
@@ -115,8 +136,20 @@ export default async function (fastify) {
           value: Number(revenueAgg._sum.amount || 0),
           currency: 'USD',
           changeLabel: 'all time captured'
-        }
+        },
+        totalOrders: { value: orderCount, changeLabel: 'all statuses' },
+        paidSales: {
+          byCurrency: paidSales,
+          changeLabel: paidSales.length ? 'paid, processing, shipped, delivered' : 'No paid sales yet'
+        },
+        orderItems: { value: itemCount, changeLabel: 'line items' },
+        farmerRegistrations: {
+          value: farmerReport.registrations,
+          changeLabel: 'sourcing records'
+        },
+        orchards: { value: farmerReport.orchards, changeLabel: 'registered orchards' }
       },
+      farmerReport,
       pendingApprovals,
       recentActivity: recentActivity.map((a) => ({
         ...a,

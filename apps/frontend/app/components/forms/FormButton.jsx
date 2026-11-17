@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export const FormButton = ({ children, isLoading, className, ...props }) => {
+export const FormButton = ({ children, isLoading, loadingLabel, className, ...props }) => {
   const formCtx = useFormContext();
   const isSubmitting = formCtx?.formState?.isSubmitting ?? false;
   const loading = isLoading || isSubmitting;
@@ -18,7 +18,10 @@ export const FormButton = ({ children, isLoading, className, ...props }) => {
       {...props}
     >
       {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          <span>{loadingLabel || children}</span>
+        </>
       ) : (
         children
       )}

@@ -4,12 +4,12 @@ import { useFormContext } from 'react-hook-form';
 import { cn } from '../../lib/utils';
 import { AlertCircle } from 'lucide-react';
 
-export const FormCheckbox = ({ name, label, className, ...props }) => {
+export const FormCheckbox = ({ name, label, className, containerClassName, ...props }) => {
   const { register, formState: { errors } } = useFormContext();
   const error = errors[name];
 
   return (
-    <div className="w-full">
+    <div className={containerClassName || 'w-full'}>
       <label className="flex items-start">
         <input
           id={name}

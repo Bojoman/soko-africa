@@ -20,7 +20,9 @@ export const registerSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
   phone: z.string().regex(phoneRegex, { message: 'Invalid phone number' }),
   country: z.string().min(1, { message: 'Country is required' }),
-  role: z.nativeEnum(USER_ROLES, { message: 'Please select an account type' }),
+  role: z.enum([USER_ROLES.CUSTOMER, USER_ROLES.SELLER], {
+    message: 'Please select an account type',
+  }),
   password: z.string()
     .min(8, { message: 'Password must be at least 8 characters' })
     .max(128, { message: 'Password cannot exceed 128 characters' })

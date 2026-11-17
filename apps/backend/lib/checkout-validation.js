@@ -68,11 +68,16 @@ export async function validateCheckout(prisma, body) {
   }
 
   const lines = [];
+  const seenProducts = new Set();
   for (const it of items) {
     const productId = it.productId || it.id;
     if (!productId) {
       throw badRequest('Invalid cart line');
     }
+    if (seenProducts.has(productId)) {
+      throw badRequest('Combine duplicate products into one cart line');
+    }
+    seenProducts.add(productId);
 
     const product = await prisma.product.findFirst({
       where: { id: productId, deletedAt: null, status: 'PUBLISHED' },
@@ -112,7 +117,10 @@ export async function validateCheckout(prisma, body) {
       );
     }
 
-    const currency = product.currency || 'USD';
+    const currency = (product.currency || 'USD').toUpperCase();
+    if (lines.length && currency !== lines[0].currency) {
+      throw badRequest('All items in an order must use the same currency');
+    }
     const price = unitPrice(variant, product);
     const subtotalMinor = lineTotalMinor(toMinor(price, currency), quantity);
 
@@ -137,6 +145,9 @@ export async function validateCheckout(prisma, body) {
   }
 
   const currency = lines[0]?.currency || body.currency || 'USD';
+  if (body.paymentMethod === 'mpesa' && currency !== 'KES') {
+    throw badRequest('M-Pesa is available only for orders priced in KES');
+  }
 
   // Sum the already-rounded line totals, so the order total always equals the
   // sum of what the buyer saw on each line.
