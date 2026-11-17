@@ -20,6 +20,7 @@
 # ephemeral. Files written after deploy are deleted on restart or the
 # next deploy. Images committed in git are part of the slug and stay.
 # This file does not add object storage.
+# Always-on Postgres and uploads are docker-compose.yml, not this blueprint.
 #
 # Seed is intentionally not a release step. prisma/seed.js deletes
 # catalog rows and inserts demo users.

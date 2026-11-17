@@ -267,6 +267,10 @@ pnpm --filter backend test # Run tests
 
 Uploads and product image reads use `apps/backend/public/products` on the instance disk. That disk is ephemeral on Render: files written after deploy are lost on restart or redeploy. Images already committed in git stay. No object storage is configured.
 
+### Always-on machine (Docker Compose)
+
+`docker-compose.yml` is for a machine that stays on (local or a free VM). Named volumes keep Postgres and product uploads across restarts. Render's free plan does not keep those volumes. From the repo root, `docker compose up` migrates, then starts the API. It does not seed the database.
+
 ### Health Checks
 Configure your load balancer or orchestrator to use:
 - Liveness: `GET /health/live`

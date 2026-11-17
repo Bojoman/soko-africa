@@ -1,3 +1,10 @@
+# Local or always-on VM runtime. The Postgres user and password below are
+# local dev credentials (postgres / postgres), not production secrets.
+# Named volumes keep Postgres data and product photos across container restarts.
+# Render's free plan does not keep these volumes.
+# Startup runs prisma migrate deploy, then the existing API start script.
+# The destructive seed is not run.
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -12,10 +19,47 @@ services:
     volumes:
       - soko_pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d soko_africa"]
       interval: 5s
       timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/soko_africa?schema=public
+      PORT: "3001"
+      HOST: 0.0.0.0
+      # Local dev placeholder so the process can boot. Not a production secret.
+      JWT_SECRET: local-dev-jwt-secret-not-for-production-use-32chars
+      ALLOWED_ORIGINS: http://localhost:3000
+      FRONTEND_URL: http://localhost:3000
+    volumes:
+      # Uploads and product image reads both use this directory.
+      - soko_product_uploads:/app/apps/backend/public/products
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /app/apps/backend
+    command: ["sh", "-c", "pnpm exec prisma migrate deploy && pnpm start"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3001/health/ready').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
       retries: 5
+      start_period: 40s
 
 volumes:
   soko_pg_data:
+  soko_product_uploads:

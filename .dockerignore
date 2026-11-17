@@ -1,0 +1,13 @@
+.git
+.env
+**/.env
+.env.*
+**/.env.*
+**/node_modules
+**/.next
+**/*.dump
+**/*.docx
+**/coverage
+**/test-results
+**/playwright-report
+**/.vercel
