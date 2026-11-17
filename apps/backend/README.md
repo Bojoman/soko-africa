@@ -263,7 +263,7 @@ pnpm --filter backend test # Run tests
 
 `schema.prisma` has no `url` or `directUrl`. `prisma.config.ts` and `plugins/prisma.js` both use `DATABASE_URL` only. On Neon, paste the **direct** connection string (host without `-pooler`, `sslmode=require`). The pooled host is PgBouncer in transaction mode and breaks `prisma migrate deploy`, and there is no second env var to point migrations at.
 
-`preDeployCommand` runs `pnpm --filter backend exec prisma migrate deploy`. Start is `pnpm --filter backend start` (port from `PORT`, bind `0.0.0.0`). Health check is `GET /health/ready`.
+Start runs `pnpm --filter backend exec prisma migrate deploy` then `pnpm --filter backend start` (port from `PORT`, bind `0.0.0.0`). Health check is `GET /health/ready`.
 
 Uploads and product image reads use `apps/backend/public/products` on the instance disk. That disk is ephemeral on Render: files written after deploy are lost on restart or redeploy. Images already committed in git stay. No object storage is configured.
 

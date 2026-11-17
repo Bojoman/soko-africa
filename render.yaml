@@ -37,9 +37,8 @@ services:
     # install the Next.js app. prisma and cross-env are devDependencies;
     # do not pass --prod. Generated client is gitignored, so generate here.
     buildCommand: pnpm install --frozen-lockfile --filter backend... && pnpm --filter backend exec prisma generate
-    # Release command. Runs after the build, with env vars, before traffic.
-    preDeployCommand: pnpm --filter backend exec prisma migrate deploy
-    startCommand: pnpm --filter backend start
+    # Free tier has no pre-deploy command. Migrate, then start, before traffic.
+    startCommand: pnpm --filter backend exec prisma migrate deploy && pnpm --filter backend start
     healthCheckPath: /health/ready
     envVars:
       - key: NODE_VERSION
