@@ -10,15 +10,31 @@ function isConfigured() {
   return Boolean(process.env.RESEND_API_KEY) || hasSmtpConfig();
 }
 
+const MAIL_TIMEOUT_MS = 6000;
+
+function mailTimeouts() {
+  return {
+    connectionTimeout: MAIL_TIMEOUT_MS,
+    greetingTimeout: MAIL_TIMEOUT_MS,
+    socketTimeout: MAIL_TIMEOUT_MS
+  };
+}
+
 function buildSmtpTransport() {
   if (process.env.SMTP_URL) {
-    return nodemailer.createTransport(process.env.SMTP_URL);
+    // A URL argument does not accept connection timeouts as a second parameter.
+    const transport = nodemailer.createTransport(process.env.SMTP_URL);
+    if (transport.transporter?.options) {
+      Object.assign(transport.transporter.options, mailTimeouts());
+    }
+    return transport;
   }
   if (process.env.SMTP_HOST) {
     return nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '587', 10),
       secure: process.env.SMTP_SECURE === 'true',
+      ...mailTimeouts(),
       auth:
         process.env.SMTP_USER && process.env.SMTP_PASS
           ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
@@ -72,6 +88,12 @@ export function usesLiveMailProvider() {
   return Boolean(process.env.RESEND_API_KEY) || hasSmtpConfig();
 }
 
+export function attachMailErrorListener(transport, log) {
+  transport.on('error', (err) => {
+    log.error({ code: err?.code || 'mail_transport' }, 'Mail transport error');
+  });
+}
+
 /** Confirmation copy. Deliberately has no national-ID argument so it cannot be mailed. */
 export function farmerRegistrationMessage({ to, farmerName, orchards }) {
   const recorded = (orchards || [])
@@ -93,6 +115,9 @@ export function farmerRegistrationMessage({ to, farmerName, orchards }) {
 export default fp(async (fastify) => {
   const enabled = isConfigured() || process.env.NODE_ENV !== 'production';
   const transport = buildSmtpTransport();
+  // Nodemailer re-emits socket failures on the mailer. Without a listener,
+  // that 'error' event crashes the process and the host returns 502.
+  attachMailErrorListener(transport, fastify.log);
 
   fastify.decorate('mail', {
     enabled,
@@ -100,39 +125,54 @@ export default fp(async (fastify) => {
     async send({ to, subject, text, html }) {
       if (!to) return { skipped: true };
 
-      if (process.env.RESEND_API_KEY) {
-        const response = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            from: fromAddress(),
-            to: [to],
-            subject,
-            text,
-            html
-          })
-        });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(result.message || `Resend request failed (${response.status})`);
-        }
-        return result;
+      // jsonTransport resolves successfully. In production that would tell the
+      // caller a reset link was sent when nothing left the machine.
+      if (!usesLiveMailProvider() && process.env.NODE_ENV === 'production') {
+        throw new Error('Mail provider is not configured');
       }
 
-      const info = await transport.sendMail({
-        from: fromAddress(),
-        to,
-        subject,
-        text,
-        html
-      });
-      if (!isConfigured()) {
-        fastify.log.info({ to, subject, preview: info.message }, 'Mail (dev jsonTransport)');
+      try {
+        if (process.env.RESEND_API_KEY) {
+          const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              from: fromAddress(),
+              to: [to],
+              subject,
+              text,
+              html
+            }),
+            signal: AbortSignal.timeout(MAIL_TIMEOUT_MS)
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            const error = new Error('Mail delivery failed');
+            error.code = `resend_${response.status}`;
+            throw error;
+          }
+          return result;
+        }
+
+        const info = await transport.sendMail({
+          from: fromAddress(),
+          to,
+          subject,
+          text,
+          html
+        });
+        if (!isConfigured()) {
+          fastify.log.info({ to, subject }, 'Mail (dev jsonTransport)');
+        }
+        return info;
+      } catch (err) {
+        if (err?.message === 'Mail delivery failed') throw err;
+        fastify.log.error({ code: err?.code || err?.name || 'mail_failed' }, 'Mail delivery failed');
+        throw new Error('Mail delivery failed');
       }
-      return info;
     },
 
     async sendWelcome(user) {
