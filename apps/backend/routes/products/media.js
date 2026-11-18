@@ -10,6 +10,12 @@ const DEFAULT_FILE = 'default-product.png';
 
 const ALLOWED_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.webp']);
 
+// Exact filenames do not change in place. Cache those bytes for a year.
+// A missing file falls back to the placeholder and must stay revalidatable.
+const IMMUTABLE_CACHE = 'public, max-age=31536000, immutable';
+const SHORT_CACHE = 'public, max-age=300';
+const NO_STORE = 'private, no-store';
+
 const CONTENT_TYPES = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -55,29 +61,34 @@ export default async function (fastify) {
     const requested = sanitizeFilename(request.params?.filename);
 
     let result = await loadFile(requested);
+    let fallback = false;
     if (!result) {
       result = await loadFile(DEFAULT_FILE);
+      fallback = Boolean(result);
     }
 
     if (!result) {
-      return reply.code(404).send({
-        statusCode: 404,
-        error: 'Not Found',
-        message: 'Image not found'
-      });
+      return reply
+        .code(404)
+        .header('Cache-Control', NO_STORE)
+        .send({
+          statusCode: 404,
+          error: 'Not Found',
+          message: 'Image not found'
+        });
     }
 
     const ext = extname(result.filename).toLowerCase();
     const contentType = CONTENT_TYPES[ext] || 'image/png';
+    const cacheControl =
+      process.env.NODE_ENV === 'production' && !fallback
+        ? IMMUTABLE_CACHE
+        : SHORT_CACHE;
 
     reply
       .header('Content-Type', contentType)
-      .header(
-        'Cache-Control',
-        process.env.NODE_ENV === 'production'
-          ? 'public, max-age=604800, immutable'
-          : 'public, max-age=300'
-      )
+      .header('Cache-Control', cacheControl)
+      .header('X-Media-Fallback', fallback ? '1' : '0')
       .send(result.buffer);
   });
 }

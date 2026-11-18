@@ -162,10 +162,10 @@ const HeroSection = ({ initialProducts = [] }) => {
             alt={active.title}
             fill
             className="object-cover"
-            priority
-            fetchPriority="high"
+            priority={current === 0}
+            fetchPriority={current === 0 ? 'high' : 'auto'}
             sizes="100vw"
-            quality={75}
+            quality={70}
             unoptimized={
               typeof active.src === 'string' && active.src.startsWith('http')
             }
@@ -262,7 +262,7 @@ const HeroSection = ({ initialProducts = [] }) => {
                   fill
                   className="object-cover"
                   sizes="128px"
-                  quality={60}
+                  quality={70}
                   loading="lazy"
                   unoptimized={
                     typeof slide.src === 'string' && slide.src.startsWith('http')

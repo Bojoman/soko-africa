@@ -93,8 +93,8 @@ const Categories = ({ initialCategories = [] }) => {
                           fill
                           className="object-cover transition-opacity duration-300 group-hover:opacity-90"
                           sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 15vw"
-                          loading={groupIndex === 0 && subIdx < 2 ? 'eager' : 'lazy'}
-                          unoptimized
+                          quality={70}
+                          loading="lazy"
                         />
                       </div>
                       <p className="text-[10px] sm:text-xs text-gray-700 group-hover:text-soko-orange transition-colors line-clamp-1 font-medium">

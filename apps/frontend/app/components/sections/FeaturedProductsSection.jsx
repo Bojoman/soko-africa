@@ -106,7 +106,7 @@ const FeaturedProductsSection = ({
               className="flex gap-4 sm:gap-5 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              {featuredProducts.map((product, index) => (
+              {featuredProducts.map((product) => (
                 <div
                   key={product.id}
                   className="flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px]"
@@ -115,7 +115,6 @@ const FeaturedProductsSection = ({
                     product={product}
                     showWishlist={true}
                     showAddToCart={false}
-                    priority={index < 2}
                     sizes="(max-width: 640px) 70vw, 360px"
                   />
                 </div>

@@ -141,7 +141,7 @@ const ProductCard = ({
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-500"
             sizes={sizes}
-            quality={75}
+            quality={70}
             priority={priority}
             unoptimized={typeof imageSrc === 'string' && imageSrc.startsWith('http')}
             onError={() => setImageSrc(PLACEHOLDER_PRODUCT_IMAGE)}

@@ -376,6 +376,7 @@ export default function ProductDetailPage({ params }) {
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 60vw"
+                  quality={70}
                   priority
                   unoptimized={isHttpUrl(mainImage.url)}
                 />
@@ -434,6 +435,8 @@ export default function ProductDetailPage({ params }) {
                       fill
                       className="object-cover"
                       sizes="80px"
+                      quality={70}
+                      loading="lazy"
                       unoptimized={isHttpUrl(img.url)}
                     />
                   </button>

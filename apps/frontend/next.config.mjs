@@ -8,7 +8,7 @@ const nextConfig = {
   allowedDevOrigins: lanHosts,
   // Image optimization and security
   images: {
-    qualities: [60, 75, 85, 90],
+    qualities: [60, 70, 75, 85, 90],
     remotePatterns: [
       {
         protocol: 'https',
@@ -30,7 +30,9 @@ const nextConfig = {
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 86400,
+    // Match the immutable media cache so an optimized variant is not
+    // rebuilt from Render on the next thumbnail request.
+    minimumCacheTTL: 31536000,
     // Keep SVG opt-in off unless remote SVGs are required — reduces XSS surface.
     dangerouslyAllowSVG: false,
   },
@@ -57,7 +59,24 @@ const nextConfig = {
       return [];
     }
 
+    const immutableImage = {
+      key: 'Cache-Control',
+      value: 'public, max-age=31536000, immutable',
+    };
+    // Static catalog art only. Do not match /api or HTML routes such as
+    // /categories/[slug] — those must stay revalidatable.
+    const staticImageSources = [
+      '/categories/:file.:ext(png|jpe?g|webp|avif)',
+      '/hero/:file.:ext(png|jpe?g|webp|avif)',
+      '/products/:file.:ext(png|jpe?g|webp|avif)',
+      '/utility/:file.:ext(png|jpe?g|webp|avif|svg)',
+    ];
+
     return [
+      ...staticImageSources.map((source) => ({
+        source,
+        headers: [immutableImage],
+      })),
       {
         source: '/(.*)',
         headers: [

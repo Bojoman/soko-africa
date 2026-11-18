@@ -72,8 +72,8 @@ const SeasonalPicksSection = ({
                       fill
                       className="object-cover transition-opacity duration-500 group-hover:opacity-90"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      quality={85}
-                      unoptimized
+                      quality={70}
+                      loading="lazy"
                     />
 
                     <div className="absolute inset-0 bg-black/60 group-hover:bg-black/50 transition-colors duration-300" />

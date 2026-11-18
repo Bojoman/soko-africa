@@ -26,6 +26,8 @@ function SuggestionThumb({ product }) {
       alt=""
       fill
       sizes="44px"
+      quality={70}
+      loading="lazy"
       className="object-cover"
       onError={() => setSrc(PLACEHOLDER_PRODUCT_IMAGE)}
     />
